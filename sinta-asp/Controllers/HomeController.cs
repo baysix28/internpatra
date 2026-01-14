@@ -1,6 +1,4 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using sinta_asp.Models;
 
 namespace sinta_asp.Controllers
 {
@@ -8,18 +6,8 @@ namespace sinta_asp.Controllers
     {
         public IActionResult Index()
         {
+            // Menampilkan Views/Home/Index.cshtml (Dashboard)
             return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }
