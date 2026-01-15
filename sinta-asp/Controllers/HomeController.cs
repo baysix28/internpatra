@@ -11,6 +11,11 @@ namespace sinta_asp.Controllers
             return View();
         }
 
+        public IActionResult Dashboard()
+        {
+            return View(); // Ini nanti nyari file Views/Home/Dashboard.cshtml
+        }
+
         public IActionResult Privacy()
         {
             return View();
