@@ -34,6 +34,108 @@
         z-index: -1;
     }
 
+    /* MODAL KONFIRMASI */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.show {
+        display: flex;
+    }
+
+    .modal-box {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        animation: slideUp 0.4s ease;
+    }
+
+    @@keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--pertamina-blue), var(--pertamina-green));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 40px;
+        color: white;
+    }
+
+    .modal-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 15px;
+    }
+
+    .modal-text {
+        font-size: 16px;
+        color: var(--text-light);
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .modal-btn {
+        padding: 12px 35px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .modal-btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+
+    .modal-btn-cancel:hover {
+        background: #5a6268;
+    }
+
+    .modal-btn-confirm {
+        background: var(--pertamina-green);
+        color: white;
+    }
+
+    .modal-btn-confirm:hover {
+        background: #008f4a;
+    }
+
     /* STEPPER UI */
     .step-wrapper {
         background: white;
@@ -180,6 +282,23 @@
     .alert-validation.show { display: flex; }
 </style>
 
+<!-- Modal Konfirmasi -->
+<div class="modal-overlay" id="modalKonfirmasi">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <i class="fas fa-question-circle"></i>
+        </div>
+        <div class="modal-title">Konfirmasi Pengiriman Data</div>
+        <div class="modal-text">
+            Apakah Anda yakin data yang Anda isi sudah benar dan siap untuk dikirim? Pastikan semua informasi sudah sesuai sebelum melanjutkan.
+        </div>
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-cancel" onclick="tutupModal()">Tidak</button>
+            <button class="modal-btn modal-btn-confirm" onclick="konfirmasiKirim()">Ya, Kirim Data</button>
+        </div>
+    </div>
+</div>
+
 <div class="step-wrapper">
     <div class="step">
         <div class="step-item step-active" onclick="showStep(1)" id="step-tab-1">
@@ -255,10 +374,6 @@
                             <label class="form-label">Instagram <span class="text-danger">*</span></label>
                             <input type="text" class="form-control wajib" id="instagram" placeholder="@@username">
                         </div>
-                        @* <div class="col-12 mb-4">
-                            <label class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
-                            <textarea class="form-control wajib" id="alamat" rows="2"></textarea>
-                        </div> *@
                     </div>
                     <div class="d-flex justify-content-between">
                         <button type="button" class="btn-custom btn-back" onclick="kembaliKeHomepage()">Keluar</button>
@@ -611,13 +726,96 @@
 
     function kembaliKeHomepage() {
         if (confirm('Keluar? Data yang belum disimpan akan hilang.')) {
-            window.location.href = '@Url.Action("Index", "PendaftaranMagang")';
+            window.location.href = '/PendaftaranMagang';
         }
     }
 
     function simpanSemua() {
-        // Logika final simpan di sini
-        alert('Data berhasil disimpan! Mengalihkan...');
+        // Cek apakah semua data sudah lengkap
+        let semuaLengkap = true;
+        for (let i = 1; i <= 4; i++) {
+            const dot = document.getElementById('dot-' + i);
+            if (dot && dot.style.display === 'flex') {
+                semuaLengkap = false;
+                break;
+            }
+        }
+
+        if (!semuaLengkap) {
+            alert('Mohon lengkapi semua data yang wajib diisi!');
+            return;
+        }
+
+        // Tampilkan modal konfirmasi
+        document.getElementById('modalKonfirmasi').classList.add('show');
+    }
+
+    function tutupModal() {
+        document.getElementById('modalKonfirmasi').classList.remove('show');
+    }
+
+    function konfirmasiKirim() {
+        // Tutup modal
+        tutupModal();
+        
+        // TODO: Kirim data menggunakan AJAX atau submit form
+        // Untuk sementara redirect langsung
+        window.location.href = '/PendaftaranMagang/Sukses';
+        
+        // CONTOH JIKA MENGGUNAKAN AJAX:
+        /*
+        const formData = new FormData();
+        
+        // Data Diri
+        formData.append('Foto', document.getElementById('foto').files[0]);
+        formData.append('Nama', document.getElementById('nama').value);
+        formData.append('Email', document.getElementById('email').value);
+        formData.append('TempatLahir', document.getElementById('tempat_lahir').value);
+        formData.append('TanggalLahir', document.getElementById('tanggal_lahir').value);
+        formData.append('NoHp', document.getElementById('no_hp').value);
+        formData.append('Instagram', document.getElementById('instagram').value);
+        
+        // Data Kampus
+        formData.append('PerguruanTinggi', document.getElementById('perguruan_tinggi').value);
+        formData.append('Fakultas', document.getElementById('fakultas').value);
+        formData.append('Jurusan', document.getElementById('jurusan').value);
+        formData.append('Semester', document.getElementById('semester').value);
+        formData.append('IPK', document.getElementById('ipk').value);
+        formData.append('NIM', document.getElementById('nim').value);
+        
+        // Data Magang
+        formData.append('Company', document.getElementById('company').value);
+        formData.append('Region', document.getElementById('region').value);
+        formData.append('Lokasi', document.getElementById('lokasi').value);
+        formData.append('Rekomendasi', document.getElementById('rekomendasi').value);
+        formData.append('TanggalMulai', document.getElementById('tanggal_mulai').value);
+        formData.append('TanggalSelesai', document.getElementById('tanggal_selesai').value);
+        
+        // File Pendukung
+        formData.append('FileCV', document.getElementById('file_cv').files[0]);
+        formData.append('FileSuratPengantar', document.getElementById('file_surat_pengantar').files[0]);
+        formData.append('FileProposal', document.getElementById('file_transkrip').files[0]);
+        
+        // Kirim data
+        fetch('/PendaftaranMagang/Store', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/PendaftaranMagang/Sukses';
+            } else {
+                alert('Terjadi kesalahan saat menyimpan data!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat mengirim data!');
+        });
+        */
     }
 
     window.onload = cekDataLengkap;
