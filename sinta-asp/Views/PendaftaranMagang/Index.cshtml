@@ -323,6 +323,21 @@
         overflow: hidden;
     }
 
+    /* Styling Tooltip agar sesuai tema Pertamina */
+    .tooltip-inner {
+        background-color: var(--pertamina-blue) !important;
+        padding: 10px 15px;
+        font-size: 13px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        max-width: 250px;
+        text-align: left;
+    }
+
+    .tooltip .tooltip-arrow::before {
+        border-top-color: var(--pertamina-blue) !important;
+    }
+
     /* RESPONSIVE */
     @@media (max-width: 768px) {
         .hero-title { font-size: 32px; }

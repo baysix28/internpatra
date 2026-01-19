@@ -10,11 +10,11 @@ namespace sinta_asp.Models
 
         [Required(ErrorMessage = "Nama lengkap wajib diisi")]
         [StringLength(100, ErrorMessage = "Nama maksimal 100 karakter")]
-        public string? Nama { get; set; }
+        public string? NamaLengkap { get; set; }
 
         [Required(ErrorMessage = "Email wajib diisi")]
         [EmailAddress(ErrorMessage = "Format email tidak valid")]
-        public string? Email { get; set; }
+        public string? EmailPribadi { get; set; }
 
         [Required(ErrorMessage = "Tempat lahir wajib diisi")]
         [StringLength(50, ErrorMessage = "Tempat lahir maksimal 50 karakter")]
@@ -36,7 +36,7 @@ namespace sinta_asp.Models
         // ========== DATA KAMPUS ==========
         [Required(ErrorMessage = "Nama perguruan tinggi wajib diisi")]
         [StringLength(100, ErrorMessage = "Nama perguruan tinggi maksimal 100 karakter")]
-        public string? PerguruanTinggi { get; set; }
+        public string? NamaPerguruanTinggi { get; set; }
 
         [Required(ErrorMessage = "Fakultas wajib diisi")]
         [StringLength(100, ErrorMessage = "Fakultas maksimal 100 karakter")]
@@ -45,15 +45,6 @@ namespace sinta_asp.Models
         [Required(ErrorMessage = "Jurusan wajib diisi")]
         [StringLength(100, ErrorMessage = "Jurusan maksimal 100 karakter")]
         public string? Jurusan { get; set; }
-
-        [Required(ErrorMessage = "Semester wajib diisi")]
-        [Range(1, 14, ErrorMessage = "Semester harus antara 1-14")]
-        public int? Semester { get; set; }
-
-        [Required(ErrorMessage = "IPK wajib diisi")]
-        [Range(0.0, 4.0, ErrorMessage = "IPK harus antara 0.00 - 4.00")]
-        [RegularExpression(@"^\d{1}\.\d{2}$", ErrorMessage = "Format IPK: X.XX (contoh: 3.50)")]
-        public string? IPK { get; set; }
 
         [Required(ErrorMessage = "NIM wajib diisi")]
         [StringLength(20, ErrorMessage = "NIM maksimal 20 karakter")]
@@ -71,16 +62,16 @@ namespace sinta_asp.Models
 
         // Opsional
         [StringLength(200, ErrorMessage = "Rekomendasi maksimal 200 karakter")]
-        public string? Rekomendasi { get; set; }
+        public string? RekomendasiPegawai { get; set; }
 
         [Required(ErrorMessage = "Tanggal mulai magang wajib diisi")]
         [DataType(DataType.Date)]
-        public DateTime? TanggalMulai { get; set; }
+        public DateTime? MulaiMagang { get; set; }
 
         [Required(ErrorMessage = "Tanggal selesai magang wajib diisi")]
         [DataType(DataType.Date)]
-        public DateTime? TanggalSelesai { get; set; }
-
+        public DateTime? SelesaiMagang { get; set; }
+        
         // ========== FILE PENDUKUNG ==========
         [Required(ErrorMessage = "CV wajib diupload")]
         public IFormFile? FileCV { get; set; }
@@ -97,13 +88,13 @@ namespace sinta_asp.Models
             var results = new List<ValidationResult>();
 
             // Validasi tanggal selesai harus setelah tanggal mulai
-            if (TanggalMulai.HasValue && TanggalSelesai.HasValue)
+            if (MulaiMagang.HasValue && SelesaiMagang.HasValue)
             {
-                if (TanggalSelesai <= TanggalMulai)
+                if (SelesaiMagang <= MulaiMagang)
                 {
                     results.Add(new ValidationResult(
                         "Tanggal selesai harus setelah tanggal mulai",
-                        new[] { nameof(TanggalSelesai) }
+                        new[] { nameof(SelesaiMagang) }
                     ));
                 }
             }

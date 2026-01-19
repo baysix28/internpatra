@@ -16,13 +16,10 @@ namespace sinta_asp.Models
         public DateTime TanggalLahir { get; set; }
         public string? NoHp { get; set; }
         public string? Instagram { get; set; }
-        // public string? AlamatLengkap { get; set; }
 
         public string? NamaPerguruanTinggi { get; set; }
         public string? Fakultas { get; set; }
         public string? Jurusan { get; set; }
-        public int Semester { get; set; }
-        public decimal Ipk { get; set; }
         public string? Nim { get; set; }
 
         public string? Company { get; set; }
@@ -33,7 +30,7 @@ namespace sinta_asp.Models
         public DateTime SelesaiMagang { get; set; }
 
         public string? FileCv { get; set; }
-        public string? FilePengantar { get; set; }
+        public string? FileSuratPengantar { get; set; }
         public string? FileProposal { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.Now;
