@@ -2,21 +2,25 @@
 @{
     ViewData["Title"] = "Formulir Pendaftaran";
     
-    // 1. TANGKAP DATA DARI URL (JALUR VIP)
+    // VARIABEL PENYELAMAT SIMBOL @
+    var at = "@"; 
+
+    // 1. TANGKAP DATA DARI URL
     var preCompany = Context.Request.Query["preCompany"].ToString();
     var preRegion = Context.Request.Query["preRegion"].ToString();
-    var preTargetLokasi = Context.Request.Query["preTargetLokasi"].ToString();
     var preTargetJurusan = Context.Request.Query["preTargetJurusan"].ToString();
+    // Catatan: Lokasi tidak kita ambil mentah-mentah sebagai teks mati, tapi sebagai referensi untuk dropdown nanti
 
-    // 2. DETEKTIF: APAKAH INI JALUR KHUSUS (SAKLEK)?
-    // Kalau ada isinya, berarti Jalur VIP. Kalau kosong, Jalur Umum.
+    // 2. LOGIKA JALUR KHUSUS (VIP)
     bool isJalurKhusus = !string.IsNullOrEmpty(preCompany);
 }
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
 <style>
-    @("@")import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-    
+    /* GLOBAL STYLE */
     :root { --p-red: #ED1B24; --p-blue: #00529C; --p-green: #5CB85C; }
-    
     .penelitian-wrapper { background-color: #ffffff; font-family: 'Poppins', sans-serif; color: #444; }
 
     /* HEADER */
@@ -40,26 +44,17 @@
 
     /* STATE WARNA TAB */
     .nav-pills .nav-link.active { background-color: var(--p-blue); color: white !important; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,82,156,0.25); border-color: var(--p-blue); }
-    
     .nav-link.done { background-color: #f0fff4; border-color: var(--p-green); color: var(--p-green) !important; }
-    
-    .nav-link.error { 
-        background-color: #fff5f5; border-color: var(--p-red); color: var(--p-red) !important; 
-        animation: shake 0.4s ease-in-out; 
-    }
+    .nav-link.error { background-color: #fff5f5; border-color: var(--p-red); color: var(--p-red) !important; animation: shake 0.4s ease-in-out; }
     .nav-link.error .step-marker { color: var(--p-red); }
 
-    @("@")keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+    @at keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
 
     /* FORM STYLES */
     .card-form { border: none; border-radius: 20px; box-shadow: 0 0 40px rgba(0,0,0,0.08); background: #fff; }
     .form-control, .form-select { border-radius: 10px; padding: 12px 15px; border: 1px solid #e0e0e0; }
     .form-control:focus { border-color: var(--p-blue); box-shadow: 0 0 0 4px rgba(0,82,156,0.1); }
-    
-    .form-control.is-invalid, .form-select.is-invalid { 
-        border-color: var(--p-red); 
-        background-image: none; 
-    }
+    .form-control.is-invalid, .form-select.is-invalid { border-color: var(--p-red); background-image: none; }
     .invalid-feedback { font-size: 0.85rem; color: var(--p-red); }
     
     .btn-next, .btn-submit { border: none; color: white; padding: 12px 40px; border-radius: 50px; font-weight: 500; }
@@ -67,13 +62,11 @@
     .btn-submit { background: linear-gradient(135deg, var(--p-green), #4cae4c); }
     .btn-back { border: 1px solid #ddd; background: #fff; color: #666; padding: 12px 30px; border-radius: 50px; }
 
-    @("@")media (max-width: 768px) {
+    @at media (max-width: 768px) {
         .step-indicator { flex-direction: column; }
         .nav-link { justify-content: center; }
     }
 </style>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 <div class="penelitian-wrapper">
     <div class="container mb-5">
@@ -86,31 +79,14 @@
                     <p>Lengkapi formulir di bawah ini dengan data yang benar.</p>
                 </div>
 
-                <form asp-action="SubmitPendaftaran" ... >
-                    <input type="hidden" name="TargetLokasi" value="@preTargetLokasi" />
+                <form asp-action="SubmitPendaftaran" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="TargetJurusan" value="@preTargetJurusan" />  
 
                     <ul class="nav nav-pills step-indicator" id="pills-tab" role="tablist">
-                        <li class="nav-item">
-                            <button class="nav-link active" id="tab-1" data-bs-toggle="pill" data-bs-target="#step-1" type="button">
-                                <span class="step-marker">1</span> Personal
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" id="tab-2" data-bs-toggle="pill" data-bs-target="#step-2" type="button">
-                                <span class="step-marker">2</span> Education
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" id="tab-3" data-bs-toggle="pill" data-bs-target="#step-3" type="button">
-                                <span class="step-marker">3</span> Research
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button class="nav-link" id="tab-4" data-bs-toggle="pill" data-bs-target="#step-4" type="button">
-                                <span class="step-marker">4</span> Files
-                            </button>
-                        </li>
+                        <li class="nav-item"><button class="nav-link active" id="tab-1" data-bs-toggle="pill" data-bs-target="#step-1" type="button"><span class="step-marker">1</span> Personal</button></li>
+                        <li class="nav-item"><button class="nav-link" id="tab-2" data-bs-toggle="pill" data-bs-target="#step-2" type="button"><span class="step-marker">2</span> Education</button></li>
+                        <li class="nav-item"><button class="nav-link" id="tab-3" data-bs-toggle="pill" data-bs-target="#step-3" type="button"><span class="step-marker">3</span> Research</button></li>
+                        <li class="nav-item"><button class="nav-link" id="tab-4" data-bs-toggle="pill" data-bs-target="#step-4" type="button"><span class="step-marker">4</span> Files</button></li>
                     </ul>
                     
                     <div class="card card-form">
@@ -147,16 +123,14 @@
                                         <div class="col-12">
                                             <label class="form-label">Instagram</label>
                                             <div class="input-group">
-                                                <span class="input-group-text bg-light text-muted">@("@")</span>
+                                                <span class="input-group-text bg-light text-muted">&#64;</span>
                                                 <input type="text" class="form-control" asp-for="Instagram" required>
                                                 <div class="invalid-feedback">Wajib diisi.</div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="mt-5 text-center">
-                                        <button type="button" class="btn btn-next" onclick="nextStep('tab-1', 'tab-2')">
-                                            Selanjutnya <i class="bi bi-arrow-right ms-2"></i>
-                                        </button>
+                                        <button type="button" class="btn btn-next" onclick="nextStep('tab-1', 'tab-2')">Selanjutnya <i class="bi bi-arrow-right ms-2"></i></button>
                                     </div>
                                 </div>
 
@@ -191,13 +165,13 @@
 
                                 <div class="tab-pane fade" id="step-3">
                                     <div class="row g-4">
+                                        
                                         <div class="col-md-6">
                                             <label class="form-label">Company Tujuan</label>
-
                                             @if (isJalurKhusus)
                                             {
                                                 <input type="text" class="form-control bg-light" value="@preCompany" readonly>
-                                                <input type="hidden" asp-for="Company" value="@preCompany">
+                                                <input type="hidden" asp-for="Company" value="@preCompany" id="companyInputLocked">
                                             }
                                             else
                                             {
@@ -212,10 +186,9 @@
 
                                         <div class="col-md-6">
                                             <label class="form-label">Region / Unit Operasi</label>
-
                                             @if (isJalurKhusus)
                                             {
-                                                <input type="text" class="form-control bg-light" value="@preRegion" readonly>
+                                                <input type="text" class="form-control bg-light" value="@preRegion" readonly id="regionInputLocked">
                                                 <input type="hidden" asp-for="Region" value="@preRegion">
                                             }
                                             else
@@ -227,56 +200,15 @@
                                             <div class="invalid-feedback">Wajib dipilih.</div>
                                         </div>
 
-                                        <script>
-                                            // Kita jalankan saat user mengubah pilihan di Company
-                                            document.getElementById('companySelect')?.addEventListener('change', function() {
-                                                
-                                                // 1. Ambil Nilai
-                                                var perusahaan = this.value;
-                                                var targetDropdown = document.getElementById("regionSelect");
-
-                                                // 2. Debugging (Cek apakah nilai masuk?)
-                                                // alert("Script Jalan! Kamu memilih: " + perusahaan);
-
-                                                // 3. Reset Dropdown Region
-                                                targetDropdown.innerHTML = '<option value="">Pilih Region...</option>';
-
-                                                // 4. Cek Logika (Copy-Paste Text Value harus SAMA PERSIS)
-                                                if (perusahaan === "PT Pertamina Patra Niaga (C&T)") {
-                                                    
-                                                    var opsi = [
-                                                        "Regional Jatimbalinus",
-                                                        "Regional Jawa Bagian Tengah",
-                                                        "Regional Jawa Bagian Barat",
-                                                        "Regional Kalimantan",
-                                                        "Regional Maluku Papua",
-                                                        "Regional Sumbagut"
-                                                    ];
-                                                    
-                                                    opsi.forEach(function(item) {
-                                                        var option = document.createElement("option");
-                                                        option.text = item;
-                                                        option.value = item;
-                                                        targetDropdown.add(option);
-                                                    });
-
-                                                } else if (perusahaan === "PT Kilang Pertamina Internasional (KPI)") {
-                                                    
-                                                    var option = document.createElement("option");
-                                                    option.text = "Refinery Unit VI Balongan";
-                                                    option.value = "Refinery Unit VI Balongan";
-                                                    targetDropdown.add(option);
-                                                    
-                                                } else {
-                                                    targetDropdown.innerHTML = '<option value="">Pilih Company Dahulu...</option>';
-                                                }
-                                            });
-                                        </script>
                                         <div class="col-12">
                                             <label class="form-label">Lokasi Penelitian</label>
-                                            <input type="text" class="form-control" asp-for="LokasiPenelitian" required>
-                                            <div class="invalid-feedback">Wajib diisi.</div>
+                                            <select class="form-select" asp-for="LokasiPenelitian" required id="lokasiSelect">
+                                                <option value="">Pilih Region Dahulu...</option>
+                                            </select>
+                                            
+                                            <div class="invalid-feedback">Wajib dipilih.</div>
                                         </div>
+
                                         <div class="col-12">
                                             <label class="form-label">Judul Penelitian</label>
                                             <input type="text" class="form-control" asp-for="JudulPenelitian" required>
@@ -290,11 +222,12 @@
                                         <div class="col-md-6">
                                             <label class="form-label">Selesai</label>
                                             <input type="date" class="form-control" asp-for="TglSelesai" required>
-                                            <div class="invalid-feedback">Wajib diisi.</div> </div>
+                                            <div class="invalid-feedback">Wajib diisi.</div> 
+                                        </div>
                                     </div>
                                     <div class="mt-5 d-flex justify-content-center gap-3">
                                         <button type="button" class="btn btn-back" onclick="prevStep('tab-2')">Kembali</button>
-                                        <button type="button" class="btn btn-next" onclick="nextStep('tab-3', 'tab-4')">Selanjutnya <i class="bi bi-arrow-right"></i></button>
+                                        <button type="button" class="btn btn-next" onclick="nextStep('tab-3', 'tab-4')">Selanjutnya <i class="bi bi-arrow-right ms-2"></i></button>
                                     </div>
                                 </div>
 
@@ -336,167 +269,176 @@
 </div>
 
 <script>
-    function nextStep(currentTabId, nextTabId) {
-        if (validatePane(currentTabId)) {
-            triggerTab(nextTabId);
+    // --- DATA LOKASI PENELITIAN PER REGION ---
+    // (Isinya sama untuk VIP maupun Non-VIP)
+    const dataLokasi = {
+        "Refinery Unit VI Balongan": [
+            "Akuntansi/ Ekonomi & Bisnis", "Elektro (Arus Kuat)", "Elektro (Arus Lemah)", "Emergency & Insurance", "Health", "Hukum", "Ilmu Komunikasi/ Fisip/ Administrasi Publik", "Internal Audit", 
+            "Kelautan/ Perkapalan", "Kimia Murni/ MIPA", "Konversi Energi/ Migas/ Kimia Air Bersih/ Balnding/ Loading", "Logistik/ Pergudangan/ Procurement", "Manajemen/ SDM/ Psikologi",
+            "Metalurgi/ Material / Dirgantara", "Safety (K3)/ SMK3", "Teknik Fisika", "Teknik Industri", "Teknik Informatika", "Teknik Kimia", "Teknik Lingkungan", "Teknik Mesin", "Teknik Mesin (Rotating)", "Teknik Sipil"
+        ],
+        "Regional Jatimbalinus": [
+            "Asset Operation MOR V", "Bitumen Plant Gresik", "C&T IA Jatimbalinus", "Comm, Rel, & CSR MOR V", "Corporate Operation & Service Region V", "Corporate Sales Region V", "DPPU BIL", "DPPU Eltari Group", 
+            "DPPU Iswahyudi", "DPPU Juanda", "DPPU Ngurah Rai", "Finance MOR V", "Fuel Terminal Atapupu", "Fuel Terminal Badas", "Fuel Terminal Bima", "Fuel Terminal Camplong", "Fuel Terminal Ende", "Fuel Terminal Kalabahi",
+            "Fuel Terminal Madiun", "Fuel Terminal Malang", "FueL Terminal Muamere", "Fuel Terminal Reo", "Fuel Terminal Sanggaran", "Fuel Terminal Tenau", "Fuel Terminal Tuban", "Fuel Terminal Waingapu", "HC Jatimbalinus", "HSSE Region V", 
+            "Integrated Terminal Ampenan", "Integrated Terminal Manggis", "Integrated Terminal Surabaya", "Integrated Terminal T. Wangi", "Legal Counsel Regional Jatimbalinus", "Marine Region v", "Medical Jatimbalinus", "Procurement Mor V",
+            "Rel. & Project Dev. Region V", "Retail Bali", "Retail Kediri", "Retail Malang", "Retail NTB", "Retail NTT", "Retail Sales Region V", "Retail Surabaya", "S&D Region V", "SSC ICT VI Jatimbalinus"
+        ],
+        "Regional Jawa Bagian Tengah": [
+            "AFT Adi Sumarmo", "AFT Adi Sutjipto", "AFT Ahmad Yani" , "AFT YIA", "Fuel Terminal Boyolali", "Fuel Terminal Lomanis", "Fuel Terminal Maos", "Fuel Ternminal Rewulu", 
+            "Fuel Terminal Tegal", "Integrated Terminal Cilacap", "Integrated Terminal Semarang", "Kantor Branch Marketing DIY & Surakarta", "Kantor Unit - Asset Operation JBT", 
+            "Kantor Unit - Comm. Rel, & CSR JBT", "Kantor Unit - Corp. Operation & Serv. JBT", "Kantor Unit - Corporate Sales JBT", "Kantor Unit-Finance JBT", "Kantor Unit - HC JBT", 
+            "Kantor Unit - HSSE JBT", "Kantor Internal Audit", "Kantor Legal Counsel JBT", "Kantor Unit - Medical JBT", "Kantor Unit - Operational Risk JBT", "Kantor Unit Procurement JBT", 
+            "Kantor Unit - Rel. & Project Dev. JBT", "Kantor Unit - Retail Sales JBT", "Kantor Unit - SSC ICT V JBT", "Kantor Unit - Supply & Distribution JBT"
+        ],
+        "Regional Jawa Bagian Barat": [
+            "Asset Operation JBB", "Corp. Opt. & Serv. JBB", "Corporate Sales JBB", "DPPU Halim PK Group", "DPPU Husein Sastranegara", "DPPU Kertajati", "Finance JBB", 
+            "Fuel Terminal Bandung Group", "Fuel terminal Cikampek", "Fuel Terminal Tasikmalaya", "Fuel Terminal Tg Gerem", "HSSE JBB", "Human Capital", "Integrated Terminal Balongan",
+            "Integrated Terminal Jakarta", "Legal counsel JBB", "Medical JBB", "MWH & LPG Cylinder", "Procurement JBB", " Reliability & Project Developmnet JBB", 
+            "SA Retail Bandung", "SA Retail Cirebon", "SA Retail Karawang", "SA Retail Sukabumi", "SAM Retail Banten", "SAM Retail Jabode", "SHAFTHI", "SHIPS", "SSC ICT JBB", "Supply & Distributin JBB", "Unit Comm, Rel, & CSR JBB "
+        ],
+        "Regional Kalimantan": [
+            "DPPU APT Pranoto", "DPPU H. Asan", "DPPU Iskandar", "DPPU Juwata", "DPPU Kalimaru", "DPPU Sepinggan", "DPPU Supadio", "DPPU Syamsudin Noor", "DPPU Tjilik Riwut",
+            "Fuel Terminal Pulau Pisau", "Fuel Terminal Kotabaru", "Fuel Terminal Pangkalan Bun", "Fuel Terminal Samarinda", "Fuel Terminal Sampit", "Fuel terminal Sintang", 
+            "Fuel Terminal Tarakan", "Integrated Terminal Balikpapan", "Integrated Terminal Banjarmasin", "Integrated Terminal Pontianak", "Kantor Patra Niaga Region Kalimantan", 
+            "SAM Retail Kalbar", "SAM Retail Kalselteng", "SAM Retail Kaltimut"
+        ],
+        "Regional Maluku Papua": [
+            "Aviation FT Babullah", "Aviation FT Deo", "Aviation FT Depati Mopah", "Aviation FT Dumatubun", "Aviation FT Frans Kaisiepo", "Aviation FT Mathilda", 
+            "Aviation FT Mozes Kilangin", "Aviation FT Paniai", "Aviation FT Pattimura", "Aviation FT Sentani", "Aviation FT Utarom", "FT Biak", "FT Bula", "FT Dobo", 
+            "FT Fak-Fak", "FT Kalimana", "FT Labuha", "FT Manokwari", "FT Masohi", "FT Merauke", "FT Nabire", "FT Namlea", "FT Sanana", "FT Saumlaki", "FT Serui", "FT Sorong", 
+            "FT Ternate", "FT Tobelo", "FT Tual", "IT Jayapura", "IT Wayame", "Kantor Region - Asset Operation Papua-Maluku", "Kantor Region - Comm, Rel, & CSR Papua-Maluku", 
+            "Kantor Region - Corp. Operation & Serv. Papua-Maluku", "Kantor Region - Corporate Sales Papua-Maluku", "Kantor Region - Finance Papua-Maluku", "Kantor Region HC - Papua-Maluku", 
+            "Kantor Region - HSSE Papua-Maluku", "Kantor Region - Legal Counsel Regional Papua-Maluku", "Kantor Region - Medical Papua-Maluku", "Kantor Region - Procurement Papua-Maluku", 
+            "Kantor Region - Rel. & Project Dev. Papua-Maluku", "Kantor Region - Retail Sales Papua-Maluku", "Kantor Region - Supply & Dist. Papua-Maluku", "Sales Area Ambon"
+        ],
+        "Regional Sumbagut": [
+            "Asset Operation Region Sumbagut - Kantor Unit", "Branch Marketing Aceh", "Branch Marketing Kepulauan Riau", "Branch Marketing Riau", "Branch Marketing Sibolga", 
+            "Branch Marketing Sumbar", "Communication & CSR Region Sumbagut - Kantor Unit", "Corp. Operation & Serv. Region Sumbagut - Kantor Unit", "Corporate Sales Region Sumbagut - Kantor Unit", 
+            "DPPU Hang Nadim Group", "DPPU Kualanamu Group", "DPPU Minangkabau", "DPPU SIM", "DPPU SSK II", "Finance Region Sumbagut - Kantor Unit", "Fuel Terminal Batam", 
+            "Fuel Terminal Gunung Sitoli", "Fuel Terminal Kijang Group", "Fuel Terminal Kisaran", "Fuel Terminal Krueng Raya", "Fuel Terminal Medan Group", "Fuel Terminal Meulaboh", 
+            "Fuel Terminal Natuna Group", "Fuel Terminal Pematang Siantar", "Fuel Terminal Sabang", "Fuel Terminal Sei Siak", "Fuel Terminal Sibolga", "Fuel Terminal Simeulue", "Fuel Terminal Tembilahan", 
+            "HC Region Sumbagut - Kantor Unit", "HSSE Region Sumbagut - Kantor Unit", "Integrated Terminal Dumai", "Integrated Terminal Lhokseumawe", "Integrated Terminal Tanjung Uban", 
+            "Integrated Terminal Teluk Kabung", "Legal Counsel Region Sumbagut - Kantor Unit", "Medical Region Sumbagut - Kantor Unit", "Procurement Region Sumbagut - Kantor Unit", 
+            "Rel. & Project Dev. Region - Kantor Unit", "Retail Sales Region Sumbagut - Kantor Unit", "SSC ICT I Regian Sumbagut - Knator Unit", "Supply & Distribution Region Sumbagut - Kantor Unit"
+
+        ]
+    };
+
+    // --- FUNGSI UPDATE DROPDOWN LOKASI ---
+    function updateLokasiDropdown(selectedRegion) {
+        const lokasiSelect = document.getElementById('lokasiSelect');
+        if (!lokasiSelect) return; 
+
+        lokasiSelect.innerHTML = '<option value="">Pilih Lokasi...</option>'; // Reset
+
+        if (dataLokasi[selectedRegion]) {
+            dataLokasi[selectedRegion].forEach(function(loc) {
+                var option = document.createElement("option");
+                option.text = loc;
+                option.value = loc;
+                lokasiSelect.add(option);
+            });
+            // Opsi Tambahan: Buka dropdown biar user sadar (opsional)
+            lokasiSelect.disabled = false;
         } else {
-            const tabBtn = document.getElementById(currentTabId);
-            tabBtn.classList.add('error'); 
+            lokasiSelect.innerHTML = '<option value="">Lokasi tidak tersedia di region ini</option>';
         }
     }
 
-    function prevStep(prevTabId) {
-        triggerTab(prevTabId);
+    // --- NAVIGASI & VALIDASI ---
+    function nextStep(currentTabId, nextTabId) {
+        if (validatePane(currentTabId)) { triggerTab(nextTabId); } 
+        else { document.getElementById(currentTabId).classList.add('error'); }
     }
-
+    function prevStep(prevTabId) { triggerTab(prevTabId); }
     function triggerTab(tabId) {
         var triggerEl = document.querySelector('#' + tabId)
-        if(typeof bootstrap !== 'undefined'){
-            var tab = bootstrap.Tab.getOrCreateInstance(triggerEl)
-            tab.show()
-        } else {
-            triggerEl.click();
-        }
+        if(typeof bootstrap !== 'undefined'){ var tab = bootstrap.Tab.getOrCreateInstance(triggerEl); tab.show(); } 
+        else { triggerEl.click(); }
         window.scrollTo(0, 0);
     }
-
     function validatePane(tabBtnId) {
-        const paneId = tabBtnId.replace('tab', 'step'); 
+        const paneId = tabBtnId.replace('tab', 'step');
         const pane = document.getElementById(paneId);
         const inputs = pane.querySelectorAll('input[required], select[required]');
         let isPaneValid = true;
 
         inputs.forEach(input => {
-            // Reset state
-            input.setCustomValidity(""); 
-            input.classList.remove('is-invalid'); 
-
-            // Validasi Khusus: No HP
+            input.setCustomValidity(""); input.classList.remove('is-invalid'); 
             if (input.name === "NoHp") {
-                const indoRegex = /^08[0-9]{8,11}$/;
-                if (input.value && !indoRegex.test(input.value)) {
-                    input.classList.add('is-invalid'); 
-                    isPaneValid = false;
-                }
+                const indoRegex = /^08[0-9]{8,13}$/;
+                if (input.value && !indoRegex.test(input.value)) { input.classList.add('is-invalid'); isPaneValid = false; }
             }
-
-            // Validasi Khusus: Tanggal (LOGIKA BARU DI SINI)
             if (input.name === "TglSelesai") {
                 const tglMulai = pane.querySelector('input[name="TglMulai"]').value;
-                // Ambil div pesan error di bawah input ini
                 const feedbackDiv = input.parentElement.querySelector('.invalid-feedback');
-                
                 if (tglMulai && input.value) {
                     if (new Date(tglMulai) >= new Date(input.value)) {
-                        // 1. Ubah teks pesan error secara dinamis
-                        if(feedbackDiv) feedbackDiv.textContent = "Tanggal Selesai harus lebih besar dari Tanggal Mulai!";
-                        
-                        // 2. Set input jadi invalid
-                        input.setCustomValidity("Invalid Range"); 
-                        input.classList.add('is-invalid');
-                        isPaneValid = false;
-                    } else {
-                        // Kalau sudah benar, kembalikan pesan ke default (jaga-jaga)
-                        if(feedbackDiv) feedbackDiv.textContent = "Wajib diisi.";
-                        input.setCustomValidity(""); 
-                    }
+                        if(feedbackDiv) feedbackDiv.textContent = "Tanggal Selesai harus lebih besar dari Mulai!";
+                        input.setCustomValidity("Invalid Range"); input.classList.add('is-invalid'); isPaneValid = false;
+                    } else { if(feedbackDiv) feedbackDiv.textContent = "Wajib diisi."; }
                 }
             }
-
-            // Validasi Umum HTML5 (Wajib Isi / Required)
-            if (!input.checkValidity()) {
-                input.classList.add('is-invalid');
-                isPaneValid = false;
-            }
+            if (!input.checkValidity()) { input.classList.add('is-invalid'); isPaneValid = false; }
         });
-
         updateTabVisual(tabBtnId, isPaneValid);
-
-        if (!isPaneValid) {
-            const firstError = pane.querySelector('.is-invalid, :invalid');
-            if(firstError) firstError.focus();
-        }
-
+        if (!isPaneValid) { const firstError = pane.querySelector('.is-invalid, :invalid'); if(firstError) firstError.focus(); }
         return isPaneValid;
     }
-
     function updateTabVisual(tabId, isValid) {
         const tabBtn = document.getElementById(tabId);
         const marker = tabBtn.querySelector('.step-marker');
-
         tabBtn.classList.remove('done', 'error');
-
-        if (isValid) {
-            tabBtn.classList.add('done');
-            marker.innerHTML = '<i class="bi bi-check-lg"></i>';
-        } else {
-            tabBtn.classList.add('error');
-            marker.innerHTML = '<i class="bi bi-exclamation-lg"></i>';
-        }
+        if (isValid) { tabBtn.classList.add('done'); marker.innerHTML = '<i class="bi bi-check-lg"></i>'; } 
+        else { tabBtn.classList.add('error'); marker.innerHTML = '<i class="bi bi-exclamation-lg"></i>'; }
     }
 
-    const allTabs = document.querySelectorAll('button[data-bs-toggle="pill"]');
-    allTabs.forEach(tab => {
-        tab.addEventListener('hide.bs.tab', function (e) {
-            const tabDitinggalkan = e.target.id;
-            validatePane(tabDitinggalkan);
-        });
-    });
+    // --- MAIN SCRIPT ---
+    document.addEventListener("DOMContentLoaded", function() {
+        // Tab Listener
+        const allTabs = document.querySelectorAll('button[data-bs-toggle="pill"]');
+        allTabs.forEach(tab => { tab.addEventListener('hide.bs.tab', function (e) { validatePane(e.target.id); }); });
+        const btnSubmit = document.getElementById('btnSubmit');
+        if(btnSubmit){ btnSubmit.addEventListener('click', function(e) { if(!validatePane('tab-4')) e.preventDefault(); }); }
 
-    document.getElementById('btnSubmit').addEventListener('click', function(e) {
-        if(!validatePane('tab-4')) {
-            e.preventDefault();
+        // --- LOGIKA UTAMA DROPDOWN ---
+        const companySelect = document.getElementById('companySelect'); // Non-VIP
+        const regionSelect = document.getElementById('regionSelect');   // Non-VIP
+        const regionInputLocked = document.getElementById('regionInputLocked'); // VIP
+        const lokasiSelect = document.getElementById('lokasiSelect');
+
+        // 1. CEK UNTUK VIP: Apakah Region sudah terkunci (ada valuenya)?
+        if (regionInputLocked && regionInputLocked.value) {
+            // Langsung isi dropdown lokasi berdasarkan region yg terkunci
+            updateLokasiDropdown(regionInputLocked.value);
+        }
+
+        // 2. CEK UNTUK NON-VIP: Kalau Company berubah -> Update list Region
+        if (companySelect && regionSelect) {
+            companySelect.addEventListener('change', function() {
+                var perusahaan = this.value;
+                regionSelect.innerHTML = '<option value="">Pilih Region...</option>';
+                if(lokasiSelect) lokasiSelect.innerHTML = '<option value="">Pilih Region Dahulu...</option>';
+
+                if (perusahaan === "PT Pertamina Patra Niaga (C&T)") {
+                    var opsi = ["Regional Jatimbalinus", "Regional Jawa Bagian Tengah", "Regional Jawa Bagian Barat", "Regional Kalimantan", "Regional Maluku Papua", "Regional Sumbagut"];
+                    opsi.forEach(function(item) {
+                        var option = document.createElement("option"); option.text = item; option.value = item; regionSelect.add(option);
+                    });
+                } else if (perusahaan === "PT Kilang Pertamina Internasional (KPI)") {
+                    var option = document.createElement("option"); option.text = "Refinery Unit VI Balongan"; option.value = "Refinery Unit VI Balongan"; regionSelect.add(option);
+                } else {
+                    regionSelect.innerHTML = '<option value="">Pilih Company Dahulu...</option>';
+                }
+            });
+        }
+
+        // 3. CEK UNTUK NON-VIP: Kalau Region berubah -> Update list Lokasi
+        if (regionSelect) {
+            regionSelect.addEventListener('change', function() {
+                updateLokasiDropdown(this.value);
+            });
         }
     });
-
-<script>
-    // Fungsi ini dipanggil langsung dari HTML (onchange)
-    function cekGantiCompany(elemenSelect) {
-        
-        // 1. Ambil Nilai yang dipilih user
-        var perusahaan = elemenSelect.value;
-        
-        // DEBUG: Munculkan Pop-up biar yakin kodingan jalan (Nanti bisa dihapus)
-        // alert("Kamu memilih: " + perusahaan); 
-
-        // 2. Ambil elemen dropdown region
-        var targetDropdown = document.getElementById("dropdownRegionKhusus");
-
-        // 3. Reset isinya
-        targetDropdown.innerHTML = '<option value="">Pilih Region...</option>';
-
-        // 4. Cek Logika
-        if (perusahaan === "PT Pertamina Patra Niaga") {
-            // Isi Opsi Patra Niaga
-            var opsi = [
-                "Regional Jatimbalinus",
-                "Regional Jawa Bagian Tengah",
-                "Regional Jawa Bagian Barat",
-                "Regional Kalimantan",
-                "Regional Maluku Papua",
-                "Regional Sumbagut"
-            ];
-            
-            // Masukkan ke dropdown pakai Loop biasa
-            for (var i = 0; i < opsi.length; i++) {
-                var option = document.createElement("option");
-                option.text = opsi[i];
-                option.value = opsi[i];
-                targetDropdown.add(option);
-            }
-
-        } else if (perusahaan === "PT Kilang Pertamina Internasional") {
-            // Isi Opsi Kilang
-            var option = document.createElement("option");
-            option.text = "Refinery Unit VI Balongan";
-            option.value = "Refinery Unit VI Balongan";
-            targetDropdown.add(option);
-
-        } else {
-            // Kalau pilihannya kosong/reset
-            targetDropdown.innerHTML = '<option value="">Pilih Company Dahulu...</option>';
-        }
-    }
-</script>
-
 </script>
