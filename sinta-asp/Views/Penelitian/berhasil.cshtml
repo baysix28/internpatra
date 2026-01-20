@@ -1,0 +1,65 @@
+@{
+    ViewData["Title"] = "Pendaftaran Berhasil";
+    Layout = null; /* PENTING: Biar halaman ini berdiri sendiri (Full Screen) */
+}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pendaftaran Berhasil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Langsung disini */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #F7FAFC; /* Background abu muda bersih */
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 { color: #0055A4; margin-bottom: 10px; font-size: 24px; }
+        p { color: #718096; font-size: 14px; margin-bottom: 30px; }
+        .btn {
+            background: #0055A4;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: 500;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #00448a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div style="font-size: 50px; color: #63B448; margin-bottom: 20px;">✓</div>
+        
+        <h1>Pendaftaran Berhasil</h1>
+        <p>Data kamu sudah masuk ke sistem SINTA Pertamina.</p>
+        
+        <a asp-action="Index" asp-controller="Penelitian" class="btn">Kembali ke Menu</a>
+    </div>
+
+</body>
+</html>

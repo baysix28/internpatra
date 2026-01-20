@@ -1,5 +1,5 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
+@{
+    ViewData["Title"] = "Dashboard Utama";
 }
 
 <div class="container mt-5">
@@ -8,15 +8,16 @@
         <div class="col-md-4">
             <h4>Magang Kerja</h4>
             <p>Mau merasakan magang di PT. Pertamina (Persero)?</p>
-            <a href="@Url.Action("Index", "PendaftaranMagang")" class="btn btn-primary w-100">
-                Informasi Magang Kerja
+            <a href="#" class="btn btn-primary w-100">
+                Daftar Magang Kerja
             </a>
         </div>
 
         <div class="col-md-4">
             <h4>Penelitian</h4>
             <p>Penelitianmu berkaitan dengan Pertamina?</p>
-            <a href="@Url.Action("Index", "Penelitian")" class="btn btn-info text-white w-100">
+            
+            <a asp-controller="Penelitian" asp-action="Index" class="btn btn-info text-white w-100">
                 Daftar Penelitian
             </a>
         </div>
@@ -24,7 +25,7 @@
         <div class="col-md-4">
             <h4>Hasil Pendaftaran</h4>
             <p>Penasaran apakah pendaftaranmu diterima?</p>
-            <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-success w-100">
+            <a href="#" class="btn btn-success w-100">
                 Periksa Hasil Pendaftaran
             </a>
         </div>
