@@ -1,17 +1,16 @@
-using Microsoft.EntityFrameworkCore; // <-- Pastikan ada di paling atas
-using sinta_asp.Data; // <-- Ini bakal merah sebentar, abaikan dulu
+using Microsoft.EntityFrameworkCore;
+using sinta_asp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // --- SETTING KONEKSI MYSQL (LARAGON) ---
+// Kita pakai yang ini karena sesuai dengan database kamu
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-// ---------------------------------------
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
+);
+// ---------------------------------------
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -27,15 +26,14 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
 
 app.UseAuthorization();
 
-app.UseStaticFiles();
-
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 
 app.Run();
