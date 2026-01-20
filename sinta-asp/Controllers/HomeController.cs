@@ -1,6 +1,4 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using sinta_asp.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace sinta_asp.Controllers
 {
@@ -8,18 +6,16 @@ namespace sinta_asp.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            // Redirect langsung ke Admin Login
+            return RedirectToAction("Index", "Login", new { area = "Admin" });
+
+            // ATAU tampilkan halaman welcome:
+            // return View();
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View();
         }
     }
 }

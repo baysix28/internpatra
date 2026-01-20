@@ -1,4 +1,4 @@
-namespace sinta_asp.Models
+﻿namespace sinta_asp.Models
 {
     public class ErrorViewModel
     {
