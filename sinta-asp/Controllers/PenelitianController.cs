@@ -16,13 +16,7 @@ namespace sinta_asp.Controllers
         public string? Title { get; set; }
         public string? Region { get; set; }
         public string? Company { get; set; } 
-        public string? CompanyNameFull { get; set; }
-        public string? Type { get; set; }
         public string? ImageUrl { get; set; }
-        
-        // --- INI YANG WAJIB DITAMBAHKAN BIAR GAK ERROR ---
-        public string? Lokasi { get; set; }   
-        public string? Jurusan { get; set; }
         public string? Description { get; set; } 
     }
 
@@ -43,21 +37,17 @@ namespace sinta_asp.Controllers
         {
             // --- DATA KPI (KILANG) -> Fokus Jurusan & Proses ---
             new LowonganKerja { 
-                Title = "Process Engineering", 
+                Title = "Akuntansi/ Ekonomi & Bisnis", 
                 Region = "Refinery Unit VI Balongan", 
-                Company = "PT Kilang Pertamina Internasional", 
-                Type = "Internship", 
+                Company = "PT Kilang Pertamina Internasional (KPI)", 
                 ImageUrl = "https://images.unsplash.com/photo-1581092921461-eab62e97a782?w=400",
-                Jurusan = "Teknik Kimia / Fisika",
                 Description = "Mempelajari proses distilasi minyak mentah dan monitoring unit operasi di kilang Balongan untuk menjaga kualitas produk BBM."
             },
             new LowonganKerja { 
-                Title = "Mechanical Rotating", 
+                Title = "Elektro (Arus Kuat)", 
                 Region = "Refinery Unit VI Balongan", 
                 Company = "PT Kilang Pertamina Internasional", 
-                Type = "Internship", 
                 ImageUrl = "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400",
-                Jurusan = "Teknik Mesin",
                 Description = "Fokus pada pemeliharaan dan analisis performa mesin rotasi seperti pompa, kompresor, dan turbin di area kilang."
             },
 
@@ -65,47 +55,44 @@ namespace sinta_asp.Controllers
             new LowonganKerja { 
                 Title = "Asset Operation MOR V", 
                 Region = "Regional Jatimbalinus", 
-                Company = "PT Pertamina Patra Niaga", 
-                Type = "Penelitian", 
+                Company = "PT Pertamina Patra Niaga (C&T)", 
                 ImageUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400",
-                Lokasi = "Integrated Terminal Jakarta (Plumpang)",
                 Description = "Terminal BBM strategis dan terpenting di Indonesia yang menyuplai kebutuhan energi untuk wilayah Jabodetabek."
             },
 
             new LowonganKerja { 
-                Title = "Supply Chain Management", 
+                Title = "Asset Operation JBB", 
                 Region = "Regional Jawa Bagian Barat", 
-                Company = "PT Pertamina Patra Niaga", 
-                Type = "Internship", 
+                Company = "PT Pertamina Patra Niaga (C&T)", 
                 ImageUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400",
-                Lokasi = "Integrated Terminal Jakarta (Plumpang)",
                 Description = "Terminal BBM strategis dan terpenting di Indonesia yang menyuplai kebutuhan energi untuk wilayah Jabodetabek."
             },
             new LowonganKerja { 
-                Title = "Aviation Sales", 
-                Region = "Regional Jatimbalinus", 
-                Company = "PT Pertamina Patra Niaga", 
-                Type = "Full-Time", 
+                Title = "Aviation FT Babullah", 
+                Region = "Regional Maluku Papua", 
+                Company = "PT Pertamina Patra Niaga (C&T)", 
                 ImageUrl = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400",
-                Lokasi = "DPPU Ngurah Rai Bali",
                 Description = "Depot Pengisian Pesawat Udara (DPPU) tersibuk kedua di Indonesia, melayani avtur untuk penerbangan internasional."
             },
             new LowonganKerja { 
-                Title = "IT Support", 
+                Title = "Kantor Unit - SSC ICT V JBT", 
                 Region = "Regional Jawa Bagian Tengah", 
-                Company = "PT Pertamina Patra Niaga", 
-                Type = "Internship", 
+                Company = "PT Pertamina Patra Niaga (C&T)", 
                 ImageUrl = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400",
-                Lokasi = "Kantor Cabang Semarang",
                 Description = "Mendukung operasional IT dan infrastruktur jaringan untuk kelancaran distribusi energi di Jawa Tengah."
             },
              new LowonganKerja { 
-                Title = "Legal & Relations", 
-                Region = "Regional Kalimantan", 
-                Company = "PT Pertamina Patra Niaga", 
-                Type = "Internship", 
+                Title = "Asset Operation Region Sumbagut - Kantor Unit", 
+                Region = "Regional Sumbagut", 
+                Company = "PT Pertamina Patra Niaga (C&T)", 
                 ImageUrl = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400",
-                Lokasi = "Fuel Terminal Balikpapan",
+                Description = "Menangani aspek legalitas aset dan hubungan industrial di salah satu terminal BBM vital di Kalimantan."
+            },
+             new LowonganKerja { 
+                Title = "DPPU APT Pranoto", 
+                Region = "Regional Kalimantan", 
+                Company = "PT Pertamina Patra Niaga (C&T)", 
+                ImageUrl = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400",
                 Description = "Menangani aspek legalitas aset dan hubungan industrial di salah satu terminal BBM vital di Kalimantan."
             }
         };
