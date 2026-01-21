@@ -20,7 +20,7 @@ namespace sinta_asp.Models
         public string? NamaPerguruanTinggi { get; set; }
         public string? Fakultas { get; set; }
         public string? Jurusan { get; set; }
-        public string? Nim { get; set; }
+        public string? NIM { get; set; }
 
         public string? Company { get; set; }
         public string? Region { get; set; }
@@ -32,7 +32,7 @@ namespace sinta_asp.Models
         public string? FileCv { get; set; }
         public string? FileSuratPengantar { get; set; }
         public string? FileProposal { get; set; }
-        
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }
