@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using sinta_asp.Data;
-using sinta_asp.Models;
-using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
@@ -16,36 +15,33 @@ namespace sinta_asp.Areas.Admin.Controllers
             _context = context;
         }
 
-        [HttpGet]
+        // =======================
+        // LOGIN PAGE
+        // =======================
         public IActionResult Index()
         {
             return View();
         }
 
-
-        // ✅ INI TEMPAT YANG BENAR
+        // =======================
+        // PROSES LOGIN
+        // =======================
         [HttpPost]
-        public IActionResult Index(string Email, string Password)
+        public async Task<IActionResult> Index(string Email, string Password)
         {
-            var admin = _context.Admins.FirstOrDefault(a => a.Email == Email);
+            var admin = await _context.Admins
+                .FirstOrDefaultAsync(a => a.Email == Email);
 
-            if (admin != null && BCrypt.Net.BCrypt.Verify(Password, admin.PasswordHash))
-            {
-                // SIMPAN SESSION LOGIN
-                HttpContext.Session.SetString("AdminLogin", "true");
-                HttpContext.Session.SetString("AdminEmail", admin.Email);
-                HttpContext.Session.SetString("AdminName", admin.Nama);
+            if (admin == null)
+                return Json(new { success = false, message = "Email tidak ditemukan" });
 
-                return Json(new { success = true });
-            }
+            if (!BCrypt.Net.BCrypt.Verify(Password, admin.PasswordHash))
+                return Json(new { success = false, message = "Password salah" });
 
-            return Json(new { success = false, message = "Email atau Password salah!" });
-        }
+            HttpContext.Session.SetString("AdminLogin", "true");
+            HttpContext.Session.SetString("AdminEmail", admin.Email);
 
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Index");
+            return Json(new { success = true });
         }
     }
 }
