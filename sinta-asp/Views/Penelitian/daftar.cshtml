@@ -2,14 +2,16 @@
 @{
     ViewData["Title"] = "Formulir Pendaftaran";
     
+    
     // VARIABEL PENYELAMAT SIMBOL @
-    var at = "@"; 
-
+    var at = "@";
     // 1. TANGKAP DATA DARI URL
     var preCompany = Context.Request.Query["preCompany"].ToString();
     var preRegion = Context.Request.Query["preRegion"].ToString();
     var preTargetJurusan = Context.Request.Query["preTargetJurusan"].ToString();
-    // Catatan: Lokasi tidak kita ambil mentah-mentah sebagai teks mati, tapi sebagai referensi untuk dropdown nanti
+
+    // --- [BARU] TANGKAP LOKASI DARI URL ---
+    var preTargetLokasi = Context.Request.Query["preTargetLokasi"].ToString(); 
 
     // 2. LOGIKA JALUR KHUSUS (VIP)
     bool isJalurKhusus = !string.IsNullOrEmpty(preCompany);
@@ -18,54 +20,39 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
+
 <style>
-    /* GLOBAL STYLE */
+    /* GLOBAL STYLE - SAMA SEPERTI SEBELUMNYA */
     :root { --p-red: #ED1B24; --p-blue: #00529C; --p-green: #5CB85C; }
     .penelitian-wrapper { background-color: #ffffff; font-family: 'Poppins', sans-serif; color: #444; }
-
-    /* HEADER */
+    /* ... (CSS LAINNYA TETAP SAMA, TIDAK SAYA TULIS ULANG AGAR HEMAT TEMPAT) ... */
+    
+    /* TAMBAHAN KECIL BIAR RAPI */
+    .readonly-input { background-color: #e9ecef !important; cursor: not-allowed; }
+    
+    /* ... LANJUTAN CSS ASLI ... */
     .page-title-section { position: relative; margin-top: 50px; margin-bottom: 40px; text-align: center; }
     .page-title-section h2 { font-weight: 700; color: var(--p-blue); margin-bottom: 10px; }
-    .btn-back-home {
-        position: absolute; left: 0; top: 0%; transform: translateY(-50%); display: inline-flex; align-items: center; 
-        padding: 10px 20px; background: #fff; border: 1px solid #dee2e6; border-radius: 50px; 
-        color: var(--p-blue); text-decoration: none; font-weight: 600; gap: 8px; transition: 0.3s;
-    }
+    .btn-back-home { position: absolute; left: 0; top: 0%; transform: translateY(-50%); display: inline-flex; align-items: center; padding: 10px 20px; background: #fff; border: 1px solid #dee2e6; border-radius: 50px; color: var(--p-blue); text-decoration: none; font-weight: 600; gap: 8px; transition: 0.3s; }
     .btn-back-home:hover { background: var(--p-blue); color: white; border-color: var(--p-blue); }
-
-    /* STEP INDICATOR */
     .step-indicator { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; border: none; margin-bottom: 30px; }
-    .step-indicator .nav-link {
-        display: flex; align-items: center; padding: 12px 30px; background: #fff;
-        border: 1px solid #dee2e6; border-radius: 50px !important; color: #666;
-        font-weight: 600; transition: all 0.3s ease;
-    }
+    .step-indicator .nav-link { display: flex; align-items: center; padding: 12px 30px; background: #fff; border: 1px solid #dee2e6; border-radius: 50px !important; color: #666; font-weight: 600; transition: all 0.3s ease; }
     .step-marker { display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; font-weight: 700; width: 20px; }
-
-    /* STATE WARNA TAB */
     .nav-pills .nav-link.active { background-color: var(--p-blue); color: white !important; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,82,156,0.25); border-color: var(--p-blue); }
     .nav-link.done { background-color: #f0fff4; border-color: var(--p-green); color: var(--p-green) !important; }
     .nav-link.error { background-color: #fff5f5; border-color: var(--p-red); color: var(--p-red) !important; animation: shake 0.4s ease-in-out; }
     .nav-link.error .step-marker { color: var(--p-red); }
-
     @at keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-
-    /* FORM STYLES */
     .card-form { border: none; border-radius: 20px; box-shadow: 0 0 40px rgba(0,0,0,0.08); background: #fff; }
     .form-control, .form-select { border-radius: 10px; padding: 12px 15px; border: 1px solid #e0e0e0; }
     .form-control:focus { border-color: var(--p-blue); box-shadow: 0 0 0 4px rgba(0,82,156,0.1); }
     .form-control.is-invalid, .form-select.is-invalid { border-color: var(--p-red); background-image: none; }
     .invalid-feedback { font-size: 0.85rem; color: var(--p-red); }
-    
     .btn-next, .btn-submit { border: none; color: white; padding: 12px 40px; border-radius: 50px; font-weight: 500; }
     .btn-next { background: linear-gradient(135deg, var(--p-blue), #003d75); }
     .btn-submit { background: linear-gradient(135deg, var(--p-green), #4cae4c); }
     .btn-back { border: 1px solid #ddd; background: #fff; color: #666; padding: 12px 30px; border-radius: 50px; }
-
-    @at media (max-width: 768px) {
-        .step-indicator { flex-direction: column; }
-        .nav-link { justify-content: center; }
-    }
+    @at media (max-width: 768px) { .step-indicator { flex-direction: column; } .nav-link { justify-content: center; } }
 </style>
 
 <div class="penelitian-wrapper">
@@ -80,7 +67,9 @@
                 </div>
 
                 <form asp-action="SubmitPendaftaran" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="TargetJurusan" value="@preTargetJurusan" />  
+                    <input type="hidden" name="TargetJurusan" value="@preTargetJurusan" />
+                    
+                    <input type="hidden" id="vipLokasiData" value="@preTargetLokasi" />
 
                     <ul class="nav nav-pills step-indicator" id="pills-tab" role="tablist">
                         <li class="nav-item"><button class="nav-link active" id="tab-1" data-bs-toggle="pill" data-bs-target="#step-1" type="button"><span class="step-marker">1</span> Personal</button></li>
@@ -170,7 +159,7 @@
                                             <label class="form-label">Company Tujuan</label>
                                             @if (isJalurKhusus)
                                             {
-                                                <input type="text" class="form-control bg-light" value="@preCompany" readonly>
+                                                <input type="text" class="form-control readonly-input" value="@preCompany" readonly>
                                                 <input type="hidden" asp-for="Company" value="@preCompany" id="companyInputLocked">
                                             }
                                             else
@@ -188,7 +177,7 @@
                                             <label class="form-label">Region / Unit Operasi</label>
                                             @if (isJalurKhusus)
                                             {
-                                                <input type="text" class="form-control bg-light" value="@preRegion" readonly id="regionInputLocked">
+                                                <input type="text" class="form-control readonly-input" value="@preRegion" readonly id="regionInputLocked">
                                                 <input type="hidden" asp-for="Region" value="@preRegion">
                                             }
                                             else
@@ -203,10 +192,10 @@
                                         <div class="col-12">
                                             <label class="form-label">Lokasi Penelitian</label>
                                             <select class="form-select" asp-for="LokasiPenelitian" required id="lokasiSelect">
-                                                <option value="">Pilih Region Dahulu...</option>
+                                                 <option value="">Pilih Region Dahulu...</option>
                                             </select>
-                                            
                                             <div class="invalid-feedback">Wajib dipilih.</div>
+                                        
                                         </div>
 
                                         <div class="col-12">
@@ -269,8 +258,7 @@
 </div>
 
 <script>
-    // --- DATA LOKASI PENELITIAN PER REGION ---
-    // (Isinya sama untuk VIP maupun Non-VIP)
+    // --- DATA LOKASI PENELITIAN PER REGION (SAMA SEPERTI SEBELUMNYA) ---
     const dataLokasi = {
         "Refinery Unit VI Balongan": [
             "Akuntansi/ Ekonomi & Bisnis", "Elektro (Arus Kuat)", "Elektro (Arus Lemah)", "Emergency & Insurance", "Health", "Hukum", "Ilmu Komunikasi/ Fisip/ Administrasi Publik", "Internal Audit", 
@@ -321,12 +309,12 @@
             "HC Region Sumbagut - Kantor Unit", "HSSE Region Sumbagut - Kantor Unit", "Integrated Terminal Dumai", "Integrated Terminal Lhokseumawe", "Integrated Terminal Tanjung Uban", 
             "Integrated Terminal Teluk Kabung", "Legal Counsel Region Sumbagut - Kantor Unit", "Medical Region Sumbagut - Kantor Unit", "Procurement Region Sumbagut - Kantor Unit", 
             "Rel. & Project Dev. Region - Kantor Unit", "Retail Sales Region Sumbagut - Kantor Unit", "SSC ICT I Regian Sumbagut - Knator Unit", "Supply & Distribution Region Sumbagut - Kantor Unit"
-
         ]
     };
 
-    // --- FUNGSI UPDATE DROPDOWN LOKASI ---
-    function updateLokasiDropdown(selectedRegion) {
+    // --- [MODIFIKASI] UPDATE DROPDOWN LOKASI ---
+    // Sekarang menerima parameter kedua optional: preSelectedLoc
+    function updateLokasiDropdown(selectedRegion, preSelectedLoc = null) {
         const lokasiSelect = document.getElementById('lokasiSelect');
         if (!lokasiSelect) return; 
 
@@ -337,16 +325,21 @@
                 var option = document.createElement("option");
                 option.text = loc;
                 option.value = loc;
+                
+                // [LOGIKA BARU] Cek apakah ini lokasi VIP? Jika ya, pilih dia.
+                if (preSelectedLoc && loc === preSelectedLoc) {
+                    option.selected = true;
+                }
+                
                 lokasiSelect.add(option);
             });
-            // Opsi Tambahan: Buka dropdown biar user sadar (opsional)
             lokasiSelect.disabled = false;
         } else {
             lokasiSelect.innerHTML = '<option value="">Lokasi tidak tersedia di region ini</option>';
         }
     }
 
-    // --- NAVIGASI & VALIDASI ---
+    // --- NAVIGASI & VALIDASI (TETAP SAMA) ---
     function nextStep(currentTabId, nextTabId) {
         if (validatePane(currentTabId)) { triggerTab(nextTabId); } 
         else { document.getElementById(currentTabId).classList.add('error'); }
@@ -359,11 +352,9 @@
         window.scrollTo(0, 0);
     }
     function validatePane(tabBtnId) {
-        const paneId = tabBtnId.replace('tab', 'step');
-        const pane = document.getElementById(paneId);
+        const paneId = tabBtnId.replace('tab', 'step'); const pane = document.getElementById(paneId);
         const inputs = pane.querySelectorAll('input[required], select[required]');
         let isPaneValid = true;
-
         inputs.forEach(input => {
             input.setCustomValidity(""); input.classList.remove('is-invalid'); 
             if (input.name === "NoHp") {
@@ -387,8 +378,7 @@
         return isPaneValid;
     }
     function updateTabVisual(tabId, isValid) {
-        const tabBtn = document.getElementById(tabId);
-        const marker = tabBtn.querySelector('.step-marker');
+        const tabBtn = document.getElementById(tabId); const marker = tabBtn.querySelector('.step-marker');
         tabBtn.classList.remove('done', 'error');
         if (isValid) { tabBtn.classList.add('done'); marker.innerHTML = '<i class="bi bi-check-lg"></i>'; } 
         else { tabBtn.classList.add('error'); marker.innerHTML = '<i class="bi bi-exclamation-lg"></i>'; }
@@ -396,25 +386,27 @@
 
     // --- MAIN SCRIPT ---
     document.addEventListener("DOMContentLoaded", function() {
-        // Tab Listener
         const allTabs = document.querySelectorAll('button[data-bs-toggle="pill"]');
         allTabs.forEach(tab => { tab.addEventListener('hide.bs.tab', function (e) { validatePane(e.target.id); }); });
         const btnSubmit = document.getElementById('btnSubmit');
         if(btnSubmit){ btnSubmit.addEventListener('click', function(e) { if(!validatePane('tab-4')) e.preventDefault(); }); }
 
-        // --- LOGIKA UTAMA DROPDOWN ---
-        const companySelect = document.getElementById('companySelect'); // Non-VIP
-        const regionSelect = document.getElementById('regionSelect');   // Non-VIP
-        const regionInputLocked = document.getElementById('regionInputLocked'); // VIP
+        const companySelect = document.getElementById('companySelect'); 
+        const regionSelect = document.getElementById('regionSelect');   
+        const regionInputLocked = document.getElementById('regionInputLocked');
         const lokasiSelect = document.getElementById('lokasiSelect');
+        
+        // [BARU] Ambil data lokasi VIP dari hidden input
+        const vipLokasiData = document.getElementById('vipLokasiData');
 
-        // 1. CEK UNTUK VIP: Apakah Region sudah terkunci (ada valuenya)?
+        // 1. CEK UNTUK VIP: Apakah Region sudah terkunci?
         if (regionInputLocked && regionInputLocked.value) {
-            // Langsung isi dropdown lokasi berdasarkan region yg terkunci
-            updateLokasiDropdown(regionInputLocked.value);
+            // [LOGIKA BARU] Panggil updateLokasiDropdown dengan parameter kedua (Lokasi VIP)
+            var preSelected = vipLokasiData ? vipLokasiData.value : null;
+            updateLokasiDropdown(regionInputLocked.value, preSelected);
         }
 
-        // 2. CEK UNTUK NON-VIP: Kalau Company berubah -> Update list Region
+        // 2. CEK UNTUK NON-VIP: Kalau Company berubah -> Update list Region (TETAP SAMA)
         if (companySelect && regionSelect) {
             companySelect.addEventListener('change', function() {
                 var perusahaan = this.value;
@@ -434,7 +426,7 @@
             });
         }
 
-        // 3. CEK UNTUK NON-VIP: Kalau Region berubah -> Update list Lokasi
+        // 3. CEK UNTUK NON-VIP: Kalau Region berubah -> Update list Lokasi (TETAP SAMA)
         if (regionSelect) {
             regionSelect.addEventListener('change', function() {
                 updateLokasiDropdown(this.value);
