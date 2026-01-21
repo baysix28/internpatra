@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using sinta_asp.Models;
 using sinta_asp.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace sinta_asp.Controllers
 {
@@ -10,7 +9,6 @@ namespace sinta_asp.Controllers
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _environment;
 
-        // 🔥 Constructor
         public PendaftaranMagangController(
             AppDbContext context,
             IWebHostEnvironment environment)
@@ -19,127 +17,79 @@ namespace sinta_asp.Controllers
             _environment = environment;
         }
 
-        // ================= TEST DATABASE =================
-        public IActionResult TestDb()
-        {
-            return Content(_context.Database.CanConnect().ToString());
-        }
-        // =================================================
-
-        // GET: /PendaftaranMagang
+        // ================= FORM =================
         public IActionResult Index()
         {
             return View();
         }
 
-        // GET: /PendaftaranMagang/DataDiri
-        public IActionResult DataDiri()
+        public IActionResult DataMagang()
         {
             return View();
         }
 
-        // =================================================
-        // POST: /PendaftaranMagang/Store
-        // =================================================
+        // ================= POST SIMPAN =================
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Store(PendaftaranRequest request)
+        public async Task<IActionResult> Store(
+            Magang model,
+            IFormFile? Foto,
+            IFormFile? FileCV,
+            IFormFile? FileSuratPengantar,
+            IFormFile? FileProposal)
         {
             if (!ModelState.IsValid)
             {
-                return View("DataDiri", request);
+                return View("Index", model);
             }
 
             try
             {
-                // ================= FOLDER UPLOAD =================
-                string fotoPath = SimpanFile(request.Foto, "uploads/foto");
-                string cvPath = SimpanFile(request.FileCV, "uploads/cv");
-                string suratPath = SimpanFile(request.FileSuratPengantar, "uploads/surat");
-                string proposalPath = SimpanFile(request.FileProposal, "uploads/proposal");
+                // ===== UPLOAD FILE =====
+                model.FotoProfil = SimpanFile(Foto, "uploads/foto");
+                model.FileCv = SimpanFile(FileCV, "uploads/cv");
+                model.FileSuratPengantar = SimpanFile(FileSuratPengantar, "uploads/surat");
+                model.FileProposal = SimpanFile(FileProposal, "uploads/proposal");
 
-                // ================= SIMPAN KE DATABASE =================
-                var magang = new Magang
-                {
-                    FotoProfil = fotoPath,
-                    NamaLengkap = request.NamaLengkap!,
-                    EmailPribadi = request.EmailPribadi!,
-                    TempatLahir = request.TempatLahir,
-                    TanggalLahir = request.TanggalLahir!.Value,
-                    NoHp = request.NoHp,
-                    Instagram = request.Instagram,
+                model.CreatedAt = DateTime.Now;
 
-                    NamaPerguruanTinggi = request.NamaPerguruanTinggi,
-                    Fakultas = request.Fakultas,
-                    Jurusan = request.Jurusan,
-                    Nim = request.NIM,
+                // ===== SIMPAN KE DATABASE =====
+                _context.PendaftaranMagang.Add(model);
+                await _context.SaveChangesAsync();
 
-                    Company = request.Company,
-                    Region = request.Region,
-                    Lokasi = request.Lokasi,
-                    RekomendasiPegawai = request.RekomendasiPegawai,
-
-                    MulaiMagang = request.MulaiMagang!.Value,
-                    SelesaiMagang = request.SelesaiMagang!.Value,
-
-                    FileCv = cvPath,
-                    FileSuratPengantar = suratPath,
-                    FileProposal = proposalPath,
-                    CreatedAt = DateTime.Now
-                };
-
-                _context.PendaftaranMagang.Add(magang);
-                _context.SaveChanges();
-
+                // 🔥 HALAMAN SUKSES MUNCUL DARI SINI
                 return RedirectToAction("Sukses");
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Terjadi kesalahan: " + ex.Message;
-                return View("DataDiri", request);
+                TempData["Error"] = ex.Message;
+                return View("Index", model);
             }
         }
 
-        // ================= HELPER UPLOAD FILE =================
+        // ================= HELPER UPLOAD =================
         private string SimpanFile(IFormFile? file, string folder)
         {
-            if (file == null) return "";
+            if (file == null || file.Length == 0)
+                return string.Empty;
 
             string uploadDir = Path.Combine(_environment.WebRootPath, folder);
+
             if (!Directory.Exists(uploadDir))
                 Directory.CreateDirectory(uploadDir);
 
             string fileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
-            string filePath = Path.Combine(uploadDir, fileName);
+            string fullPath = Path.Combine(uploadDir, fileName);
 
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                file.CopyTo(stream);
-            }
+            using var stream = new FileStream(fullPath, FileMode.Create);
+            file.CopyTo(stream);
 
-            // path yang disimpan ke database
             return $"{folder}/{fileName}";
         }
 
-        // =================================================
+        // ================= SUKSES =================
         public IActionResult Sukses()
         {
             return View();
-        }
-
-        public IActionResult Hasil()
-        {
-            return View();
-        }
-
-        // 🔥 HALAMAN LIHAT DATA (ADMIN)
-        public IActionResult DataMagang()
-        {
-            var data = _context.PendaftaranMagang
-                .OrderByDescending(x => x.CreatedAt)
-                .ToList();
-
-            return View(data);
         }
     }
 }
