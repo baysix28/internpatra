@@ -3,25 +3,29 @@ using sinta_asp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- SETTING KONEKSI MYSQL (LARAGON) ---
-// Kita pakai yang ini karena sesuai dengan database kamu
+// 1. KONEKSI KE DATABASE (MySQL)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-);
-// ---------------------------------------
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-// Add services to the container.
+// 2. KONFIGURASI SESSION (Wajib untuk Login)
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // Waktu login (60 menit)
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// Tambahkan layanan MVC (Controllers with Views)
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 3. MIDDLEWARE PIPELINE (Urutan sangat penting!)
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -30,7 +34,16 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Wajib diletakkan di bawah UseRouting agar Session terbaca di Controller
+app.UseSession(); 
+
+app.UseAuthentication();
 app.UseAuthorization();
+
+// 4. KONFIGURASI ROUTE (Penting untuk Area)
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
