@@ -282,23 +282,6 @@
     .alert-validation.show { display: flex; }
 </style>
 
-<!-- Modal Konfirmasi -->
-<div class="modal-overlay" id="modalKonfirmasi">
-    <div class="modal-box">
-        <div class="modal-icon">
-            <i class="fas fa-question-circle"></i>
-        </div>
-        <div class="modal-title">Konfirmasi Pengiriman Data</div>
-        <div class="modal-text">
-            Apakah Anda yakin data yang Anda isi sudah benar dan siap untuk dikirim? Pastikan semua informasi sudah sesuai sebelum melanjutkan.
-        </div>
-        <div class="modal-buttons">
-            <button class="modal-btn modal-btn-cancel" onclick="tutupModal()">Tidak</button>
-            <button class="modal-btn modal-btn-confirm" onclick="konfirmasiKirim()">Ya, Kirim Data</button>
-        </div>
-    </div>
-</div>
-
 <div class="step-wrapper">
     <div class="step">
         <div class="step-item step-active" onclick="showStep(1)" id="step-tab-1">
@@ -324,18 +307,49 @@
     </div>
 </div>
 
+<!-- Modal Konfirmasi -->
+<div class="modal-overlay" id="modalKonfirmasi">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <i class="fas fa-question-circle"></i>
+        </div>
+        <div class="modal-title">Konfirmasi Pengiriman Data</div>
+        <div class="modal-text">
+            Apakah Anda yakin data yang Anda isi sudah benar dan siap untuk dikirim?
+            Pastikan semua informasi sudah sesuai sebelum melanjutkan.
+        </div>
+        <div class="modal-buttons">
+            <button type="button"
+                    class="modal-btn modal-btn-cancel"
+                    onclick="tutupModal()">
+                Tidak
+            </button>
+
+            <button type="button"
+                    class="modal-btn modal-btn-confirm"
+                    onclick="konfirmasiKirim()">
+                Ya, Kirim Data
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="container my-5" style="max-width: 900px;">
     <div class="card">
         <div class="card-body p-4 p-md-5">
-            
+
+            <form id="formMagang"
+                  asp-controller="PendaftaranMagang"
+                  asp-action="Store"
+                  method="post"
+                  enctype="multipart/form-data">
+
+            <!-- ================= STEP 1 ================= -->
             <div id="content-1" class="step-content active">
                 <h5><i class="fas fa-user-circle"></i> Data Diri Peserta</h5>
-                <div class="alert-validation" id="alert-1">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>&nbsp;<span class="msg"></span>
-                </div>
 
                 <div class="mb-4 text-center">
-                    <input type="file" id="foto" name="foto" hidden accept="image/*">
+                    <input type="file" id="foto" name="Foto" hidden accept="image/*">
                     <label for="foto" style="cursor: pointer;">
                         <div class="upload-box" id="uploadBox">
                             <img id="preview" style="display: none;">
@@ -348,151 +362,156 @@
                     </label>
                 </div>
 
-                <form id="formData-1">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control wajib" id="nama" placeholder="Nama Lengkap">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Email Pribadi <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control wajib" id="email" placeholder="contoh@email.com">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control wajib" id="tempat_lahir" placeholder="Kota Lahir">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control wajib" id="tanggal_lahir">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">No HP <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control wajib" id="no_hp" placeholder="08xxxxxxxxxx">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Instagram <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control wajib" id="instagram" placeholder="@@username">
-                        </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="nama" name="NamaLengkap" placeholder="Masukkan nama lengkap">
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn-custom btn-back" onclick="kembaliKeHomepage()">Keluar</button>
-                        <button type="button" class="btn-custom btn-next" onclick="showStep(2)">Selanjutnya <i class="fas fa-arrow-right ml-2"></i></button>
-                    </div>
-                </form>
-            </div>
 
-            <div id="content-2" class="step-content">
-                <h5><i class="fas fa-university"></i> Data Kampus</h5>
-                <form id="formData-2">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nama Perguruan Tinggi <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control wajib" id="perguruan_tinggi" placeholder="Nama Kampus">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Fakultas <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control wajib" id="fakultas" placeholder="Fakultas">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Jurusan <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control wajib" id="jurusan" placeholder="Jurusan">
-                        </div>
-                        @* <div class="col-md-3 mb-3">
-                            <label class="form-label">Semester <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control wajib" id="semester" placeholder="1">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">IPK <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control wajib" id="ipk" placeholder="3.50">
-                        </div> *@
-                        <div class="col-6 mb-3">
-                            <label class="form-label">NIM <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control wajib" id="nim" placeholder="Nomor Induk Mahasiswa">
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Email Pribadi <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control wajib" id="email" name="EmailPribadi" placeholder="contoh: nama@gmail.com">
                     </div>
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn-custom btn-back" onclick="showStep(1)">Kembali</button>
-                        <button type="button" class="btn-custom btn-next" onclick="showStep(3)">Selanjutnya</button>
-                    </div>
-                </form>
-            </div>
 
-            <div id="content-3" class="step-content">
-                <h5><i class="fas fa-briefcase"></i> Data Magang</h5>
-                <div class="alert-validation" id="alert-3">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>&nbsp;<span class="msg">Lengkapi semua data bertanda bintang (*)</span>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="tempat_lahir" name="TempatLahir" placeholder="Masukkan tempat lahir">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control wajib" id="tanggal_lahir" name="TanggalLahir">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">No HP <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control wajib" id="no_hp" name="NoHp" placeholder="Masukkan nomor HP">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Instagram <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="instagram" name="Instagram" placeholder="Masukkan username Instagram">
+                    </div>
                 </div>
 
-                <form id="formData-3">
-                    <div class="mb-3">
-                        <label class="form-label">Company <span class="text-danger">*</span></label>
-                        <select class="form-select form-control wajib" id="company">
-                            <option value="">Pilih Company</option>
-                            <option value="KPI">PT Kilang Pertamina Internasional (KPI)</option>
-                            <option value="PPN">PT Pertamina Patra Niaga (C&T)</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Region <span class="text-danger">*</span></label>
-                        <select class="form-select form-control wajib" id="region">
-                            <option value="">Pilih Region</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Lokasi / Fungsi <span class="text-danger">*</span></label>
-                        <select class="form-select form-control wajib" id="lokasi">
-                            <option value="">Pilih Lokasi</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Rekomendasi (Opsional)</label>
-                        <input type="text" class="form-control" id="rekomendasi" placeholder="Nama Pegawai (Fungsi)">
-                    </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Mulai Magang <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control wajib" id="tanggal_mulai">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Selesai Magang <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control wajib" id="tanggal_selesai">
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn-custom btn-back" onclick="showStep(2)">Kembali</button>
-                        <button type="button" class="btn-custom btn-next" onclick="showStep(4)">Selanjutnya</button>
-                    </div>
-                </form>
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn-custom btn-back" onclick="kembaliKeHomepage()">Keluar</button>
+                    <button type="button" class="btn-custom btn-next" onclick="showStep(2)">Selanjutnya</button>
+                </div>
             </div>
 
+            <!-- ================= STEP 2 ================= -->
+            <div id="content-2" class="step-content">
+                <h5><i class="fas fa-university"></i> Data Kampus</h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nama Perguruan Tinggi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="perguruan_tinggi" name="NamaPerguruanTinggi" placeholder="Masukkan nama perguruan tinggi">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fakultas <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="fakultas" name="Fakultas" placeholder="Masukkan fakultas">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Jurusan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="jurusan" name="Jurusan" placeholder="Masukkan jurusan">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">NIM <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="nim" name="NIM" placeholder="Masukkan NIM">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn-custom btn-back" onclick="showStep(1)">Kembali</button>
+                    <button type="button" class="btn-custom btn-next" onclick="showStep(3)">Selanjutnya</button>
+                </div>
+            </div>
+
+            <!-- ================= STEP 3 ================= -->
+            <div id="content-3" class="step-content">
+                <h5><i class="fas fa-briefcase"></i> Data Magang</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Company <span class="text-danger">*</span></label>
+                    <select class="form-select form-control wajib" id="company" name="Company">
+                        <option value="">Pilih Company</option>
+                        <option value="KPI">PT Kilang Pertamina Internasional</option>
+                        <option value="PPN">PT Pertamina Patra Niaga</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Region<span class="text-danger">*</span></label>
+                    <select class="form-select form-control wajib" id="region" name="Region">
+                        <option value="">Pilih Region</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Lokasi<span class="text-danger">*</span></label>
+                    <select class="form-select form-control wajib" id="lokasi" name="Lokasi">
+                        <option value="">Pilih Lokasi</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Rekomendasi Pegawai</label>
+                    <input type="text" class="form-control" id="rekomendasi" name="RekomendasiPegawai" placeholder="Nama Pegawai (fungsi)">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Mulai Magang <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control wajib" id="tanggal_mulai" name="MulaiMagang">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Selesai Magang <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control wajib" id="tanggal_selesai" name="SelesaiMagang">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn-custom btn-back" onclick="showStep(2)">Kembali</button>
+                    <button type="button" class="btn-custom btn-next" onclick="showStep(4)">Selanjutnya</button>
+                </div>
+            </div>
+
+            <!-- ================= STEP 4 ================= -->
             <div id="content-4" class="step-content">
                 <h5><i class="fas fa-file-alt"></i> File Pendukung</h5>
-                <form id="formData-4">
-                    <div class="mb-3">
-                        <label class="form-label">Curriculum Vitae (PDF) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control wajib" id="file_cv" accept=".pdf">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Surat Pengantar Kampus (PDF) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control wajib" id="file_surat_pengantar" accept=".pdf">
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label">Proposal (PDF) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control wajib" id="file_transkrip" accept=".pdf">
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <button type="button" class="btn-custom btn-back" onclick="showStep(3)">Kembali</button>
-                        <button type="button" class="btn-custom btn-next" style="background:var(--pertamina-green)" onclick="simpanSemua()">Simpan Data</button>
-                    </div>
-                </form>
+
+                <div class="mb-3">
+                    <label class="form-label">CV <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control wajib" id="file_cv" name="FileCV" accept=".pdf">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Surat Pengantar <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control wajib" id="file_surat_pengantar" name="FileSuratPengantar" accept=".pdf">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Proposal <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control wajib" id="file_transkrip" name="FileProposal" accept=".pdf">
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn-custom btn-back" onclick="showStep(3)">Kembali</button>
+                    <button type="button" class="btn-custom btn-next"
+                            style="background:var(--pertamina-green)"
+                            onclick="simpanSemua()">
+                        Simpan Data
+                    </button>
+                </div>
             </div>
 
+            </form>
         </div>
     </div>
 </div>
@@ -732,6 +751,8 @@
 
     function simpanSemua() {
         // Cek apakah semua data sudah lengkap
+        cekDataLengkap();
+
         let semuaLengkap = true;
         for (let i = 1; i <= 4; i++) {
             const dot = document.getElementById('dot-' + i);
@@ -755,67 +776,8 @@
     }
 
     function konfirmasiKirim() {
-        // Tutup modal
-        tutupModal();
-        
-        // TODO: Kirim data menggunakan AJAX atau submit form
-        // Untuk sementara redirect langsung
-        window.location.href = '/PendaftaranMagang/Sukses';
-        
-        // CONTOH JIKA MENGGUNAKAN AJAX:
-        /*
-        const formData = new FormData();
-        
-        // Data Diri
-        formData.append('Foto', document.getElementById('foto').files[0]);
-        formData.append('Nama', document.getElementById('nama').value);
-        formData.append('Email', document.getElementById('email').value);
-        formData.append('TempatLahir', document.getElementById('tempat_lahir').value);
-        formData.append('TanggalLahir', document.getElementById('tanggal_lahir').value);
-        formData.append('NoHp', document.getElementById('no_hp').value);
-        formData.append('Instagram', document.getElementById('instagram').value);
-        
-        // Data Kampus
-        formData.append('PerguruanTinggi', document.getElementById('perguruan_tinggi').value);
-        formData.append('Fakultas', document.getElementById('fakultas').value);
-        formData.append('Jurusan', document.getElementById('jurusan').value);
-        formData.append('Semester', document.getElementById('semester').value);
-        formData.append('IPK', document.getElementById('ipk').value);
-        formData.append('NIM', document.getElementById('nim').value);
-        
-        // Data Magang
-        formData.append('Company', document.getElementById('company').value);
-        formData.append('Region', document.getElementById('region').value);
-        formData.append('Lokasi', document.getElementById('lokasi').value);
-        formData.append('Rekomendasi', document.getElementById('rekomendasi').value);
-        formData.append('TanggalMulai', document.getElementById('tanggal_mulai').value);
-        formData.append('TanggalSelesai', document.getElementById('tanggal_selesai').value);
-        
-        // File Pendukung
-        formData.append('FileCV', document.getElementById('file_cv').files[0]);
-        formData.append('FileSuratPengantar', document.getElementById('file_surat_pengantar').files[0]);
-        formData.append('FileProposal', document.getElementById('file_transkrip').files[0]);
-        
-        // Kirim data
-        fetch('/PendaftaranMagang/Store', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                window.location.href = '/PendaftaranMagang/Sukses';
-            } else {
-                alert('Terjadi kesalahan saat menyimpan data!');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Terjadi kesalahan saat mengirim data!');
-        });
-        */
+    tutupModal();
+    document.getElementById('formMagang').submit();
     }
 
     window.onload = cekDataLengkap;
