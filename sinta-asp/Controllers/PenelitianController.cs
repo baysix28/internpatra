@@ -46,7 +46,7 @@ namespace sinta_asp.Controllers
             new LowonganKerja { 
                 Title = "Elektro (Arus Kuat)", 
                 Region = "Refinery Unit VI Balongan", 
-                Company = "PT Kilang Pertamina Internasional", 
+                Company = "PT Kilang Pertamina Internasional (KPI)", 
                 ImageUrl = "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400",
                 Description = "Fokus pada pemeliharaan dan analisis performa mesin rotasi seperti pompa, kompresor, dan turbin di area kilang."
             },
@@ -98,25 +98,44 @@ namespace sinta_asp.Controllers
         };
 
         // 1. DASHBOARD UTAMA (Index)
+        // --- GANTI METHOD INDEX YANG LAMA DENGAN INI ---
         public IActionResult Index(string company, string search, string region)
         {
             var dataTampil = SemuaLowongan;
 
-            if (!string.IsNullOrEmpty(company))
+            // 1. FILTER COMPANY
+            // Kalau company tidak kosong DAN bukan "All", baru difilter.
+            // Ini menangani kasus kalau value-nya "" ataupun "All".
+            if (!string.IsNullOrEmpty(company) && company != "All")
             {
-                dataTampil = dataTampil.Where(x => x.Company != null && x.Company == company).ToList();
+                // Pakai Contains supaya kalau ada beda spasi dikit tetap ketemu
+                dataTampil = dataTampil.Where(x => x.Company != null && x.Company.Contains(company)).ToList();
             }
 
+            // 2. FILTER SEARCH (PENCARIAN)
             if (!string.IsNullOrEmpty(search))
             {
-                dataTampil = dataTampil.Where(x => x.Title != null && x.Title.ToLower().Contains(search.ToLower())).ToList();
+                search = search.ToLower(); // Ubah ke huruf kecil
+                
+                dataTampil = dataTampil.Where(x => 
+                    // Cek di JUDUL
+                    (x.Title != null && x.Title.ToLower().Contains(search)) || 
+                    
+                    // ATAU Cek di NAMA PERUSAHAAN (Ini yang kemarin kurang)
+                    (x.Company != null && x.Company.ToLower().Contains(search)) ||
+
+                    // ATAU Cek di DESKRIPSI (Opsional, biar makin canggih)
+                    (x.Description != null && x.Description.ToLower().Contains(search))
+                ).ToList();
             }
 
-            if (!string.IsNullOrEmpty(region))
+            // 3. FILTER REGION
+            if (!string.IsNullOrEmpty(region) && region != "All")
             {
                 dataTampil = dataTampil.Where(x => x.Region != null && x.Region == region).ToList();
             }
 
+            // Kembalikan value ke View agar tidak hilang setelah refresh
             ViewData["SelectedCompany"] = company;
             ViewData["SelectedSearch"] = search;
             ViewData["SelectedRegion"] = region;
@@ -137,6 +156,7 @@ namespace sinta_asp.Controllers
             if (ModelState.IsValid)
             {
                 // A. Upload File Dulu
+                string fotoPath = await UploadFile(model.Foto3x4, "foto");
                 string cvPath = await UploadFile(model.FileCV, "cv");
                 string proposalPath = await UploadFile(model.FileProposal, "proposal");
                 string suratPath = await UploadFile(model.FileSurat, "surat");
@@ -150,6 +170,7 @@ namespace sinta_asp.Controllers
                     TempatLahir = model.TempatLahir,
                     TglLahir = model.TglLahir,
                     Instagram = model.Instagram,
+                    PathFoto3x4 = fotoPath,
                     
                     Universitas = model.Universitas,
                     Fakultas = model.Fakultas,
