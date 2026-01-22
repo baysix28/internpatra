@@ -84,6 +84,26 @@
                                 
                                 <div class="tab-pane fade show active" id="step-1">
                                     <div class="row g-4">
+                                        <div class="col-12 d-flex justify-content-center mb-3">
+                                        <div class="text-center">
+                                            
+                                            <input type="file" asp-for="Foto3x4" id="inputFoto" class="d-none" accept="image/*" onchange="tampilkanPreview(this)" required>
+
+                                            <div class="position-relative d-inline-block" style="cursor: pointer;" onclick="document.getElementById('inputFoto').click()">
+                                                <img id="previewFoto" 
+                                                    src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" 
+                                                    alt="Pas Foto" 
+                                                    class="img-fluid"
+                                                    style="width: 150px; height: 200px; object-fit: cover; border-radius: 4px;">
+                                            </div>
+
+                                            <div class="mt-2 fw-bold text-uppercase" style="color: #333; letter-spacing: 1px;">PAS FOTO BERWARNA</div>
+                                            <span id="pesanErrorFoto" asp-validation-for="Foto3x4" class="text-danger d-block mt-1 small fw-bold" style="display:none;"></span>
+
+                                            <span asp-validation-for="Foto3x4" class="text-danger d-block mt-1 small fw-bold"></span>
+
+                                        </div>
+                                    </div>
                                         <div class="col-12">
                                             <label class="form-label">Nama Lengkap</label>
                                             <input type="text" class="form-control" asp-for="Nama" required>
@@ -119,7 +139,7 @@
                                         </div>
                                     </div>
                                     <div class="mt-5 text-center">
-                                        <button type="button" class="btn btn-next" onclick="nextStep('tab-1', 'tab-2')">Selanjutnya <i class="bi bi-arrow-right ms-2"></i></button>
+                                        <button type="button" class="btn btn-next" onclick="cekStep1()">Selanjutnya <i class="bi bi-arrow-right ms-2"></i></button>
                                     </div>
                                 </div>
 
@@ -243,7 +263,10 @@
                                     </div>
                                     <div class="mt-5 d-flex justify-content-center gap-3">
                                         <button type="button" class="btn btn-back" onclick="prevStep('tab-3')">Kembali</button>
-                                        <button type="submit" class="btn btn-submit" id="btnSubmit">Kirim Pendaftaran <i class="bi bi-send-fill"></i></button>
+                                        
+                                        <button type="submit" class="btn btn-submit" id="btnSubmit" onclick="cekFoto(event)">
+                                            Kirim Pendaftaran <i class="bi bi-send-fill"></i>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -433,4 +456,69 @@
             });
         }
     });
+
+    
 </script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        // --- 1. FUNGSI PREVIEW FOTO (Supaya gambar muncul saat dipilih) ---
+        function tampilkanPreview(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    // Ganti gambar placeholder dengan foto yg dipilih
+                    document.getElementById('previewFoto').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+
+                // Hapus pesan error jika user sudah pilih foto
+                document.getElementById('pesanErrorFoto').style.display = 'none';
+                input.classList.remove('is-invalid');
+            }
+        }
+
+        // --- 2. FUNGSI CEK VALIDASI STEP 1 (Supaya gak bisa lanjut kalau kosong) ---
+        function cekStep1() {
+            var aman = true; // Anggap dulu semua aman
+            
+            // A. CEK FOTO (Manual karena hidden)
+            var inputFoto = document.getElementById('inputFoto');
+            var pesanErrorFoto = document.getElementById('pesanErrorFoto');
+            
+            if (inputFoto.files.length === 0) {
+                pesanErrorFoto.innerText = "Wajib upload foto 3x4!";
+                pesanErrorFoto.style.display = "block";
+                aman = false;
+            } else {
+                pesanErrorFoto.style.display = 'none';
+            }
+
+            // B. CEK INPUTAN LAIN (Nama, Email, dll)
+            // Cari semua input/select yang 'required' di Step 1
+            var inputStep1 = document.querySelectorAll('#step-1 input[required], #step-1 select[required]');
+
+            inputStep1.forEach(function(input) {
+                if (!input.value) {
+                    // Kalau KOSONG: Tambahkan class 'is-invalid' (Biar jadi merah)
+                    input.classList.add('is-invalid');
+                    aman = false; 
+                } else {
+                    // Kalau ADA ISI: Hapus merahnya
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            // C. KEPUTUSAN FINAL
+            if (aman) {
+                // Semua aman? Pindah ke Tab 2
+                nextStep('tab-1', 'tab-2');
+            } else {
+                // Ada yang error? Scroll ke atas
+                document.getElementById('step-1').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    </script>
+}
