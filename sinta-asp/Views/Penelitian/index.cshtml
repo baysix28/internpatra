@@ -140,9 +140,10 @@
 
                     <div style="margin-bottom: 25px;">
                         <label>Filtered by Company</label>
-                        <select name="company" id="companySelect" class="form-control-custom" onchange="submitFilter(this.form)">
-                            <option value="">All Companies</option>
-                            <option value="PT Kilang Pertamina Internasional" selected="@(selectedCompany == "PT Kilang Pertamina Internasional" ? "selected" : null)">
+                        <select name="company" id="companySelect" class="form-control-custom" onchange="gantiCompany(this)">
+                            <option value="All" selected="@(selectedCompany == "All" ? "selected" : null)">All Companies</option>
+                            <option value="PT Kilang Pertamina Internasional (KPI)" 
+                                    selected="@(selectedCompany == "PT Kilang Pertamina Internasional (KPI)" ? "selected" : null)">
                                 PT Kilang Pertamina Internasional (KPI)
                             </option>
                             <option value="PT Pertamina Patra Niaga" selected="@(selectedCompany == "PT Pertamina Patra Niaga" ? "selected" : null)">
@@ -229,12 +230,15 @@
 </div>
 
 <script>
-    // --- 1. LOGIKA REGION ---
+    // --- 1. DATA REGION (KUNCI HARUS SAMA DENGAN DROPDOWN) ---
     const dataRegion = {
         "PT Pertamina Patra Niaga": ["Regional Jatimbalinus", "Regional Jawa Bagian Tengah", "Regional Jawa Bagian Barat", "Regional Kalimantan", "Regional Maluku Papua", "Regional Sumbagut"],
-        "PT Kilang Pertamina Internasional": ["Refinery Unit VI Balongan"]
+        
+        // [PERUBAHAN DISINI] Tambahkan (KPI) biar kebaca
+        "PT Kilang Pertamina Internasional (KPI)": ["Refinery Unit VI Balongan"]
     };
 
+    // --- 2. FUNGSI UPDATE TAMPILAN ---
     function updateRegionOptions() {
         const companySelect = document.getElementById('companySelect');
         const regionSelect = document.getElementById('regionSelect');
@@ -242,20 +246,37 @@
         const currentRegion = '@selectedRegion'; 
 
         regionSelect.innerHTML = '';
-        if (selectedCompany !== "PT Kilang Pertamina Internasional") {
-            const allOption = document.createElement('option');
-            allOption.value = ""; allOption.text = "All Regions";
-            regionSelect.appendChild(allOption);
-        }
+        
+        // SELALU Tampilkan opsi All Regions biar gak bingung
+        const allOption = document.createElement('option');
+        allOption.value = "All"; // Value 'All' biar ditangkap Controller
+        allOption.text = "All Regions";
+        regionSelect.appendChild(allOption);
 
+        // Cek apakah ada datanya?
         if (selectedCompany && dataRegion[selectedCompany]) {
             dataRegion[selectedCompany].forEach(reg => {
                 const option = document.createElement('option');
-                option.value = reg; option.text = reg;
+                option.value = reg; 
+                option.text = reg;
+                
                 if (reg === currentRegion) option.selected = true;
+                
                 regionSelect.appendChild(option);
             });
         }
+    }
+
+    // --- 3. FUNGSI RESET SAAT GANTI COMPANY (PENTING!) ---
+    function gantiCompany(selectElement) {
+        // Reset Region ke 'All' supaya filter gak bentrok
+        document.getElementById('regionSelect').value = "All";
+        
+        // Simpan posisi scroll (optional)
+        document.getElementById('lastScrollInput').value = window.scrollY;
+
+        // Submit form otomatis
+        selectElement.form.submit();
     }
 
     // --- 2. LIVE SEARCH + PESAN KOSONG ---

@@ -16,6 +16,7 @@ namespace sinta_asp.Models
         public string TempatLahir { get; set; }
         public DateTime? TglLahir { get; set; }
         public string Instagram { get; set; }
+        public string PathFoto3x4 { get; set; }
 
         public string Universitas { get; set; }
         public string Fakultas { get; set; }
