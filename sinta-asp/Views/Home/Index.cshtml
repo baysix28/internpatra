@@ -2,32 +2,94 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="container mt-5">
-    <div class="row text-center">
+<div class="container mt-4">
+    <div class="row mb-5">
+        <div class="col-12 d-flex justify-content-end align-items-center gap-3">
+            <div class="text-end">
+                <p class="mb-0 fw-bold text-dark">Sudah daftar?</p>
+                <p class="mb-0 text-muted small">Masuk ke Dashboard Peserta</p>
+            </div>
+            
+            <div class="dropdown">
+                <a href="#" class="login-circle d-flex align-items-center justify-content-center shadow transition-all" 
+                id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user fa-lg"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown">
+                    <li>
+                        <a class="dropdown-item py-2" href="@Url.Action("Login", "Auth")">
+                            <i class="fas fa-sign-in-alt me-2 text-primary"></i> Login Peserta
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item py-2" href="@Url.Action("Register", "Auth")">
+                            <i class="fas fa-user-plus me-2 text-success"></i> Buat Akun Baru
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 
+    <div class="row text-center g-4">
         <div class="col-md-4">
-            <h4>Magang Kerja</h4>
-            <p>Mau merasakan magang di PT. Pertamina (Persero)?</p>
-            <a href="@Url.Action("Index", "PendaftaranMagang")" class="btn btn-primary w-100">
-                Informasi Magang Kerja
-            </a>
+            <div class="p-3">
+                <h4 class="fw-bold">Magang Kerja</h4>
+                <p class="text-muted small">Mau merasakan magang di PT. Pertamina (Persero)?</p>
+                <a href="@Url.Action("Index", "PendaftaranMagang")" class="btn btn-primary w-100 shadow-sm py-2">
+                    Informasi Magang Kerja
+                </a>
+            </div>
         </div>
 
         <div class="col-md-4">
-            <h4>Penelitian</h4>
-            <p>Penelitianmu berkaitan dengan Pertamina?</p>
-            <a href="@Url.Action("Index", "Penelitian")" class="btn btn-info text-white w-100">
-                Daftar Penelitian
-            </a>
+            <div class="p-3">
+                <h4 class="fw-bold">Penelitian</h4>
+                <p class="text-muted small">Penelitianmu berkaitan dengan Pertamina?</p>
+                <a href="@Url.Action("Index", "Penelitian")" class="btn btn-info text-white w-100 shadow-sm py-2">
+                    Informasi Penelitian
+                </a>
+            </div>
         </div>
 
         <div class="col-md-4">
-            <h4>Hasil Pendaftaran</h4>
-            <p>Penasaran apakah pendaftaranmu diterima?</p>
-            <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-success w-100">
-                Periksa Hasil Pendaftaran
-            </a>
+            <div class="p-3">
+                <h4 class="fw-bold">Hasil Pendaftaran</h4>
+                <p class="text-muted small">Penasaran apakah pendaftaranmu diterima?</p>
+                <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-success w-100 shadow-sm py-2">
+                    Periksa Hasil Pendaftaran
+                </a>
+            </div>
         </div>
-
     </div>
 </div>
+
+<style>
+    /* Style khusus untuk lingkaran login */
+    .login-circle {
+        width: 55px;
+        height: 55px;
+        background-color: #102C54; /* Warna Biru Tua */
+        color: white;
+        border-radius: 50%;
+        text-decoration: none;
+        border: 2px solid transparent;
+    }
+
+    .login-circle:hover {
+        transform: scale(1.1);
+        background-color: #1a417a;
+        color: #fff;
+        border: 2px solid #3B82F6;
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+
+    h4 {
+        margin-bottom: 15px;
+        color: #333;
+    }
+</style>

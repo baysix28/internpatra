@@ -1,0 +1,46 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Daftar Akun Baru";
+}
+
+<div class="container my-5 py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0" style="border-radius: 15px; overflow: hidden;">
+                <div class="bg-danger py-3 text-center">
+                    <h5 class="text-white fw-bold mb-0">BUAT AKUN PESERTA</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Register" method="post">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label small fw-bold">Nama Lengkap (Sesuai KTP)</label>
+                                <input type="text" name="Nama" class="form-control bg-light" placeholder="Contoh: Budi Santoso" required>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label small fw-bold">Email</label>
+                                <input type="email" name="Email" class="form-control bg-light" placeholder="nama@gmail.com" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-bold">Password</label>
+                                <input type="password" name="Password" class="form-control bg-light" placeholder="********" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label small fw-bold">Konfirmasi Password</label>
+                                <input type="password" name="ConfirmPassword" class="form-control bg-light" placeholder="********" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn w-100 fw-bold py-2 text-white shadow-sm" style="background-color: #102C54;">
+                            DAFTAR SEKARANG
+                        </button>
+                    </form>
+                </div>
+                <div class="card-footer bg-white border-0 text-center pb-4">
+                    <p class="small text-muted mb-0">Sudah punya akun? 
+                        <a href="@Url.Action("Login", "Auth")" class="text-primary fw-bold" style="text-decoration: none;">Login Disini</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

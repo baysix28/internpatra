@@ -1,0 +1,91 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Dashboard Peserta";
+}
+
+<div class="container-fluid py-4" style="background-color: #f8f9fa; min-height: 100vh;">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm p-4" style="border-left: 5px solid #102C54;">
+                    <h3 class="fw-bold mb-1 text-dark">Selamat Datang, @ViewBag.NamaPeserta!</h3>
+                    <p class="text-muted">Kelola pendaftaran magang dan penelitian Anda di sini.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-3">
+                    <div class="card-body">
+                        <div class="icon-circle bg-primary text-white mb-3 mx-auto">
+                            <i class="fas fa-file-alt fa-2x"></i>
+                        </div>
+                        <h5 class="fw-bold">Status Magang</h5>
+                        <span class="badge bg-warning text-dark px-3 py-2">Menunggu Review</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-3">
+                    <div class="card-body">
+                        <div class="icon-circle bg-info text-white mb-3 mx-auto">
+                            <i class="fas fa-microscope fa-2x"></i>
+                        </div>
+                        <h5 class="fw-bold">Status Penelitian</h5>
+                        <p class="text-muted small">Belum ada pendaftaran</p>
+                        <a href="#" class="btn btn-outline-info btn-sm">Daftar Sekarang</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100 text-center p-3">
+                    <div class="card-body">
+                        <div class="icon-circle bg-danger text-white mb-3 mx-auto">
+                            <i class="fas fa-bell fa-2x"></i>
+                        </div>
+                        <h5 class="fw-bold">Notifikasi</h5>
+                        <p class="small mb-0">Lengkapi berkas profil Anda!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12 mb-3">
+                <h5 class="fw-bold">Aksi Cepat</h5>
+            </div>
+            <div class="col-md-6 mb-3">
+                <a href="#" class="btn btn-white w-100 text-start shadow-sm p-3 border-0 d-flex align-items-center justify-content-between">
+                    <span><i class="fas fa-user-edit me-3 text-primary"></i> Lengkapi Profil Pribadi</span>
+                    <i class="fas fa-chevron-right text-muted"></i>
+                </a>
+            </div>
+            <div class="col-md-6 mb-3">
+                <a href="@Url.Action("Login", "Auth")" class="btn btn-white w-100 text-start shadow-sm p-3 border-0 d-flex align-items-center justify-content-between text-danger">
+                    <span><i class="fas fa-sign-out-alt me-3"></i> Keluar dari Dashboard</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .icon-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-white {
+        background-color: white;
+        transition: 0.3s;
+    }
+    .btn-white:hover {
+        background-color: #f1f1f1;
+        transform: translateY(-2px);
+    }
+</style>

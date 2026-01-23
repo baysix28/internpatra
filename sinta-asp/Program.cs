@@ -3,10 +3,11 @@ using sinta_asp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. KONEKSI KE DATABASE (MySQL)
+// 1. KONEKSI KE DATABASE (SQL Server)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 // 2. KONFIGURASI SESSION (Wajib untuk Login)
 builder.Services.AddDistributedMemoryCache();
