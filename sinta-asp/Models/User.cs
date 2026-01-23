@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace sinta_asp.Models
 {
-    [Table("Users")] // Nama tabel di SQL Server nanti adalah 'Users'
+    [Table("Users")]
     public class User
     {
         [Key]
@@ -19,6 +19,10 @@ namespace sinta_asp.Models
         [Required(ErrorMessage = "Password wajib diisi")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
+
+        // TAMBAHKAN INI: Memberikan nilai default agar database tidak komplain NULL
+        [Required]
+        public string Role { get; set; } = "Peserta"; 
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

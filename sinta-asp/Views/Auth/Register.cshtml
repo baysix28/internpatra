@@ -3,39 +3,58 @@
     ViewData["Title"] = "Daftar Akun Baru";
 }
 
-<div class="container my-5 py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 75vh;">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-6 col-lg-5">
             <div class="card shadow border-0" style="border-radius: 15px; overflow: hidden;">
                 <div class="bg-danger py-3 text-center">
                     <h5 class="text-white fw-bold mb-0">BUAT AKUN PESERTA</h5>
                 </div>
                 <div class="card-body p-4">
                     <form asp-action="Register" method="post">
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label small fw-bold">Nama Lengkap (Sesuai KTP)</label>
-                                <input type="text" name="Nama" class="form-control bg-light" placeholder="Contoh: Budi Santoso" required>
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="form-label small fw-bold">Email</label>
-                                <input type="email" name="Email" class="form-control bg-light" placeholder="nama@gmail.com" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-bold">Password</label>
-                                <input type="password" name="Password" class="form-control bg-light" placeholder="********" required>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label class="form-label small fw-bold">Konfirmasi Password</label>
-                                <input type="password" name="ConfirmPassword" class="form-control bg-light" placeholder="********" required>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nama Lengkap (Sesuai KTP)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
+                                <input type="text" name="Nama" class="form-control border-start-0 bg-light" placeholder="Contoh: Budi Santoso" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn w-100 fw-bold py-2 text-white shadow-sm" style="background-color: #102C54;">
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
+                                <input type="email" name="Email" class="form-control border-start-0 bg-light" placeholder="nama@gmail.com" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-bold">Password</label>
+                                <div class="input-group">
+                                    <input type="password" name="Password" id="pass1" class="form-control bg-light border-end-0" placeholder="********" required>
+                                    <button class="btn btn-outline-light border-start-0 bg-light" type="button" onclick="togglePass('pass1', 'eye1')" style="border: 1px solid #ced4da;">
+                                        <i class="fas fa-eye text-muted" id="eye1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-bold">Konfirmasi</label>
+                                <div class="input-group">
+                                    <input type="password" name="ConfirmPassword" id="pass2" class="form-control bg-light border-end-0" placeholder="********" required>
+                                    <button class="btn btn-outline-light border-start-0 bg-light" type="button" onclick="togglePass('pass2', 'eye2')" style="border: 1px solid #ced4da;">
+                                        <i class="fas fa-eye text-muted" id="eye2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn w-100 fw-bold py-2 text-white shadow-sm mt-2" style="background-color: #102C54;">
                             DAFTAR SEKARANG
                         </button>
                     </form>
                 </div>
-                <div class="card-footer bg-white border-0 text-center pb-4">
+                <div class="card-footer bg-white border-0 text-center pb-4 pt-0">
                     <p class="small text-muted mb-0">Sudah punya akun? 
                         <a href="@Url.Action("Login", "Auth")" class="text-primary fw-bold" style="text-decoration: none;">Login Disini</a>
                     </p>
@@ -44,3 +63,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    function togglePass(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+</script>
