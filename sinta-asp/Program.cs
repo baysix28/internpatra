@@ -1,29 +1,41 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
+using sinta_asp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. KONEKSI KE DATABASE (MySQL)
+// ===============================
+// 1. REGISTER SERVICES (DATABASE & SESSION)
+// ===============================
+
+// --- KONEKSI DATABASE (SQL SERVER - PUNYA KAMU) ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseSqlServer(connectionString));
 
-// 2. KONFIGURASI SESSION (Wajib untuk Login)
-builder.Services.AddDistributedMemoryCache();
+// --- KONFIGURASI SESSION (Penting buat Login) ---
+builder.Services.AddDistributedMemoryCache(); // Tambahan biar session makin lancar
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(60); // Waktu login (60 menit)
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // Login bertahan 60 menit
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
 
-// Tambahkan layanan MVC (Controllers with Views)
+// Service buat Controller & View
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// 3. MIDDLEWARE PIPELINE (Urutan sangat penting!)
-if (!app.Environment.IsDevelopment())
+// ===============================
+// 2. MIDDLEWARE PIPELINE
+// ===============================
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -34,19 +46,26 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Wajib diletakkan di bawah UseRouting agar Session terbaca di Controller
-app.UseSession(); 
-
-app.UseAuthentication();
+// Middleware Wajib (Urutan: Session -> Auth)
+app.UseSession();
+app.UseAuthentication(); // Saya tambahkan ini jaga-jaga kalau nanti butuh
 app.UseAuthorization();
 
-// 4. KONFIGURASI ROUTE (Penting untuk Area)
+// ===============================
+// 3. ROUTING (KHUSUS & UMUM)
+// ===============================
+
+// 🟢 1. ROUTE KHUSUS ADMIN (AREAS)
+// Kalau masuk ke /Admin, dia bakal cari Controller 'Login' atau 'Dashboard'
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}");
+    pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}"
+);
 
+// 🔵 2. ROUTE UMUM (HALAMAN DEPAN)
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();

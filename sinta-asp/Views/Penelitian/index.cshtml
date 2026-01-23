@@ -10,8 +10,9 @@
 }
 
 <style>
-    /* MATIKAN SCROLL OTOMATIS BROWSER */
-    html { scroll-behavior: auto !important; }
+
+    /* 1. IMPORT FONT BARU */
+    @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500&display=swap');
     
     /* GLOBAL STYLE */
     .penelitian-wrapper { 
@@ -22,21 +23,172 @@
     /* Reset elemen teks biar gak ngerusak layout Bootstrap */
     .penelitian-wrapper h1, .penelitian-wrapper h2, .penelitian-wrapper p { margin: 0; padding: 0; }
 
-    /* HERO HEADER */
-    .hero-section {
-        background: 
-            linear-gradient(to left, rgba(220, 30, 30, 0.7) 0%, transparent 60%),
-            linear-gradient(rgba(40, 0, 0, 0.85), rgba(20, 0, 0, 0.95)),
-            url('/img/pekerja.jpg');
-        background-size: cover; background-position: center; 
-        background-blend-mode: soft-light, normal, normal;
-        padding: 60px 5%; color: white; height: 350px;
-        display: flex; align-items: center; margin-bottom: 40px;
-        width: 100vw; position: relative; left: 50%; right: 50%;
-        margin-left: -50vw; margin-right: -50vw;    
-    }
-    .hero-content h1 { font-size: 2.5rem; font-weight: 700; line-height: 1.2; margin-bottom: 15px; }
     
+    /* 2. HERO SECTION BARU (Tinggi 60% Layar) */
+        /* HERO HEADER */
+    .hero-section {
+        position: relative;
+        height: 60vh;
+        min-height: 500px;
+        
+        /* HAPUS LINEAR-GRADIENT DISINI, CUKUP GAMBAR SAJA */
+        background-image: url('/img/test.jpg'); /* Pastikan nama file gambar benar */
+        background-size: cover;
+        background-position: center 10%;
+        
+        /* Sisanya biarkan sama */
+        width: 100vw; 
+        left: 50%; right: 50%;
+        margin-left: -50vw; margin-right: -50vw;
+        margin-bottom: 50px;
+        font-family: 'Inter', sans-serif;
+        display: flex; align-items: center; /* Pastikan ini ada biar konten vertikal tengah */
+    }
+
+        /* 3. GRADIENT ELEGAN (Merah Kiri -> Bening Kanan) */
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(139, 0, 0, 0.95) 0%,      /* Kiri: Merah Gelap Pekat */
+                rgba(237, 27, 36, 0.7) 45%,    /* Tengah: Merah Pertamina */
+                rgba(237, 27, 36, 0.0) 100%    /* Kanan: Bening (Gambar Asli) */
+            );
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Teks di tengah vertikal */
+            align-items: flex-start; /* Teks Rata Kiri */
+            color: white;
+            padding-left: 5%; /* Geser dikit dari pinggir kiri */
+        }
+
+        /* 4. TYPOGRAPHY BARU (Poppins & Inter) */
+        .hero-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .hero-lead {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            
+            /* Pakai !important agar tidak kalah sama reset margin */
+            margin-bottom: 20px !important; 
+            
+            opacity: 0.95;
+            max-width: 600px;
+        }
+
+     /* 5. TOMBOL PREMIUM (ANIMASI FILL KIRI KE KANAN) */
+    .btn-apply-hero {
+        position: relative; /* Wajib: sebagai jangkar animasi */
+        overflow: hidden;   /* Wajib: biar warna tidak bocor keluar sudut melengkung */
+        z-index: 1;         /* Pastikan teks ada di layer paling atas */
+        
+        background-color: transparent; 
+        border: 2px solid white;
+        
+        color: white;
+        padding: 15px 40px;
+        
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 50px !important;
+        text-decoration: none;
+        
+        /* Transisi warna teks biar halus saat background jadi putih */
+        transition: color 0.4s ease; 
+        
+        display: inline-block;
+        margin-top: -10px; /* Jarak dari teks di atasnya */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* INI LAYER PUTIH YANG AKAN BERGERAK */
+    .btn-apply-hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        
+        width: 0%;        /* Mulai dari 0 (kosong) */
+        height: 100%;
+        
+        background-color: white;
+        z-index: -1;      /* Posisinya di belakang teks */
+        
+        /* Animasi gerakan kiri ke kanan (Durasi 0.4 detik) */
+        transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    }
+
+    /* EFEK SAAT MOUSE DI ARAHKAN (HOVER) */
+    .btn-apply-hero:hover {
+        color: #121c2d; /* Ubah warna teks jadi Biru Gelap biar terbaca */
+        /* Kalau mau teks merah Pertamina, ganti jadi color: #ED1B24; */
+        border-color: white;
+    }
+
+    /* Pemicu Animasi: Lebarkan layer putih jadi 100% */
+    .btn-apply-hero:hover::before {
+        width: 100%; 
+    }
+
+    
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        
+        /* GANTI GRADASI MERAH LAMA DENGAN INI (Dark Blue Slate) */
+        /* Kode warna diambil dari sampel gambar referensimu */
+        background: linear-gradient(90deg, 
+            rgba(20, 35, 50, 0.95) 0%,     /* Kiri: Biru Gelap Pekat (Hampir Hitam) */
+            rgba(20, 35, 50, 0.6) 45%,     /* Tengah: Mulai memudar */
+            rgba(20, 35, 50, 0.0) 100%     /* Kanan: Transparan (Gambar terlihat) */
+        );
+        
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+    }
+
+    /* TYPOGRAPHY BARU */
+    .badge-custom {
+        background-color: #00A950;
+        color: white; padding: 8px 20px; border-radius: 50px;
+        text-transform: uppercase; font-weight: 700; font-size: 0.8rem;
+        letter-spacing: 1px; margin-bottom: 20px; display: inline-block;
+    }
+    
+    .hero-title { font-size: 4rem; font-weight: 700; margin-bottom: 10px; }
+    .hero-lead { font-size: 1.2rem; font-weight: 400; margin-bottom: 40px; }
+
     /* LAYOUT UTAMA */
     .main-container { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px 20px; }
     .job-board-layout { display: grid; grid-template-columns: 280px 1fr; gap: 50px; }
@@ -106,13 +258,22 @@
 
 <div class="penelitian-wrapper">
     <header class="hero-section">
-        <div class="hero-content">
-            <h1>Mewujudkan Kedaulatan Energi hingga Pelosok Negeri</h1>
-            <p>Bergabunglah bersama kami dalam perjalanan membangun kemandirian energi nasional.</p>
+        <div class="hero-overlay"></div>
+
+        <div class="container hero-content">
+            
+            <h1 class="hero-title">READY TO LEVEL UP?</h1>
+            
+            <p class="hero-lead">Salurkan ide brilian dan ciptakan dampak nyata bersama kami.</p>
+            
+            <div>
+                <a href="#area-lowongan" class="btn-apply-hero">
+                    Apply For Opportunities
+                </a>
+            </div>
         </div>
     </header>
-
-    <div class="main-container">
+    <div class="main-container" id="area-lowongan">
         <div class="intro-header">
             <div>
                 <h2 style="font-size:1.5rem; margin-bottom:5px;">Help us shape the future of energy.</h2>

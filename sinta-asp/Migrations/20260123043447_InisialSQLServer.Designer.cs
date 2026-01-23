@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using sinta_asp.Data;
 
@@ -11,9 +12,11 @@ using sinta_asp.Data;
 namespace sinta_asp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260123043447_InisialSQLServer")]
+    partial class InisialSQLServer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,95 +25,13 @@ namespace sinta_asp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
-
-            modelBuilder.Entity("sinta_asp.Models.Magang", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Company")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("EmailPribadi")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Fakultas")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FileCv")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FileProposal")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FileSuratPengantar")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("FotoProfil")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Instagram")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Jurusan")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Lokasi")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("MulaiMagang")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("NamaLengkap")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("NamaPerguruanTinggi")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Nim")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("NoHp")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Region")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("RekomendasiPegawai")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("SelesaiMagang")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("TanggalLahir")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("TempatLahir")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("pendaftaran_magang");
-                });
-
             modelBuilder.Entity("sinta_asp.Models.Pendaftaran", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
 
                     b.Property<string>("Company")
                         .IsRequired()
@@ -160,10 +81,6 @@ namespace sinta_asp.Migrations
                     b.Property<string>("PathFoto3x4")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PathFoto3x4")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("PathProposal")
                         .HasColumnType("nvarchar(max)");
