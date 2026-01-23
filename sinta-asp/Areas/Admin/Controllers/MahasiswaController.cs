@@ -11,9 +11,9 @@ namespace sinta_asp.Areas.Admin.Controllers
     [Area("Admin")]
     public class MahasiswaController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly AppDbContext  _context;
 
-        public MahasiswaController(ApplicationDbContext context)
+        public MahasiswaController(AppDbContext  context)
         {
             _context = context;
         }

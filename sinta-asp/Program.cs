@@ -5,29 +5,30 @@ using sinta_asp.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // ===============================
-// 1. REGISTER SERVICES (DATABASE)
+// 1. REGISTER SERVICES (DATABASE & SESSION)
 // ===============================
 
-// KITA PAKAI SQL SERVER (PUNYA KAMU)
+// --- KONEKSI DATABASE (SQL SERVER - PUNYA KAMU) ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Service buat Controller & View
-builder.Services.AddControllersWithViews();
-
-// Konfigurasi Session (Penting buat Login)
+// --- KONFIGURASI SESSION (Penting buat Login) ---
+builder.Services.AddDistributedMemoryCache(); // Tambahan biar session makin lancar
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // Login bertahan 60 menit
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
 
+// Service buat Controller & View
+builder.Services.AddControllersWithViews();
+
 var app = builder.Build();
 
 // ===============================
-// 2. MIDDLEWARE
+// 2. MIDDLEWARE PIPELINE
 // ===============================
 
 if (app.Environment.IsDevelopment())
@@ -45,22 +46,23 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Middleware Keamanan
+// Middleware Wajib (Urutan: Session -> Auth)
 app.UseSession();
+app.UseAuthentication(); // Saya tambahkan ini jaga-jaga kalau nanti butuh
 app.UseAuthorization();
 
 // ===============================
-// 3. ROUTING KHUSUS & UMUM (JANGAN DIHAPUS)
+// 3. ROUTING (KHUSUS & UMUM)
 // ===============================
 
-// 🟢 1. INI ROUTING KHUSUS (ADMIN) YG KAMU MINTA PERTAHANKAN
-// Tanpa ini, halaman Admin gak bakal bisa dibuka
+// 🟢 1. ROUTE KHUSUS ADMIN (AREAS)
+// Kalau masuk ke /Admin, dia bakal cari Controller 'Login' atau 'Dashboard'
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
+    pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}"
 );
 
-// 🔵 2. INI ROUTING UMUM (HALAMAN DEPAN)
+// 🔵 2. ROUTE UMUM (HALAMAN DEPAN)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"

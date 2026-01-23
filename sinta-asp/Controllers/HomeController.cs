@@ -1,10 +1,6 @@
-<<<<<<< HEAD
-﻿using Microsoft.AspNetCore.Mvc;
-=======
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics; // Tambahan biar 'Activity' ga error
 using sinta_asp.Models;   // Tambahan biar 'ErrorViewModel' ga error
->>>>>>> 659a81f9878d152c3c8220b7520b93e73f755cfb
 
 namespace sinta_asp.Controllers
 {
@@ -12,15 +8,6 @@ namespace sinta_asp.Controllers
     {
         public IActionResult Index()
         {
-<<<<<<< HEAD
-            // Redirect langsung ke Admin Login
-            return RedirectToAction("Index", "Login", new { area = "Admin" });
-
-            // ATAU tampilkan halaman welcome:
-            // return View();
-        }
-
-=======
             // Menampilkan Views/Home/Index.cshtml (Dashboard)
             return View();
         }
@@ -37,10 +24,9 @@ namespace sinta_asp.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
->>>>>>> 659a81f9878d152c3c8220b7520b93e73f755cfb
         public IActionResult Error()
         {
-            return View();
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
     }
 }

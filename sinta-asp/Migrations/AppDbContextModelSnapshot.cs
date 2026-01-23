@@ -161,6 +161,10 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PathFoto3x4")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
                     b.Property<string>("PathProposal")
                         .HasColumnType("nvarchar(max)");
 
