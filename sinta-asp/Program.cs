@@ -1,36 +1,22 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
-<<<<<<< HEAD
 using sinta_asp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ===============================
-// 1. REGISTER SERVICES
+// 1. REGISTER SERVICES (DATABASE)
 // ===============================
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Menambahkan layanan Controller dengan Views
-=======
-
-var builder = WebApplication.CreateBuilder(args);
-
-// --- SETTING KONEKSI MYSQL (LARAGON) ---
-// Kita pakai yang ini karena sesuai dengan database kamu
+// KITA PAKAI SQL SERVER (PUNYA KAMU)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-);
-// ---------------------------------------
+    options.UseSqlServer(connectionString));
 
-// Add services to the container.
->>>>>>> 659a81f9878d152c3c8220b7520b93e73f755cfb
+// Service buat Controller & View
 builder.Services.AddControllersWithViews();
 
-// Konfigurasi Session (Penting untuk Login)
+// Konfigurasi Session (Penting buat Login)
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -41,8 +27,9 @@ builder.Services.AddSession(options =>
 var app = builder.Build();
 
 // ===============================
-// 2. MIDDLEWARE PIPELINE
+// 2. MIDDLEWARE
 // ===============================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -58,32 +45,25 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Middleware Keamanan dan Session
+// Middleware Keamanan
 app.UseSession();
 app.UseAuthorization();
 
-<<<<<<< HEAD
 // ===============================
-// 3. ROUTING (PENTING: JANGAN TERBALIK)
+// 3. ROUTING KHUSUS & UMUM (JANGAN DIHAPUS)
 // ===============================
 
-// 1. ROUTE UNTUK AREA (Admin)
-// Rute ini akan menangani Controller di dalam folder Areas/Admin
+// 🟢 1. INI ROUTING KHUSUS (ADMIN) YG KAMU MINTA PERTAHANKAN
+// Tanpa ini, halaman Admin gak bakal bisa dibuka
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
 );
 
-// 2. DEFAULT ROUTE (User / Halaman Depan)
-// Rute ini menangani Controller utama di folder luar (HomeController)
+// 🔵 2. INI ROUTING UMUM (HALAMAN DEPAN)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
-=======
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
->>>>>>> 659a81f9878d152c3c8220b7520b93e73f755cfb
 
 app.Run();
