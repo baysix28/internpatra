@@ -2,109 +2,88 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="container-fluid d-flex flex-column justify-content-between" style="min-height: 72vh;">
-    <div class="container mt-3">
-        <div class="row align-items-center mb-4">
-            <div class="col-md-7 col-lg-8">
-                <h2 class="fw-bold mb-0 text-dark">Selamat Datang, @ViewBag.NamaPeserta!</h2>
-                <p class="text-muted small mb-0">Kelola pendaftaran magang dan penelitian Anda di sini.</p>
-            </div>
-
-            <div class="col-md-5 col-lg-4 d-flex justify-content-end align-items-center gap-3">
-                <div class="text-end d-none d-md-block">
-                    <p class="mb-0 fw-bold text-dark small">Sudah daftar?</p>
-                    <p class="mb-0 text-muted" style="font-size: 0.75rem;">Masuk ke Dashboard Peserta</p>
+<div class="container-fluid py-3" style="min-height: 72vh;">
+    <div class="container">
+        <div class="card border-0 shadow-lg p-4" style="border-radius: 20px; background-color: #ffffff;">
+            
+            <div class="row align-items-center mb-4">
+                <div class="col-md-7 col-lg-8">
+                    <h2 class="fw-bold mb-0 text-dark">Selamat Datang, di SINTA!</h2>
+                    @* <p class="text-muted small mb-0">Kelola pendaftaran magang dan penelitian Anda di sini secara efisien.</p> *@
                 </div>
-                
-                <div class="dropdown">
-                    <a href="#" class="login-circle d-flex align-items-center justify-content-center shadow transition-all" 
-                       id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user fa-lg"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown">
-                        <li>
-                            <a class="dropdown-item py-2" href="@Url.Action("Login", "Auth")">
-                                <i class="fas fa-sign-in-alt me-2 text-primary"></i> Login Peserta
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item py-2" href="@Url.Action("Register", "Auth")">
-                                <i class="fas fa-user-plus me-2 text-success"></i> Buat Akun Baru
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
 
-        <div class="row text-center g-4 mt-2">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100 p-3">
-                    <h4 class="fw-bold mb-3">Magang Kerja</h4>
-                    <p class="text-muted small mb-4">Mau merasakan magang di PT. Pertamina (Persero)?</p>
-                    <div class="mt-auto">
-                        <a href="@Url.Action("Index", "PendaftaranMagang")" class="btn btn-primary w-100 shadow-sm py-2">
-                            Informasi Magang Kerja
+                <div class="col-md-5 col-lg-4 d-flex justify-content-end align-items-center gap-3">
+                    <div class="text-end d-none d-md-block">
+                        <p class="mb-0 fw-bold text-dark small">Sudah daftar?</p>
+                        <p class="mb-0 text-muted" style="font-size: 0.7rem;">Masuk ke Dashboard Peserta</p>
+                    </div>
+                    
+                    <div class="dropdown">
+                        <a href="#" class="login-circle d-flex align-items-center justify-content-center shadow transition-all" 
+                           id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user fa-lg"></i>
                         </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item py-2" href="@Url.Action("Login", "Auth")"><i class="fas fa-sign-in-alt me-2 text-primary"></i> Login</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item py-2" href="@Url.Action("Register", "Auth")"><i class="fas fa-user-plus me-2 text-success"></i> Buat Akun</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100 p-3">
-                    <h4 class="fw-bold mb-3">Penelitian</h4>
-                    <p class="text-muted small mb-4">Penelitianmu berkaitan dengan Pertamina?</p>
-                    <div class="mt-auto">
-                        <a href="@Url.Action("Index", "Penelitian")" class="btn btn-info text-white w-100 shadow-sm py-2">
-                            Informasi Penelitian
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <hr class="text-muted opacity-25 mb-4">
 
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100 p-3">
-                    <h4 class="fw-bold mb-3">Hasil Pendaftaran</h4>
-                    <p class="text-muted small mb-4">Penasaran apakah pendaftaranmu diterima?</p>
-                    <div class="mt-auto">
-                        <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-success w-100 shadow-sm py-2">
-                            Periksa Hasil Pendaftaran
-                        </a>
+            <div class="row text-center g-3">
+                <div class="col-md-4">
+                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
+                        <h5 class="fw-bold mb-2">Magang Kerja</h5>
+                        <p class="text-muted small mb-3">Rasakan pengalaman kerja nyata di PT. Pertamina (Persero).</p>
+                        <div class="mt-auto">
+                            <a href="@Url.Action("Index", "PendaftaranMagang")" class="btn btn-primary w-100 py-2 shadow-sm">Informasi Magang</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
+                        <h5 class="fw-bold mb-2">Penelitian</h5>
+                        <p class="text-muted small mb-3">Dukungan data untuk penelitian akademik Anda.</p>
+                        <div class="mt-auto">
+                            <a href="@Url.Action("Index", "Penelitian")" class="btn btn-info text-white w-100 py-2 shadow-sm">Informasi Penelitian</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
+                        <h5 class="fw-bold mb-2">Hasil</h5>
+                        <p class="text-muted small mb-3">Pantau status pengajuan pendaftaran Anda secara berkala.</p>
+                        <div class="mt-auto">
+                            <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-success w-100 py-2 shadow-sm">Periksa Hasil</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div> </div>
 </div>
 
 <style>
-    /* Styling Ikon Profil */
     .login-circle {
-        width: 50px;
-        height: 50px;
+        width: 45px;
+        height: 45px;
         background-color: #102C54;
         color: white;
         border-radius: 50%;
         text-decoration: none;
     }
-
-    .login-circle:hover {
-        transform: scale(1.05);
-        background-color: #1a417a;
-    }
-
-    .transition-all {
-        transition: all 0.2s ease-in-out;
-    }
-
-    /* Menjaga Card tetap rapi */
-    .card {
-        transition: transform 0.2s;
-        border-radius: 12px;
-    }
-
-    .card:hover {
-        transform: translateY(-5px);
+    .login-circle:hover { transform: scale(1.05); background-color: #1a417a; }
+    .transition-all { transition: all 0.2s ease-in-out; }
+    
+    /* Hover effect untuk kotak menu di dalam */
+    .bg-light:hover {
+        background-color: #f0f4f8 !important;
+        transform: translateY(-3px);
+        transition: 0.3s;
     }
 </style>
