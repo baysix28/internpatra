@@ -4,10 +4,10 @@ using sinta_asp.Data; // <-- Ini bakal merah sebentar, abaikan dulu
 var builder = WebApplication.CreateBuilder(args);
 
 
-// --- SETTING KONEKSI MYSQL (LARAGON) ---
+// --- SETTING KONEKSI SQL SERVER (SINTA) ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseSqlServer(connectionString));
 // ---------------------------------------
 
 // Add services to the container.
