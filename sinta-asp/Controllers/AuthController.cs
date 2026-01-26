@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using sinta_asp.Data; // Sesuaikan dengan namespace AppDbContext Anda
 using sinta_asp.Models;
 using System.Linq;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace sinta_asp.Controllers
 {
@@ -20,20 +23,32 @@ namespace sinta_asp.Controllers
         public IActionResult Login() => View();
 
         [HttpPost]
-        public IActionResult Login(string Email, string Password)
+        public async Task<IActionResult> Login(string Email, string Password)
         {
-            // Cek ke tabel Users
             var account = _context.Users.FirstOrDefault(u => u.Email == Email && u.Password == Password);
 
             if (account != null)
             {
+                // Membuat identitas user (KTP Digital)
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, account.Email),
+                    new Claim("Id", account.Id.ToString())
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // Proses "Masuk" ke sistem
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
+                    new ClaimsPrincipal(claimsIdentity));
+
                 return RedirectToAction("Index", "DashboardPeserta");
             }
             
             TempData["ErrorMessage"] = "Akun tidak ditemukan. Silakan daftar dulu!";
             return RedirectToAction("Login");
         }
-
+        
         // --- TAMBAHKAN INI ---
         [HttpGet]
         public IActionResult Register()

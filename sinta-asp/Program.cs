@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,13 @@ builder.Services.AddSession(options =>
 
 // Tambahkan layanan MVC (Controllers with Views)
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login"; // Alamat jika user maksa masuk tapi belum login
+        options.AccessDeniedPath = "/Home/AccessDenied";
+    });
 
 var app = builder.Build();
 

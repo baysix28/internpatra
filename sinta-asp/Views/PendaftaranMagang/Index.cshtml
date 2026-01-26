@@ -360,9 +360,18 @@
                     Bergabunglah dalam Program Magang Kerja di PT. Pertamina (Persero) Regional Jawa Bagian Tengah. 
                     Kembangkan potensi diri Anda bersama perusahaan energi terbesar di Indonesia dan raih pengalaman berharga untuk masa depan karir Anda.
                 </p>
-                <a href="@Url.Action("DataMagang", "PendaftaranMagang")" class="btn-daftar">
-                    <i class="fas fa-rocket"></i> Daftar Sekarang
-                </a>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a href="@Url.Action("DataMagang", "PendaftaranMagang")" class="btn-daftar">
+                        <i class="fas fa-rocket"></i> Daftar Sekarang
+                    </a>
+                }
+                else
+                {
+                    <a href="@Url.Action("Login", "Account")" class="btn-daftar">
+                        <i class="fas fa-sign-in-alt"></i> Login untuk Mendaftar
+                    </a>
+                }
             </div>
             <div class="col-lg-5 text-center d-none d-lg-block">
                 <i class="fas fa-users" style="font-size: 280px; opacity: 0.15;"></i>
@@ -449,9 +458,18 @@
     <div class="container">
         <h2 class="cta-title">Siap Memulai Perjalanan Karirmu?</h2>
         <p class="cta-text">Daftarkan diri Anda sekarang dan jadilah bagian dari keluarga besar Pertamina!</p>
-        <a href="@Url.Action("DataMagang", "PendaftaranMagang")" class="btn-daftar">
-            <i class="fas fa-user-plus"></i> Mulai Pendaftaran
-        </a>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a href="@Url.Action("DataMagang", "PendaftaranMagang")" class="btn-daftar">
+                <i class="fas fa-user-plus"></i> Mulai Pendaftaran
+            </a>
+        }
+        else
+        {
+            <a href="@Url.Action("Login", "Account")" class="btn-daftar">
+                <i class="fas fa-sign-in-alt"></i> Login Sekarang
+            </a>
+        }
     </div>
 </section>
 

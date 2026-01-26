@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using sinta_asp.Models;
 using sinta_asp.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace sinta_asp.Controllers
 {
@@ -23,6 +24,7 @@ namespace sinta_asp.Controllers
             return View();
         }
 
+        [Authorize]
         public IActionResult DataMagang()
         {
             return View();
