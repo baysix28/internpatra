@@ -99,50 +99,66 @@ namespace sinta_asp.Controllers
 
         // 1. DASHBOARD UTAMA (Index)
         // --- GANTI METHOD INDEX YANG LAMA DENGAN INI ---
-        public IActionResult Index(string company, string search, string region)
+        // Tambahkan parameter 'page' dengan default 1
+        // Pastikan HANYA ADA SATU method Index seperti ini:
+        public IActionResult Index(string search, string company, string region, int page = 1)
         {
-            var dataTampil = SemuaLowongan;
-
-            // 1. FILTER COMPANY
-            // Kalau company tidak kosong DAN bukan "All", baru difilter.
-            // Ini menangani kasus kalau value-nya "" ataupun "All".
-            if (!string.IsNullOrEmpty(company) && company != "All")
-            {
-                // Pakai Contains supaya kalau ada beda spasi dikit tetap ketemu
-                dataTampil = dataTampil.Where(x => x.Company != null && x.Company.Contains(company)).ToList();
-            }
-
-            // 2. FILTER SEARCH (PENCARIAN)
+            // 1. PANGGIL DATA (Menggunakan fungsi yang sudah kamu buat di bawah)
+            var allData = GetDummyData(); 
+            
+            // 2. LOGIKA FILTER (Search & Filter)
             if (!string.IsNullOrEmpty(search))
             {
-                search = search.ToLower(); // Ubah ke huruf kecil
-                
-                dataTampil = dataTampil.Where(x => 
-                    // Cek di JUDUL
-                    (x.Title != null && x.Title.ToLower().Contains(search)) || 
-                    
-                    // ATAU Cek di NAMA PERUSAHAAN (Ini yang kemarin kurang)
-                    (x.Company != null && x.Company.ToLower().Contains(search)) ||
-
-                    // ATAU Cek di DESKRIPSI (Opsional, biar makin canggih)
-                    (x.Description != null && x.Description.ToLower().Contains(search))
-                ).ToList();
+                search = search.ToLower();
+                // Mencari di Judul atau Nama Perusahaan
+                allData = allData.Where(x => (x.Title != null && x.Title.ToLower().Contains(search)) || 
+                                            (x.Company != null && x.Company.ToLower().Contains(search))).ToList();
             }
 
-            // 3. FILTER REGION
+            // Filter Company
+            if (!string.IsNullOrEmpty(company) && company != "All")
+            {
+                allData = allData.Where(x => x.Company != null && x.Company.Contains(company)).ToList();
+            }
+
+            // Filter Region
             if (!string.IsNullOrEmpty(region) && region != "All")
             {
-                dataTampil = dataTampil.Where(x => x.Region != null && x.Region == region).ToList();
+                allData = allData.Where(x => x.Region == region).ToList();
             }
 
-            // Kembalikan value ke View agar tidak hilang setelah refresh
-            ViewData["SelectedCompany"] = company;
+            // 3. LOGIKA PAGINATION (Matematika Halaman)
+            int pageSize = 6; // Menampilkan 9 kartu per halaman
+            int totalItems = allData.Count;
+            
+            // Hitung total halaman (dibulatkan ke atas)
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // Mencegah error jika user mengetik halaman minus atau berlebih
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            // POTONG DATA: Lewati halaman sebelumnya, Ambil 9 data
+            var dataHalamanIni = allData
+                                .Skip((page - 1) * pageSize)
+                                .Take(pageSize)
+                                .ToList();
+
+            // 4. MASUKKAN KE VIEWMODEL (Wadah Baru)
+            var model = new sinta_asp.Models.LowonganViewModel
+            {
+                Lowongan = dataHalamanIni,
+                CurrentPage = page,
+                TotalPages = totalPages
+            };
+
+            // Simpan filter agar tidak hilang saat klik halaman berikutnya
             ViewData["SelectedSearch"] = search;
+            ViewData["SelectedCompany"] = company;
             ViewData["SelectedRegion"] = region;
 
-            return View(dataTampil);
+            return View(model);
         }
-
         // 2. TAMPILKAN FORM (GET)
         public IActionResult Daftar()
         {
@@ -213,6 +229,11 @@ namespace sinta_asp.Controllers
         {
             return View();
         }
+
+        private List<LowonganKerja> GetDummyData()
+       {
+           return SemuaLowongan;
+       }
 
         // --- HELPER FUNCTION: CARA SIMPAN FILE BIAR RAPI ---
         private async Task<string?> UploadFile(Microsoft.AspNetCore.Http.IFormFile file, string jenis)
