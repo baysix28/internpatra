@@ -9,7 +9,8 @@ namespace sinta_asp.Data
         {
         }
 
-        // Ini perintah: "Tolong buatkan tabel bernama 'Pendaftarans' berdasarkan model Pendaftaran"
+        // Pendaftaran Penelitian 
         public DbSet<Pendaftaran> Pendaftarans { get; set; }
+        public DbSet<Lowongan> Lowongan { get; set; }
     }
 }

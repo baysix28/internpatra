@@ -29,3 +29,136 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+
+/* =======================================================
+   FLIP CARD ENGINE (JANGAN DIUBAH BAGIAN INI)
+   ======================================================= */
+
+/* 1. WADAH KARTU (Tentukan tinggi kartu disini) */
+.flip-card {
+  background-color: transparent;
+  width: 100%;
+  height: 420px; /* Tinggi kartu saya naikkan dikit biar muat */
+  perspective: 1000px; /* Wajib ada biar bisa muter 3D */
+  cursor: pointer;
+}
+
+/* 2. BAGIAN DALAM YANG BERPUTAR */
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Trigger putaran saat mouse hover */
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+/* 3. SETTINGAN SISI DEPAN & BELAKANG (WAJIB ABSOLUTE) */
+/* Ini yang bikin mereka menumpuk, bukan berderet ke bawah */
+.flip-card-front, .flip-card-back {
+  position: absolute;  /* KUNCI UTAMA! */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden; /* Sembunyikan pantat kartu */
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+/* =======================================================
+ TAMPILAN VISUAL (STYLE CANTIKNYA)
+ ======================================================= */
+
+/* --- SISI DEPAN (GAMBAR + TEKS) --- */
+.flip-card-front {
+  background-color: #fff;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #eee;
+}
+
+/* Lantai 1: Gambar (55%) */
+.front-img-container {
+  width: 100%;
+  height: 55%; 
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* Badge Region (Nempel di atas Gambar) */
+.region-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background-color: #00529C; /* Default Blue */
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+/* Lantai 2: Teks (45%) */
+.front-text-container {
+  width: 100%;
+  height: 45%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+  background-color: white;
+}
+
+.front-text-container h5 {
+  font-weight: 800;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  color: #222;
+  line-height: 1.4;
+}
+
+/* --- SISI BELAKANG (DETAIL) --- */
+.flip-card-back {
+  background-color: white;
+  color: #333;
+  transform: rotateY(180deg); /* Balik 180 derajat */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
+  border: 2px solid #d81c22; /* Border Merah Pertamina */
+}
+
+.btn-card-action {
+  background-color: #d81c22;
+  color: white;
+  padding: 10px 25px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-top: 15px;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.btn-card-action:hover {
+  background-color: #b0151a;
+  color: white;
+}
