@@ -1,0 +1,309 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard SINTA - JBT";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+    :root {
+        --pertamina-blue: #00549c;
+        --pertamina-red: #ec1c24;
+        --pertamina-green: #43b02a;
+        --status-pending: #f4a100;
+        --bg-body: #f4f7fa;
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: var(--bg-body);
+        color: #1a202c;
+    }
+
+    .dashboard-container { padding: 2rem; }
+    
+    .card-modern {
+        background: #fff;
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        height: 100%;
+        padding: 1.5rem;
+    }
+
+    .section-title {
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: -0.02em;
+        color: var(--pertamina-blue);
+        margin-bottom: 1.5rem;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+    }
+
+    .chart-header h6 {
+        font-weight: 700;
+        margin: 0;
+        color: #4a5568;
+    }
+
+    .filter-pills {
+        display: flex;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 10px;
+        gap: 4px;
+    }
+
+    .filter-pill {
+        border: none;
+        background: none;
+        padding: 4px 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 7px;
+        cursor: pointer;
+        color: #64748b;
+        transition: all 0.2s ease;
+    }
+
+    .filter-pill.active {
+        background: white;
+        color: var(--pertamina-blue);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .chart-container { position: relative; height: 280px; width: 100%; }
+    .chart-container-tall { position: relative; height: 500px; width: 100%; }
+</style>
+
+<div class="dashboard-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="section-title mb-0">Analytics Pendaftaran SINTA JBT</h2>
+            <p class="text-muted">Regional Jawa Bagian Tengah • Monitoring Dashboard Admin</p>
+        </div>
+        <button class="btn btn-primary shadow-sm" style="border-radius: 12px; background: var(--pertamina-blue); border: none; padding: 10px 20px;">
+            <i data-lucide="download" class="me-2" style="width: 18px;"></i> Export Data JBT
+        </button>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="card-modern text-center">
+                <div class="chart-header">
+                    <h6><i data-lucide="pie-chart" class="me-2 text-primary"></i>Status Pendaftaran</h6>
+                </div>
+                <div class="chart-container">
+                    <canvas id="statusPendaftarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card-modern">
+                <div class="chart-header">
+                    <h6><i data-lucide="trending-up" class="me-2 text-primary"></i>Tren Pelamar</h6>
+                    <div class="filter-pills">
+                        <button class="filter-pill" onclick="updateTrendData('week', this)">Minggu</button>
+                        <button class="filter-pill active" onclick="updateTrendData('month', this)">Bulan</button>
+                        <button class="filter-pill" onclick="updateTrendData('year', this)">Tahun</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendPendaftarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card-modern">
+                <div class="chart-header">
+                    <h6><i data-lucide="layers" class="me-2 text-primary"></i>Status Seleksi per Bidang Utama JBT</h6>
+                </div>
+                <div class="chart-container-tall">
+                    <canvas id="statusBidangStackedChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card-modern">
+                <div class="chart-header">
+                    <h6><i data-lucide="percent" class="me-2 text-primary"></i>Rasio Penerimaan (%) - Semua Bidang</h6>
+                </div>
+                <div class="chart-container-tall">
+                    <canvas id="rasioSeleksiChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-3">
+             <div class="card-modern" style="border-top: 4px solid var(--pertamina-green);">
+                <div class="chart-header">
+                    <h6>Total Intern Aktif JBT</h6>
+                </div>
+                <div class="text-center py-4">
+                    <h1 style="font-size: 3.5rem; font-weight: 800; color: var(--pertamina-green);">142</h1>
+                    <p class="text-muted">Mahasiswa di 21 Unit Operasional</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card-modern">
+                <div class="chart-header">
+                    <h6>Kelengkapan Berkas</h6>
+                </div>
+                <div class="chart-container" style="height: 180px;">
+                    <canvas id="dokumenChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card-modern">
+                <div class="chart-header">
+                    <h6>Top 5 Universitas Pendaftar (Wilayah JBT)</h6>
+                </div>
+                <div class="chart-container" style="height: 180px;">
+                    <canvas id="univChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+    const fontConfig = { family: 'Plus Jakarta Sans', size: 11 };
+    
+    // Dataset Bidang (Digunakan untuk grafik Stacked dan Rasio)
+    const listBidang = [
+        'Aviasi', 'Supply & Distribution', 'Retail Sales & Mkt', 'Human Capital', 
+        'Finance', 'Legal & Audit', 'HSSE & Medical', 'ICT / Digital', 
+        'Procurement & Asset', 'Corp. Operation', 'Comm & CSR', 'Risk Mgmt', 'Corporate Sales'
+    ];
+
+    // --- 1. Trend Chart Setup ---
+    const trendCtx = document.getElementById('trendPendaftarChart').getContext('2d');
+    const trendDataConfigs = {
+        week: { labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'], data: [45, 52, 38, 65, 48, 20, 15] },
+        month: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'], data: [120, 250, 480, 800, 600, 1100, 950, 700, 850, 1200, 1400, 1300] },
+        year: { labels: ['2022', '2023', '2024', '2025', '2026'], data: [2100, 3200, 4500, 5800, 1100] }
+    };
+
+    let trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: trendDataConfigs.month.labels,
+            datasets: [{
+                label: 'Pendaftar',
+                data: trendDataConfigs.month.data,
+                borderColor: '#00549c',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(0, 84, 156, 0.05)',
+                pointBackgroundColor: '#00549c',
+                pointRadius: 4
+            }]
+        },
+        options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    function updateTrendData(period, element) {
+        document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+        trendChart.data.labels = trendDataConfigs[period].labels;
+        trendChart.data.datasets[0].data = trendDataConfigs[period].data;
+        trendChart.update();
+    }
+
+    // --- 2. Status Pendaftar Donut ---
+    new Chart(document.getElementById('statusPendaftarChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Diproses', 'Diterima', 'Ditolak'],
+            datasets: [{ data: [145, 82, 310], backgroundColor: ['#f4a100', '#43b02a', '#ec1c24'], borderWidth: 0 }]
+        },
+        options: { cutout: '70%', maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, font: fontConfig } } } }
+    });
+
+    // --- 3. Status Seleksi per Bidang (Stacked) ---
+    new Chart(document.getElementById('statusBidangStackedChart'), {
+        type: 'bar',
+        data: {
+            labels: listBidang,
+            datasets: [
+                { label: 'Diterima', data: [8, 15, 12, 10, 5, 4, 7, 10, 6, 5, 8, 3, 4], backgroundColor: '#43b02a' },
+                { label: 'Diproses', data: [15, 25, 20, 15, 8, 5, 10, 15, 10, 8, 12, 4, 10], backgroundColor: '#f4a100' },
+                { label: 'Ditolak', data: [30, 50, 40, 20, 15, 10, 20, 30, 15, 12, 18, 8, 15], backgroundColor: '#ec1c24' }
+            ]
+        },
+        options: {
+            indexAxis: 'y',
+            maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } },
+            plugins: { legend: { position: 'bottom', labels: { font: fontConfig } } }
+        }
+    });
+
+    // --- 4. Rasio Penerimaan SEMUA BIDANG (Bar Horizontal) ---
+    new Chart(document.getElementById('rasioSeleksiChart'), {
+        type: 'bar',
+        data: {
+            labels: listBidang,
+            datasets: [{
+                label: '% Diterima',
+                data: [18, 22, 16, 25, 12, 15, 14, 20, 19, 11, 23, 9, 14], // Simulasi rasio % per bidang
+                backgroundColor: '#00549c',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            maintainAspectRatio: false,
+            scales: { 
+                x: { beginAtZero: true, max: 100, ticks: { callback: value => value + '%' } }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: context => `Rasio: ${context.parsed.x}%` } }
+            }
+        }
+    });
+
+    // --- 5. Dokumen Pie ---
+    new Chart(document.getElementById('dokumenChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Lengkap', 'Belum'],
+            datasets: [{ data: [82, 18], backgroundColor: ['#00549c', '#e2e8f0'] }]
+        },
+        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // --- 6. Universitas Horizontal Bar ---
+    new Chart(document.getElementById('univChart'), {
+        type: 'bar',
+        data: {
+            labels: ['UNDIP', 'UNNES', 'UGM', 'UNS', 'UDINUS'],
+            datasets: [{ data: [185, 140, 125, 110, 95], backgroundColor: '#ec1c24', borderRadius: 5 }]
+        },
+        options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+</script>

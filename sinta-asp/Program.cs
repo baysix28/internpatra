@@ -1,41 +1,71 @@
-using Microsoft.EntityFrameworkCore; // <-- Pastikan ada di paling atas
-using sinta_asp.Data; // <-- Ini bakal merah sebentar, abaikan dulu
+using Microsoft.EntityFrameworkCore;
+using sinta_asp.Data;
+using sinta_asp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ===============================
+// 1. REGISTER SERVICES (DATABASE & SESSION)
+// ===============================
 
-// --- SETTING KONEKSI SQL SERVER (SINTA) ---
+// --- KONEKSI DATABASE (SQL SERVER - PUNYA KAMU) ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
-// ---------------------------------------
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+// --- KONFIGURASI SESSION (Penting buat Login) ---
+builder.Services.AddDistributedMemoryCache(); // Tambahan biar session makin lancar
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // Login bertahan 60 menit
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
-// Add services to the container.
+// Service buat Controller & View
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+// ===============================
+// 2. MIDDLEWARE PIPELINE
+// ===============================
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-app.UseRouting();
-
-app.UseAuthorization();
-
 app.UseStaticFiles();
 
+app.UseRouting();
+
+// Middleware Wajib (Urutan: Session -> Auth)
+app.UseSession();
+app.UseAuthentication(); // Saya tambahkan ini jaga-jaga kalau nanti butuh
+app.UseAuthorization();
+
+// ===============================
+// 3. ROUTING (KHUSUS & UMUM)
+// ===============================
+
+// 🟢 1. ROUTE KHUSUS ADMIN (AREAS)
+// Kalau masuk ke /Admin, dia bakal cari Controller 'Login' atau 'Dashboard'
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}"
+);
+
+// 🔵 2. ROUTE UMUM (HALAMAN DEPAN)
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
-
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();
