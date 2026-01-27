@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,10 +11,16 @@ namespace sinta_asp.Models
         public int Id { get; set; }
 
         public string? FotoProfil { get; set; }
-        [Required] public string NamaLengkap { get; set; } = "";
-        [Required, EmailAddress] public string EmailPribadi { get; set; } = "";
+
+        [Required]
+        public string NamaLengkap { get; set; } = "";
+
+        [Required, EmailAddress]
+        public string EmailPribadi { get; set; } = "";
+
         public string? TempatLahir { get; set; }
         public DateTime TanggalLahir { get; set; }
+
         public string? NoHp { get; set; }
         public string? Instagram { get; set; }
 
@@ -26,12 +33,17 @@ namespace sinta_asp.Models
         public string? Region { get; set; }
         public string? Lokasi { get; set; }
         public string? RekomendasiPegawai { get; set; }
+
         public DateTime MulaiMagang { get; set; }
         public DateTime SelesaiMagang { get; set; }
 
         public string? FileCv { get; set; }
         public string? FileSuratPengantar { get; set; }
         public string? FileProposal { get; set; }
+
+        [Required]
+        [MaxLength(20)]
+        public string Status { get; set; } = "Menunggu";
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }

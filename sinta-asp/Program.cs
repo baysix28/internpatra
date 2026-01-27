@@ -3,26 +3,30 @@ using sinta_asp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. KONEKSI KE DATABASE (MySQL)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// SQL SERVER
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
-// 2. KONFIGURASI SESSION (Wajib untuk Login)
+// --- TAMBAHAN: HTTP CONTEXT ACCESSOR ---
+// Ini yang memperbaiki error "No service for type IHttpContextAccessor"
+builder.Services.AddHttpContextAccessor();
+
+// SESSION
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(60); // Waktu login (60 menit)
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
 
-// Tambahkan layanan MVC (Controllers with Views)
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// 3. MIDDLEWARE PIPELINE (Urutan sangat penting!)
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -31,16 +35,14 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
-// Wajib diletakkan di bawah UseRouting agar Session terbaca di Controller
+// SESSION WAJIB sebelum Authorization
 app.UseSession(); 
 
-app.UseAuthentication();
 app.UseAuthorization();
 
-// 4. KONFIGURASI ROUTE (Penting untuk Area)
+// AREA ROUTE
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}");
