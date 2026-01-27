@@ -8,17 +8,10 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 
+
 namespace sinta_asp.Controllers
 {
-    // Class Dummy untuk Lowongan (Tetap dipakai buat Dashboard)
-    public class LowonganKerja
-    {
-        public string? Title { get; set; }
-        public string? Region { get; set; }
-        public string? Company { get; set; } 
-        public string? ImageUrl { get; set; }
-        public string? Description { get; set; } 
-    }
+    
 
     public class PenelitianController : Controller
     {
@@ -33,69 +26,81 @@ namespace sinta_asp.Controllers
         }
 
         // 2. UPDATE DATA DUMMY (Isi Deskripsinya)
-        private List<LowonganKerja> SemuaLowongan = new List<LowonganKerja>
+        // Ubah tipe return-nya jadi List<Lowongan>
+        // GANTI FUNGSI GETDUMMYDATA DI BAWAH DENGAN INI
+        private List<Lowongan> GetDummyData() 
         {
-            // --- DATA KPI (KILANG) -> Fokus Jurusan & Proses ---
-            new LowonganKerja { 
-                Title = "Akuntansi/ Ekonomi & Bisnis", 
-                Region = "Refinery Unit VI Balongan", 
-                Company = "PT Kilang Pertamina Internasional (KPI)", 
-                ImageUrl = "https://images.unsplash.com/photo-1581092921461-eab62e97a782?w=400",
-                Description = "Mempelajari proses distilasi minyak mentah dan monitoring unit operasi di kilang Balongan untuk menjaga kualitas produk BBM."
-            },
-            new LowonganKerja { 
-                Title = "Elektro (Arus Kuat)", 
-                Region = "Refinery Unit VI Balongan", 
-                Company = "PT Kilang Pertamina Internasional (KPI)", 
-                ImageUrl = "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400",
-                Description = "Fokus pada pemeliharaan dan analisis performa mesin rotasi seperti pompa, kompresor, dan turbin di area kilang."
-            },
+            return new List<Lowongan>
+            {
+                // --- DATA KPI (KILANG) ---
+                new Lowongan { 
+                    Title = "Akuntansi/ Ekonomi & Bisnis", 
+                    Region = "Refinery Unit VI Balongan", 
+                    Company = "PT Kilang Pertamina Internasional (KPI)", 
+                    ImageUrl = "https://images.unsplash.com/photo-1581092921461-eab62e97a782?w=400",
+                    Description = "Mempelajari proses distilasi minyak mentah dan monitoring unit operasi di kilang Balongan untuk menjaga kualitas produk BBM.",
+                    CreatedAt = DateTime.Now
+                },
+                new Lowongan { 
+                    Title = "Elektro (Arus Kuat)", 
+                    Region = "Refinery Unit VI Balongan", 
+                    Company = "PT Kilang Pertamina Internasional (KPI)", 
+                    ImageUrl = "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400",
+                    Description = "Fokus pada pemeliharaan dan analisis performa mesin rotasi seperti pompa, kompresor, dan turbin di area kilang.",
+                    CreatedAt = DateTime.Now
+                },
 
-            // --- DATA PATRA NIAGA -> Fokus Lokasi & Distribusi ---
-            new LowonganKerja { 
-                Title = "Asset Operation MOR V", 
-                Region = "Regional Jatimbalinus", 
-                Company = "PT Pertamina Patra Niaga (C&T)", 
-                ImageUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400",
-                Description = "Terminal BBM strategis dan terpenting di Indonesia yang menyuplai kebutuhan energi untuk wilayah Jabodetabek."
-            },
-
-            new LowonganKerja { 
-                Title = "Asset Operation JBB", 
-                Region = "Regional Jawa Bagian Barat", 
-                Company = "PT Pertamina Patra Niaga (C&T)", 
-                ImageUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400",
-                Description = "Terminal BBM strategis dan terpenting di Indonesia yang menyuplai kebutuhan energi untuk wilayah Jabodetabek."
-            },
-            new LowonganKerja { 
-                Title = "Aviation FT Babullah", 
-                Region = "Regional Maluku Papua", 
-                Company = "PT Pertamina Patra Niaga (C&T)", 
-                ImageUrl = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400",
-                Description = "Depot Pengisian Pesawat Udara (DPPU) tersibuk kedua di Indonesia, melayani avtur untuk penerbangan internasional."
-            },
-            new LowonganKerja { 
-                Title = "Kantor Unit - SSC ICT V JBT", 
-                Region = "Regional Jawa Bagian Tengah", 
-                Company = "PT Pertamina Patra Niaga (C&T)", 
-                ImageUrl = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400",
-                Description = "Mendukung operasional IT dan infrastruktur jaringan untuk kelancaran distribusi energi di Jawa Tengah."
-            },
-             new LowonganKerja { 
-                Title = "Asset Operation Region Sumbagut - Kantor Unit", 
-                Region = "Regional Sumbagut", 
-                Company = "PT Pertamina Patra Niaga (C&T)", 
-                ImageUrl = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400",
-                Description = "Menangani aspek legalitas aset dan hubungan industrial di salah satu terminal BBM vital di Kalimantan."
-            },
-             new LowonganKerja { 
-                Title = "DPPU APT Pranoto", 
-                Region = "Regional Kalimantan", 
-                Company = "PT Pertamina Patra Niaga (C&T)", 
-                ImageUrl = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400",
-                Description = "Menangani aspek legalitas aset dan hubungan industrial di salah satu terminal BBM vital di Kalimantan."
-            }
-        };
+                // --- DATA PATRA NIAGA ---
+                new Lowongan { 
+                    Title = "Asset Operation MOR V", 
+                    Region = "Regional Jatimbalinus", 
+                    Company = "PT Pertamina Patra Niaga (C&T)", 
+                    ImageUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400",
+                    Description = "Terminal BBM strategis dan terpenting di Indonesia yang menyuplai kebutuhan energi untuk wilayah Jabodetabek.",
+                    CreatedAt = DateTime.Now
+                },
+                new Lowongan { 
+                    Title = "Asset Operation JBB", 
+                    Region = "Regional Jawa Bagian Barat", 
+                    Company = "PT Pertamina Patra Niaga (C&T)", 
+                    ImageUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400",
+                    Description = "Terminal BBM strategis dan terpenting di Indonesia yang menyuplai kebutuhan energi untuk wilayah Jabodetabek.",
+                    CreatedAt = DateTime.Now
+                },
+                new Lowongan { 
+                    Title = "Aviation FT Babullah", 
+                    Region = "Regional Maluku Papua", 
+                    Company = "PT Pertamina Patra Niaga (C&T)", 
+                    ImageUrl = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400",
+                    Description = "Depot Pengisian Pesawat Udara (DPPU) tersibuk kedua di Indonesia, melayani avtur untuk penerbangan internasional.",
+                    CreatedAt = DateTime.Now
+                },
+                new Lowongan { 
+                    Title = "Kantor Unit - SSC ICT V JBT", 
+                    Region = "Regional Jawa Bagian Tengah", 
+                    Company = "PT Pertamina Patra Niaga (C&T)", 
+                    ImageUrl = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400",
+                    Description = "Mendukung operasional IT dan infrastruktur jaringan untuk kelancaran distribusi energi di Jawa Tengah.",
+                    CreatedAt = DateTime.Now
+                },
+                new Lowongan { 
+                    Title = "Asset Operation Region Sumbagut - Kantor Unit", 
+                    Region = "Regional Sumbagut", 
+                    Company = "PT Pertamina Patra Niaga (C&T)", 
+                    ImageUrl = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400",
+                    Description = "Menangani aspek legalitas aset dan hubungan industrial di salah satu terminal BBM vital di Kalimantan.",
+                    CreatedAt = DateTime.Now
+                },
+                new Lowongan { 
+                    Title = "DPPU APT Pranoto", 
+                    Region = "Regional Kalimantan", 
+                    Company = "PT Pertamina Patra Niaga (C&T)", 
+                    ImageUrl = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400",
+                    Description = "Menangani aspek legalitas aset dan hubungan industrial di salah satu terminal BBM vital di Kalimantan.",
+                    CreatedAt = DateTime.Now
+                }
+            };
+        }
 
         // 1. DASHBOARD UTAMA (Index)
         // --- GANTI METHOD INDEX YANG LAMA DENGAN INI ---
@@ -103,8 +108,20 @@ namespace sinta_asp.Controllers
         // Pastikan HANYA ADA SATU method Index seperti ini:
         public IActionResult Index(string search, string company, string region, int page = 1)
         {
-            // 1. PANGGIL DATA (Menggunakan fungsi yang sudah kamu buat di bawah)
-            var allData = GetDummyData(); 
+            // 1. AUTO-SEED: Cek apakah Database kosong?
+            if (!_context.Lowongan.Any()) 
+            {
+                // Kalau kosong, ambil data dummy yang di bawah
+                var dataDummy = GetDummyData();
+                
+                // Masukkan ke Database SQL Server
+                _context.Lowongan.AddRange(dataDummy);
+                _context.SaveChanges(); // Simpan permanen
+            }
+
+            // 2. SUMBER DATA: Sekarang ambil dari Database (Bukan Dummy lagi)
+            // Kita pakai .ToList() biar kode filter di bawahnya tidak perlu diubah sama sekali
+            var allData = _context.Lowongan.ToList();
             
             // 2. LOGIKA FILTER (Search & Filter)
             if (!string.IsNullOrEmpty(search))
@@ -230,10 +247,6 @@ namespace sinta_asp.Controllers
             return View();
         }
 
-        private List<LowonganKerja> GetDummyData()
-       {
-           return SemuaLowongan;
-       }
 
         // --- HELPER FUNCTION: CARA SIMPAN FILE BIAR RAPI ---
         private async Task<string?> UploadFile(Microsoft.AspNetCore.Http.IFormFile file, string jenis)

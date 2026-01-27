@@ -10,14 +10,15 @@ namespace sinta_asp.Data
         {
         }
 
-        // ===== USER / ADMIN =====
+        // ===== USER / ADMIN (Dari backup_master) =====
         public DbSet<Mahasiswa> Mahasiswa { get; set; }
         public DbSet<Admin> Admins { get; set; }
 
-        // ===== PENDAFTARAN =====
+        // ===== PENDAFTARAN & LOWONGAN (Gabungan) =====
         public DbSet<Pendaftaran> Pendaftarans { get; set; }
+        public DbSet<Lowongan> Lowongan { get; set; } // Ini tabel baru dari branch kamu
 
-        // ===== MAGANG =====
+        // ===== MAGANG (Dari backup_master) =====
         public DbSet<Magang> PendaftaranMagang { get; set; }
     }
 }
