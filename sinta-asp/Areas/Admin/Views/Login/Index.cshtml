@@ -1,0 +1,378 @@
+﻿@{
+    ViewData["Title"] = "Login Admin | SINTA Pertamina";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --p-blue: #00549B;
+            --p-red: #E30613;
+            --white-pure: #ffffff;
+            --white-soft: rgba(255, 255, 255, 0.85);
+            --input-fill: rgba(255, 255, 255, 0.12);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            -webkit-font-smoothing: antialiased;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #002d54; /* Fallback color */
+        }
+
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .login-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-radius: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 50px 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            color: white;
+            text-align: center;
+        }
+
+        /* --- Header & Typography --- */
+        .brand-section {
+            margin-bottom: 35px;
+        }
+
+        .logo-stack {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+            .logo-stack img {
+                height: 38px;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            }
+
+        .divider {
+            width: 1.5px;
+            height: 25px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        .brand-section h2 {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -1px;
+            color: var(--white-pure);
+        }
+
+        .brand-section p {
+            font-size: 15px;
+            color: var(--white-soft);
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        /* --- Form Elements --- */
+        .form-group {
+            margin-bottom: 22px;
+            text-align: left;
+        }
+
+        .input-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            display: block;
+            color: var(--white-pure); /* Lebih terang sesuai permintaan */
+        }
+
+        .input-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+            /* Ikon dibuat lebih kontras dan solid */
+            .input-box i.field-icon {
+                position: absolute;
+                left: 20px;
+                font-size: 19px;
+                color: var(--white-pure); /* Putih solid agar terlihat jelas */
+                z-index: 5;
+                opacity: 0.9;
+            }
+
+            .input-box input {
+                width: 100%;
+                padding: 16px 20px 16px 56px;
+                background: var(--input-fill);
+                border: 1.5px solid rgba(255, 255, 255, 0.25);
+                border-radius: 18px;
+                color: var(--white-pure);
+                font-size: 15px;
+                font-weight: 500;
+                font-family: inherit;
+                transition: all 0.3s ease;
+                outline: none;
+            }
+
+                .input-box input::placeholder {
+                    color: rgba(255, 255, 255, 0.4);
+                    font-weight: 400;
+                }
+
+                .input-box input:focus {
+                    background: rgba(255, 255, 255, 0.18);
+                    border-color: var(--white-pure);
+                    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+                }
+
+        /* Ikon Mata (Password) */
+        .toggle-password {
+            position: absolute;
+            right: 20px;
+            cursor: pointer;
+            color: var(--white-soft);
+            font-size: 18px;
+            z-index: 5;
+        }
+
+        /* --- Button --- */
+        .btn-auth {
+            width: 100%;
+            padding: 18px;
+            margin-top: 15px;
+            border-radius: 20px;
+            border: none;
+            background: var(--white-pure);
+            color: var(--p-blue);
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+            .btn-auth:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+                filter: brightness(1.05);
+            }
+
+        /* --- Footer --- */
+        .footer-text {
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 35px;
+            letter-spacing: 1px;
+            line-height: 1.6;
+            text-transform: uppercase;
+        }
+
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="login-wrapper">
+        <div class="glass-card">
+            <div class="brand-section">
+                <div class="logo-stack">
+                    <img src="~/images/logo-pertamina.png" alt="Pertamina" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/b/b2/Pertamina_logo.svg'">
+                    <div class="divider"></div>
+                    <img src="~/images/logo-sinta.png" alt="SINTA" style="height: 25px;" onerror="this.style.display='none'">
+                </div>
+                <h2>Selamat Datang</h2>
+                <p>Silakan masuk ke Portal Admin SINTA</p>
+            </div>
+
+            <form id="authForm">
+                <div class="form-group">
+                    <label class="input-label">Email</label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-envelope field-icon"></i>
+                        <input type="email" name="Email" placeholder="admin@pertamina.com" required autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="input-label">Kata Sandi</label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-lock field-icon"></i>
+                        <input type="password" name="Password" id="passwordInput" placeholder="••••••••" required>
+                        <i class="fa-solid fa-eye toggle-password" id="togglePass"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth" id="submitBtn">
+                    <span>Masuk Sekarang</span>
+                    <i class="fa-solid fa-arrow-right-long"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="footer-text">
+            &copy; 2026 PT PERTAMINA (PERSERO)<br>
+            SINERGI TEKNOLOGI ADAPTIF
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        /* --- Background Animation --- */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.init();
+            }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.4 - 0.2;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0) this.init();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, '#00549B');
+            grad.addColorStop(1, '#001a33');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        /* --- UI Logic --- */
+        const togglePass = document.getElementById('togglePass');
+        const passInput = document.getElementById('passwordInput');
+
+        togglePass.addEventListener('click', () => {
+            const isPass = passInput.type === 'password';
+            passInput.type = isPass ? 'text' : 'password';
+            togglePass.className = isPass ? 'fa-solid fa-eye-slash toggle-password' : 'fa-solid fa-eye toggle-password';
+        });
+
+        document.getElementById('authForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Memverifikasi...';
+
+            const formData = new FormData(this);
+            try {
+                const response = await fetch('/Admin/Login/Index', { method: 'POST', body: formData });
+                const result = await response.json();
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Akses Diterima',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    }).then(() => window.location.href = '/Admin/Dashboard');
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: result.message,
+                        background: '#111',
+                        color: '#fff',
+                        confirmButtonColor: '#00549B'
+                    });
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Masuk Sekarang</span><i class="fa-solid fa-arrow-right-long"></i>';
+                }
+            } catch (err) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Masuk Sekarang</span>';
+            }
+        });
+    </script>
+</body>
+</html>
