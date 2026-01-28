@@ -30,135 +30,170 @@ body {
   text-align: start;
 }
 
-
 /* =======================================================
-   FLIP CARD ENGINE (JANGAN DIUBAH BAGIAN INI)
+   SIMPLE CLEAN LOOK (FINAL VERSION)
    ======================================================= */
 
-/* 1. WADAH KARTU (Tentukan tinggi kartu disini) */
+/* 1. CONTAINER KARTU */
 .flip-card {
   background-color: transparent;
   width: 100%;
-  height: 420px; /* Tinggi kartu saya naikkan dikit biar muat */
-  perspective: 1000px; /* Wajib ada biar bisa muter 3D */
+  height: 310px; /* Tinggi pas, compact */
+  perspective: 1000px;
   cursor: pointer;
+  margin-bottom: 25px;
 }
 
-/* 2. BAGIAN DALAM YANG BERPUTAR */
+/* 2. MESIN PEMUTAR (Tanpa efek membal berlebihan) */
 .flip-card-inner {
   position: relative;
   width: 100%;
   height: 100%;
   text-align: center;
-  transition: transform 0.6s;
+  transition: transform 0.6s; /* Durasi standar */
   transform-style: preserve-3d;
-  border-radius: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* Shadow tipis rapi */
 }
 
-/* Trigger putaran saat mouse hover */
+/* Hover: Putar saja (Tanpa Zoom) */
 .flip-card:hover .flip-card-inner {
   transform: rotateY(180deg);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* 3. SETTINGAN SISI DEPAN & BELAKANG (WAJIB ABSOLUTE) */
-/* Ini yang bikin mereka menumpuk, bukan berderet ke bawah */
+/* 3. SETTINGAN DEPAN & BELAKANG */
 .flip-card-front, .flip-card-back {
-  position: absolute;  /* KUNCI UTAMA! */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden; /* Sembunyikan pantat kartu */
-  border-radius: 15px;
-  overflow: hidden;
-}
-
-/* =======================================================
- TAMPILAN VISUAL (STYLE CANTIKNYA)
- ======================================================= */
-
-/* --- SISI DEPAN (GAMBAR + TEKS) --- */
-.flip-card-front {
-  background-color: #fff;
-  color: #333;
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #eee;
-}
-
-/* Lantai 1: Gambar (55%) */
-.front-img-container {
-  width: 100%;
-  height: 55%; 
-  background-size: cover;
-  background-position: center;
-  position: relative;
-}
-
-/* Badge Region (Nempel di atas Gambar) */
-.region-badge {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  background-color: #00529C; /* Default Blue */
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-  z-index: 10;
+  top: 0; left: 0; width: 100%; height: 100%;
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
 }
 
-/* Lantai 2: Teks (45%) */
-.front-text-container {
-  width: 100%;
-  height: 45%;
+/* VERSI COMPACT: GRID LAYOUT */
+.job-board-layout { 
+  display: grid; 
+  /* Ubah gap jadi lebih kecil biar muat banyak */
+  grid-template-columns: 240px 1fr; 
+  gap: 25px; 
+}
+
+/* 1. UPDATE BACKGROUND KARTU (GRADASI) */
+.flip-card-front {
+  background: linear-gradient(180deg, 
+    #608ecf 0%,    /* 1. Biru Paling Gelap (Atas) */
+    #648dc5 50%,   /* 2. Biru Sedang (Tengah) */
+    #7ba7ce 99%   /* 3. Biru Langit Pucat (Jembatan biar gak nabrak) */
+);
+
+  /* Style lainnya tetap sama */
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  text-align: left;
-  background-color: white;
+  align-items: flex-start;
+  min-height: 200px;
+  height: 100%;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* Bayangan sedikit dipertegas */
+  border: none !important;    
 }
 
-.front-text-container h5 {
-  font-weight: 800;
+/* 2. UPDATE WARNA JUDUL (WAJIB PUTIH) */
+/* Karena background atasnya gelap, teks judul harus putih biar kebaca */
+.card-title {
+  color: #ffffff !important; /* Ubah jadi Putih */
+  
   font-size: 1.1rem;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  color: #222;
+  font-weight: 700;
+  margin-bottom: 15px; /* Tambah jarak sedikit biar gak nempel ke area putih */
   line-height: 1.4;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Opsional: Bayangan teks biar makin jelas */
 }
 
-/* --- SISI BELAKANG (DETAIL) --- */
+/* 3. INFO ROW (TETAP GELAP) */
+/* Karena background bawahnya putih, teks info tetap warna gelap */
+.info-row {
+  font-size: 0.8rem;
+  color: #e0e0e0 !important;           /* Tetap abu-abu tua/hitam */
+  margin-bottom: 6px;
+  display: flex;
+  align-items: flex-start;
+  font-weight: 500;      /* Sedikit ditebalkan biar jelas di transisi gradasi */
+}
+
+.info-icon {
+  margin-right: 8px;
+  color: #da2335!important;        /* Ikon Hijau tetap oke */
+  width: 15px;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.info-icon {
+  margin-right: 8px;
+  color: #da2335 !important;
+  width: 15px;             /* Kecilkan area ikon */
+  font-size: 0.8rem;       /* Kecilkan ukuran ikon */
+  margin-top: 2px;         /* Penyesuaian agar pas dengan teks */
+}
+
+/* --- TAMPILAN BELAKANG (BACK) --- */
 .flip-card-back {
-  background-color: white;
+  transform: rotateY(180deg);
+  background-color: #fff;
   color: #333;
-  transform: rotateY(180deg); /* Balik 180 derajat */
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 25px;
-  border: 2px solid #d81c22; /* Border Merah Pertamina */
+  justify-content: center; 
+  align-items: flex-start;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.08);
 }
 
-.btn-card-action {
-  background-color: #d81c22;
-  color: white;
-  padding: 10px 25px;
-  border-radius: 50px;
-  text-decoration: none;
-  font-weight: bold;
-  margin-top: 15px;
+.back-title {
+  color: #111;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
   font-size: 0.9rem;
-  transition: 0.3s;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  width: 100%;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
 }
 
-.btn-card-action:hover {
-  background-color: #b0151a;
+.back-desc {
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 15px;
+  text-align: left;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Tombol Hitam Biasa */
+.btn-card-clean {
+  width: 100%;
+  background: #3273BA; /* Hitam Pekat */
   color: white;
+  padding: 10px 0;
+  text-align: center;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-top: auto;
+  transition: background-color 0.2s ease; /* Transisi halus */
+}
+
+/* EFEK SAAT MOUSE DI ARAHKAN (HOVER) */
+.btn-card-clean:hover {
+  background: #333; /* GANTI DISINI: Jadi Abu Gelap (Bukan Merah #d81c22 lagi) */
+  color: white;
+  /* Tidak ada transformasi aneh-aneh, cuma ganti warna dikit */
 }
