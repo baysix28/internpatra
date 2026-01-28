@@ -145,7 +145,7 @@ namespace sinta_asp.Controllers
             }
 
             // 3. LOGIKA PAGINATION (Matematika Halaman)
-            int pageSize = 6; // Menampilkan 9 kartu per halaman
+            int pageSize = 8; // Menampilkan 9 kartu per halaman
             int totalItems = allData.Count;
             
             // Hitung total halaman (dibulatkan ke atas)

@@ -14,36 +14,60 @@
     /* 1. IMPORT FONT BARU */
     @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500&display=swap');
     
-    /* GLOBAL STYLE */
+    /* GLOBAL STYLE - UPDATE FULL WIDTH */
     .penelitian-wrapper { 
-        background-color: #fff; color: #333; min-height: 100vh;
+        background-color: #F4F4F4; /* Background Biru Muda */
+        color: #333; 
+        min-height: 100vh;
         font-family: 'Inter', sans-serif;
+
+        /* INI MANTRA RAHASIANYA BIAR FULL KE POJOK */
+        width: 100vw;           /* Paksa lebar selebar layar monitor */
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;     /* Tarik paksa ke kiri mentok */
+        margin-right: -50vw;    /* Tarik paksa ke kanan mentok */
+    }
+
+    /* TAMBAHAN PENTING: */
+    /* Agar kartu & filter tidak ikut jadi biru (transparan), kita wajib kasih warna putih */
+    .flip-card-front, .filters {
+        background-color: #ffffff; /* Kartu & Filter tetap putih bersih */
+        border-radius: 15px;       /* Sudut melengkung biar cantik */
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); /* Bayangan halus biar elegan */
     }
     
     /* Reset elemen teks biar gak ngerusak layout Bootstrap */
     .penelitian-wrapper h1, .penelitian-wrapper h2, .penelitian-wrapper p { margin: 0; padding: 0; }
 
     
-    /* 2. HERO SECTION BARU (Tinggi 60% Layar) */
-        /* HERO HEADER */
+    /* 2. HERO SECTION BARU (FULL LAYAR 100%) */
     .hero-section {
         position: relative;
-        height: 60vh;
-        min-height: 500px;
         
-        /* HAPUS LINEAR-GRADIENT DISINI, CUKUP GAMBAR SAJA */
-        background-image: url('/img/test.jpg'); /* Pastikan nama file gambar benar */
-        background-size: cover;
-        background-position: center 10%;
+        /* KUNCI 1: UBAH TINGGI JADI 100% LAYAR MONITOR */
+        height: 100vh;       
+        min-height: 100vh;   /* Paksa minimal setinggi layar */
         
-        /* Sisanya biarkan sama */
-        width: 100vw; 
-        left: 50%; right: 50%;
-        margin-left: -50vw; margin-right: -50vw;
-        margin-bottom: 50px;
+        /* KUNCI 2: HAPUS SEMUA MARGIN BIAR GAK ADA PUTIH-PUTIH */
+        margin: 0;           
+        padding: 0;
+        
+        /* Background Gambar */
+        background-image: url('https://images.unsplash.com/photo-1516216628859-9bccecab13ca?q=80&w=869&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); 
+        background-size: cover;          /* Gambar cover full area */
+        background-position: center;     /* Posisi tengah */
+        
+        /* Layout Flexbox (Supaya Teks Tetap di Tengah Layar) */
+        width: 100%;
+        display: flex; 
+        align-items: center;      /* Vertikal Tengah */
+        justify-content: center;  /* Horizontal Tengah */
+        
         font-family: 'Inter', sans-serif;
-        display: flex; align-items: center; /* Pastikan ini ada biar konten vertikal tengah */
     }
+    
 
         /* 3. GRADIENT ELEGAN (Merah Kiri -> Bening Kanan) */
         .hero-overlay {
@@ -77,18 +101,21 @@
             line-height: 1.1;
             margin-bottom: 10px;
             text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            /* State Awal: Hilang & Di Atas */
+            opacity: 0; 
+            transform: translateY(-40px);
+            /* Animation dihapus dari sini */
         }
 
         .hero-lead {
             font-family: 'Inter', sans-serif;
             font-size: 1.1rem;
             font-weight: 400;
-            
-            /* Pakai !important agar tidak kalah sama reset margin */
-            margin-bottom: 20px !important; 
-            
-            opacity: 0.95;
+            margin-bottom: 20px !important;
             max-width: 600px;
+            /* State Awal */
+            opacity: 0;
+            transform: translateY(-40px);
         }
 
      /* 5. TOMBOL PREMIUM (ANIMASI FILL KIRI KE KANAN) */
@@ -116,22 +143,47 @@
         display: inline-block;
         margin-top: -10px; /* Jarak dari teks di atasnya */
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
+
+        opacity: 0;                   
+        transform: translateY(-40px);
+        }
+
+        /* --- BAGIAN INI WAJIB ADA (JANGAN LUPA) --- */
+    
+        /* Saat class ini ditempel sama JS, baru elemennya muncul */
+        .animasi-aktif {
+            animation: turunCantik 0.8s ease-out forwards;
+        }
+        
+        /* Delay biar munculnya antri (Judul -> Teks -> Tombol) */
+        .hero-lead.animasi-aktif {
+            animation-delay: 0.3s;
+        }
+        .btn-apply-hero.animasi-aktif {
+            animation-delay: 0.6s;
+        }
+
+        /* Definisi Gerakannya */
+        @@keyframes turunCantik {
+            0% { opacity: 0; transform: translateY(-40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
 
     /* INI LAYER PUTIH YANG AKAN BERGERAK */
+    /* PERBAIKAN TOMBOL: Kode bersih tanpa sampah copy-paste */
     .btn-apply-hero::before {
         content: "";
         position: absolute;
         top: 0;
         left: 0;
         
-        width: 0%;        /* Mulai dari 0 (kosong) */
+        width: 0%;        /* Mulai dari 0 */
         height: 100%;
         
-        background-color: white;
-        z-index: -1;      /* Posisinya di belakang teks */
+        background-color: white; /* Warna Putih */
+        z-index: -1;      /* Wajib di belakang teks */
         
-        /* Animasi gerakan kiri ke kanan (Durasi 0.4 detik) */
+        /* Animasi */
         transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
     }
 
@@ -190,7 +242,33 @@
     .hero-lead { font-size: 1.2rem; font-weight: 400; margin-bottom: 40px; }
 
     /* LAYOUT UTAMA */
-    .main-container { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px 20px; }
+    /* UPDATE: MAIN CONTAINER DENGAN EFEK OVERLAP (MENUMPUK) */
+    .main-container {
+        max-width: 100%;
+        margin: 0 auto; /* Posisi tengah horizontal */
+        
+        /* --- 1. KUNCI EFEK OVERLAP (MANTRA UTAMA) --- */
+        margin-top: -30px !important;  /* Menarik kotak ini NAIK 80px ke atas menutupi Hero */
+        position: relative;            /* Wajib ada biar bisa diatur urutan layernya */
+        z-index: 10;                   /* Pastikan layer ini DI ATAS gambar Hero (yg z-indexnya cuma 2) */
+        
+        /* --- 2. STYLE ALA KARTU/SHEET (REFERENSI GAMBARMU) --- */
+        background-color: #F4F4F4;     /* Warna dasar harus solid (Biru Muda) biar gambar Hero ketutup */
+        border-radius: 40px 40px 0 0;  /* Membuat sudut Kiri-Atas & Kanan-Atas melengkung */
+        box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.15); /* Bayangan ke arah atas biar terlihat mengambang */
+        
+        /* --- 3. KERAPIAN ISI --- */
+        padding: 50px 40px 100px 40px; /* Memberi jarak nafas di dalam kotak (Atas Kanan Bawah Kiri) */
+    }
+    
+    /* OPSIONAL: Agar di layar HP lengkungannya tidak terlalu ekstrem */
+    @@media (max-width: 768px) {
+        .main-container {
+            margin-top: -50px !important;
+            border-radius: 25px 25px 0 0;
+            padding: 30px 20px;
+        }
+    }
     .job-board-layout { display: grid; grid-template-columns: 280px 1fr; gap: 50px; }
 
     /* COMPONENTS */
@@ -199,7 +277,19 @@
         background-color: #00a048; color: white; padding: 10px 25px;
         border-radius: 50px; text-decoration: none; font-weight: 600; display: inline-block;
     }
-    .filters label { font-size: 0.85rem; color: #888; font-weight: 600; margin-bottom: 8px; display: block; }
+    .filters {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        
+        /* 1. KUNCI AGAR TINGGI 'DIPASKAN' SESUAI ISI (TIDAK MELAR KE BAWAH) */
+        height: fit-content; 
+        
+        /* 2. MEMPERKECIL UKURAN (BIAR LEBIH RAMPING) */
+        padding: 20px;     /* Kurangi padding (jarak dalam) biar tidak gembung */
+        font-size: 0.9rem; /* Kecilkan sedikit hurufnya */
+    }
+    .filters label { font-size: 0.85rem; color:#1976D2; font-weight: 600; margin-bottom: 8px; display: block; }
     
     /* FORM STYLING */
     .form-control-custom {
@@ -219,7 +309,201 @@
         transform: translateY(-50%); color: #d81c22; pointer-events: none; 
     }
     @@media (max-width: 768px) { .job-board-layout { grid-template-columns: 1fr; } }
+    
+    /* =========================================
+       FIX STRUKTUR KARTU (Supaya Gak Numpuk)
+       ========================================= */
+    .flip-card {
+        background-color: transparent;
+        width: 100%;
+        height: 300px; /* Tinggi harus ditetapkan agar tidak gepeng */
+        perspective: 1000px; /* Efek 3D */
+        margin-bottom: 30px;
+    }
+
+    .flip-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: left;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+    }
+
+    /* Trigger putar saat hover */
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
+    }
+
+    /* INI KUNCINYA AGAR TIDAK NUMPUK: Wajib Absolute! */
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        overflow: hidden; /* Biar isi gak bocor */
+    }
+
+    /* =========================================
+       TAMPILAN DEPAN (Gradient Biru)
+       ========================================= */
+    .flip-card-front {
+        /* Gradient Biru seperti request */
+        background: linear-gradient(#608ecf 0%, #648dc5 50%, #7ba7ce 99%  );
+        color: white;
+        
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center; /* Rata Tengah */
+        padding: 20px;
+        text-align: center;
+    }
+
+    /* Judul di Depan */
+    .card-title {
+        font-weight: 800;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        line-height: 1.3;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* Baris Info (Icon + Teks) */
+    .info-row {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .info-icon {
+        margin-right: 8px;
+        width: 20px;
+        text-align: center;
+    }
+
+    /* =========================================
+       TAMPILAN BELAKANG (PUTIH BERSIH)
+       ========================================= */
+    .flip-card-back {
+        background-color: #ffffff; /* BALIK JADI PUTIH */
+        color: #333;               /* Teks jadi Gelap */
+        transform: rotateY(180deg);
+        
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 25px;
+        text-align: center;
+        border: 1px solid #eee; /* List pinggir tipis */
+    }
+
+    .back-title {
+        color: #00529C; /* Judul Biru */
+        font-weight: 700;
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        border-bottom: 2px solid #00529C;
+        padding-bottom: 5px;
+    }
+
+    .back-desc {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        /* Batasi teks 4 baris */
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Tombol Daftar di Belakang */
+    .btn-card-clean {
+        background-color: #00529C; /* Tombol Biru */
+        color: white;
+        padding: 10px 30px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 10px rgba(0, 82, 156, 0.3);
+        transition: all 0.3s;
+    }
+    .btn-card-clean:hover {
+        background-color: #003366;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* =========================================
+       PAGINATION SIMPEL (Flat & Clean)
+       ========================================= */
+    .pagination {
+        gap: 5px;                  /* Jarak kecil antar tombol */
+        align-items: center;
+        border: none;
+    }
+
+    .page-item {
+        margin: 0;
+    }
+
+    /* Style Dasar Tombol */
+    .page-item .page-link {
+        border: 1px solid #e0e0e0; /* Garis pinggir tipis abu-abu */
+        border-radius: 6px !important; /* Sudut sedikit melengkung (tidak bulat total) */
+        padding: 8px 16px;         /* Ukuran pas (tidak terlalu besar) */
+        
+        color: #555;               /* Teks abu gelap */
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        background-color: white; 
+        
+        /* Hapus semua efek bayangan & animasi */
+        box-shadow: none;
+        transition: background-color 0.2s; /* Transisi warna saja (cepat) */
+    }
+
+    /* Efek Saat Mouse Diarahkan (Hover) */
+    .page-item:not(.disabled) .page-link:hover {
+        background-color: #f0f0f0; /* Ganti warna background jadi abu muda */
+        color: #333;
+        border-color: #d0d0d0;
+        transform: none;           /* MATIKAN gerakan naik */
+    }
+
+    /* Halaman Aktif */
+    .page-item.active .page-link {
+        background-color: #00529C; /* Biru Solid (Tanpa Gradasi) */
+        border-color: #00529C;
+        color: white !important;
+        
+        /* Pastikan tidak ada efek zoom/besar */
+        transform: none; 
+        box-shadow: none;
+    }
+
+    /* Tombol Mati (Disabled) */
+    .page-item.disabled .page-link {
+        background-color: #f9f9f9;
+        color: #ccc;
+        border-color: #eee;
+        cursor: default;
+    }
+
+    
 </style>
+
+
 
 <script>
     if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
@@ -302,47 +586,56 @@
                     <div class="row" id="containerKartu">
                         @foreach (var item in Model.Lowongan)
                         {
-                            <div class="col-md-4 mb-4 item-lowongan">
+                            <div class="col-12 col-md-6 col-lg-3 item-lowongan">
                                 <div class="flip-card">
                                     <div class="flip-card-inner">
                                         
                                         <div class="flip-card-front">
-                                            
-                                            <div class="front-img-container" style="background-image: url('@item.ImageUrl');">
-                                                @if (item.Company != null && item.Company.Contains("Kilang"))
-                                                {
-                                                    <span class="region-badge" style="background: #00529C;">
-                                                        <i class="fas fa-map-marker-alt"></i> @item.Region
-                                                    </span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="region-badge" style="background: #00a048;">
-                                                        <i class="fas fa-map-marker-alt"></i> @item.Region
-                                                    </span>
-                                                }
-                                            </div>
-
                                             <div class="front-text-container">
-                                                <h5 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 5px; text-transform: uppercase; color: #333;">
-                                                    @item.Title
-                                                </h5>
-                                                <small style="color: #888; font-weight: 600; font-size: 0.85rem;">
-                                                    <i class="fas fa-building me-1"></i> @item.Company
-                                                </small>
+                                                
+                                                <h5 class="card-title">@item.Title</h5>
+
+                                                <div class="info-row">
+                                                    @if (item.Company != null && item.Company.Contains("Kilang"))
+                                                    {
+                                                        <span class="info-icon" style="color: #4ade80 !important;">
+                                                            <i class="fas fa-briefcase"></i> </span>
+                                                        
+                                                        <span style="color: #e0e0e0; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+                                                            @item.Company </span>
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="info-icon" style="color: #4ade80 !important;">
+                                                            <i class="fas fa-briefcase"></i>
+                                                        </span>
+                                                        <span style="color: #e0e0e0;">@item.Company</span>
+                                                    }
+                                                </div>
+
+                                                <div class="info-row">
+                                                    <span class="info-icon"><i class="fas fa-map-marker-alt"></i></span>
+                                                    <span>@item.Region</span>
+                                                </div>
+
                                             </div>
                                         </div>
 
                                         <div class="flip-card-back">
-                                            <h4 style="color: #d81c22; margin-bottom: 10px;">Tentang Posisi</h4>
-                                            <p style="font-size: 0.9rem; color: #555; line-height: 1.5; margin-bottom: 20px;">
+                                            <h6 class="back-title">Detail Posisi</h6>
+                                            
+                                            <p class="back-desc">
                                                 @item.Description
                                             </p>
+                                            
                                             <a asp-action="Daftar" 
                                             asp-route-preCompany="@item.Company" 
-                                            asp-route-preRegion="@item.Region" 
-                                            class="btn-card-action">
-                                            Daftar Sekarang <i class="fas fa-arrow-right ms-1"></i>
+                                            asp-route-preRegion="@item.Region"
+                                            asp-route-preTargetLokasi="@item.Title"   
+                                            asp-route-preTargetJurusan="@item.Title"
+                                            class="btn-card-clean">
+                                            Daftar Sekarang
                                             </a>
                                         </div>
 
@@ -444,9 +737,15 @@
             });
         }
         
-        Array.from(regionSelect.options).forEach(opt => {
-            if (opt.value === currentRegion) regionSelect.value = currentRegion;
-        });
+        // Cek dulu, ini KPI bukan?
+        if (selectedCompany === "PT Kilang Pertamina Internasional (KPI)") {
+            regionSelect.selectedIndex = 0; // <--- INI CODE VIP YG HILANG (Paksa pilih opsi pertama/Balongan)
+        } else {
+            // Kalau bukan KPI, baru jalankan logic lama
+            Array.from(regionSelect.options).forEach(opt => {
+                if (opt.value === currentRegion) regionSelect.value = currentRegion;
+            });
+        }
     }
 
     // ==========================================
@@ -558,3 +857,28 @@
         }
     });
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Daftar elemen yang mau dipanggil
+        const elemenAnimasi = document.querySelectorAll('.hero-title, .hero-lead, .btn-apply-hero');
+
+        // 2. Satpam pemantau (Observer)
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Kalau terlihat, TEMPEL class animasi (MUNCUL!)
+                    entry.target.classList.add('animasi-aktif');
+                } else {
+                    // Kalau discroll jauh ke bawah, CABUT class (NGUMPET LAGI)
+                    // Supaya nanti pas scroll ke atas bisa muncul lagi (Replay)
+                    entry.target.classList.remove('animasi-aktif'); 
+                }
+            });
+        }, { threshold: 0.1 }); // Muncul pas 10% elemen kelihatan
+
+        // 3. Mulai memantau
+        elemenAnimasi.forEach(el => observer.observe(el));
+    });
+</script>
+
