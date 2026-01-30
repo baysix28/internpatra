@@ -55,7 +55,7 @@
         padding: 0;
         
         /* Background Gambar */
-        background-image: url('https://images.unsplash.com/photo-1516216628859-9bccecab13ca?q=80&w=869&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); 
+        background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); 
         background-size: cover;          /* Gambar cover full area */
         background-position: center;     /* Posisi tengah */
         
@@ -309,16 +309,18 @@
         transform: translateY(-50%); color: #d81c22; pointer-events: none; 
     }
     @@media (max-width: 768px) { .job-board-layout { grid-template-columns: 1fr; } }
-    
+
+
     /* =========================================
-       FIX STRUKTUR KARTU (Supaya Gak Numpuk)
+       1. STRUKTUR UTAMA KARTU (TETAP)
        ========================================= */
     .flip-card {
         background-color: transparent;
         width: 100%;
-        height: 300px; /* Tinggi harus ditetapkan agar tidak gepeng */
-        perspective: 1000px; /* Efek 3D */
-        margin-bottom: 30px;
+        height: 200px; /* UPDATE: Tinggi dikecilkan sedikit karena layout horizontal lebih padat */
+        perspective: 1000px;
+        margin-bottom: 25px;
+        cursor: pointer; /* Biar kelihatan bisa diklik */
     }
 
     .flip-card-inner {
@@ -330,12 +332,10 @@
         transform-style: preserve-3d;
     }
 
-    /* Trigger putar saat hover */
     .flip-card:hover .flip-card-inner {
         transform: rotateY(180deg);
     }
 
-    /* INI KUNCINYA AGAR TIDAK NUMPUK: Wajib Absolute! */
     .flip-card-front, .flip-card-back {
         position: absolute;
         top: 0;
@@ -346,94 +346,159 @@
         backface-visibility: hidden;
         border-radius: 15px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        overflow: hidden; /* Biar isi gak bocor */
+        overflow: hidden;
     }
 
     /* =========================================
-       TAMPILAN DEPAN (Gradient Biru)
+       2. TAMPILAN DEPAN BARU (MODEL SPLIT 50:50)
        ========================================= */
+/* 1. KARTU UTAMA */
     .flip-card-front {
-        /* Gradient Biru seperti request */
-        background: linear-gradient(#608ecf 0%, #648dc5 50%, #7ba7ce 99%  );
+        background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
         color: white;
         
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center; /* Rata Tengah */
-        padding: 20px;
-        text-align: center;
-    }
-
-    /* Judul di Depan */
-    .card-title {
-        font-weight: 800;
-        font-size: 1.2rem;
-        margin-bottom: 20px;
-        line-height: 1.3;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-
-    /* Baris Info (Icon + Teks) */
-    .info-row {
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-    }
-    .info-icon {
-        margin-right: 8px;
-        width: 20px;
-        text-align: center;
-    }
-
-    /* =========================================
-       TAMPILAN BELAKANG (PUTIH BERSIH)
-       ========================================= */
-    .flip-card-back {
-        background-color: #ffffff; /* BALIK JADI PUTIH */
-        color: #333;               /* Teks jadi Gelap */
-        transform: rotateY(180deg);
+        /* Padding luar (jarak dari pinggir kartu ke isi) */
+        padding: 20px; 
         
         display: flex;
         flex-direction: column;
+        
+        /* SEMUA DI KIRI */
+        justify-content: center;
+        align-items: flex-start !important; 
+        text-align: left !important;
+        
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+    }
+
+    /* 2. AREA ICON (ATAS) */
+    /* UPDATE BAGIAN INI BIAR ICON TENGAH LAGI */
+    .card-icon-area {
+        width: 100% !important;
+        margin-bottom: 10px;
+        
+        display: flex !important;
+        
+        /* GANTI 'flex-start' JADI 'center' */
+        justify-content: center !important; 
+        
+        align-items: center !important;
+        
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    .category-icon {
+        margin-left: 0 !important; 
+        margin-right: 0 !important; /* Jangan auto, nanti dia dorong elemen lain */
+        
+        width: 50px; /* Kecilkan dikit biar proporsional */
+        height: 50px;
+        object-fit: contain;
+        filter: grayscale(100%);
+    }
+
+    /* 3. AREA DETAIL TEKS (BAWAH) */
+    .card-detail-area {
+        width: 100%;
+        /* Hapus height % biar fleksibel */
+        
+        /* PENTING: Padding 0 supaya lurus vertikal dengan icon */
+        padding: 0 !important; 
+        
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start !important;
+        align-items: flex-start !important; /* Paksa Kiri */
+        text-align: left !important;
+    }
+
+    /* JUDUL */
+    .split-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 0.9rem; 
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 8px;
+        color: white;
+        text-align: left; /* Pastikan rata kiri */
+        width: 100%;
+    }
+
+    /* INFO KECIL (Lokasi & PT) */
+    .split-info {
+        font-size: 0.75rem;
+        color: #f0f0f0;
+        margin-bottom: 4px;
+        
+        display: flex;
+        align-items: center;
+        
+        /* INI PERBAIKANNYA: JANGAN CENTER! */
+        justify-content: flex-start !important; 
+        
+        gap: 8px;
+        width: 100%;
+        
+        /* HAPUS PADDING BIAR LURUS */
+        padding: 0 !important; 
+    }
+
+    /* TEKS SINGKAT (Titik-titik...) */
+    .split-info span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        display: block; /* Ganti inline-block jadi block biar manut width */
+    }
+
+    /* =========================================
+       3. TAMPILAN BELAKANG (TETAP SEPERTI LAMA)
+       ========================================= */
+    .flip-card-back {
+        background-color: #ffffff;
+        color: #333;
+        transform: rotateY(180deg);
+        display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 25px;
+        padding: 20px;
         text-align: center;
-        border: 1px solid #eee; /* List pinggir tipis */
+        border: 1px solid #eee;
     }
 
     .back-title {
-        color: #00529C; /* Judul Biru */
+        color: #00529C;
         font-weight: 700;
-        margin-bottom: 15px;
-        font-size: 1.1rem;
+        margin-bottom: 10px;
+        font-size: 0.7rem;
         text-transform: uppercase;
         border-bottom: 2px solid #00529C;
         padding-bottom: 5px;
     }
 
     .back-desc {
-        font-size: 0.9rem;
+        font-size: 0.7rem;
         color: #666;
-        line-height: 1.6;
-        margin-bottom: 20px;
-        /* Batasi teks 4 baris */
+        line-height: 1.5;
+        margin-bottom: 15px;
         display: -webkit-box;
-        -webkit-line-clamp: 4;
+        -webkit-line-clamp: 5; /* Limit teks deskripsi jadi 3 baris aja biar muat */
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
 
-    /* Tombol Daftar di Belakang */
     .btn-card-clean {
-        background-color: #00529C; /* Tombol Biru */
+        background-color: #00529C;
         color: white;
-        padding: 10px 30px;
+        padding: 8px 25px;
         border-radius: 50px;
         text-decoration: none;
+        font-size: 0.85rem;
         font-weight: 600;
         box-shadow: 0 4px 10px rgba(0, 82, 156, 0.3);
         transition: all 0.3s;
@@ -529,7 +594,13 @@
         </div>
     </header>
     <div class="main-container" id="area-lowongan">
+    
+            <h2 style="text-align: center; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 700; color: #0f3460; margin-bottom: 40px;">
+                Temukan Lokasi yang Tepat Untukmu
+            </h2>
+        
         <div class="job-board-layout">
+
             
             <aside class="filters">
                 <a href="/Penelitian" style="text-decoration:none; color:#666; font-size:0.9rem; margin-bottom:15px; display:inline-block;">Clear filters</a>
@@ -573,7 +644,7 @@
             </aside>
 
             <main id="area-konten">
-                @if (Model.Lowongan == null || Model.Lowongan.Count == 0)
+               @if (Model.Lowongan == null || Model.Lowongan.Count == 0)
                 {
                     <div style="text-align:center; padding: 60px; color:#999; border: 2px dashed #eee; border-radius:15px; background-color:#fafafa;">
                         <i class="fas fa-search fa-3x" style="margin-bottom:15px; color:#ddd;"></i>
@@ -586,49 +657,70 @@
                     <div class="row" id="containerKartu">
                         @foreach (var item in Model.Lowongan)
                         {
+                            /* --- AREA CODE (Tanpa @{ ... }) --- */
+                            /* Langsung tulis variabel C# di sini karena sudah di dalam foreach */
+                            
+                            string iconFileName = "workplace.png"; 
+                            string textCheck = ((item.Title ?? "") + " " + (item.Region ?? "")).ToLower();
+
+                            // 1. AVIATION
+                            if (textCheck.Contains("aft") || textCheck.Contains("dppu") || textCheck.Contains("aviation")) 
+                            { iconFileName = "airplane.png"; }
+                            // 2. MINYAK & GAS
+                            else if (textCheck.Contains("fuel") || textCheck.Contains("integrated") || textCheck.Contains("terminal") || textCheck.Contains("kilang")) 
+                            { iconFileName = "gas.png"; }
+                            // 3. KEUANGAN
+                            else if (textCheck.Contains("finance") || textCheck.Contains("sales") || textCheck.Contains("marketing") || 
+                                    textCheck.Contains("procurement") || textCheck.Contains("akuntansi") || textCheck.Contains("ekonomi") || textCheck.Contains("bisnis")) 
+                            { iconFileName = "budget.png"; }
+                            // 4. IT
+                            else if (textCheck.Contains("ict") || textCheck.Contains("system") || textCheck.Contains("komputer") || textCheck.Contains("informatika")) 
+                            { iconFileName = "computer.png"; }
+                            // 5. SAFETY
+                            else if (textCheck.Contains("medical") || textCheck.Contains("hsse") || textCheck.Contains("legal") || textCheck.Contains("risk")) 
+                            { iconFileName = "labour.png"; }
+
+
+                            /* --- AREA HTML (Otomatis deteksi saat ada tag <div...) --- */
                             <div class="col-12 col-md-6 col-lg-3 item-lowongan">
                                 <div class="flip-card">
                                     <div class="flip-card-inner">
                                         
                                         <div class="flip-card-front">
-                                            <div class="front-text-container">
+                                            <div class="card-icon-area">
+                                                <img src="~/img/icons/@iconFileName" class="category-icon" alt="icon" />
+                                            </div>
+
+                                            <div class="card-detail-area">
+                                                <div class="split-title">@item.Title</div>
                                                 
-                                                <h5 class="card-title">@item.Title</h5>
-
-                                                <div class="info-row">
-                                                    @if (item.Company != null && item.Company.Contains("Kilang"))
-                                                    {
-                                                        <span class="info-icon" style="color: #4ade80 !important;">
-                                                            <i class="fas fa-briefcase"></i> </span>
-                                                        
-                                                        <span style="color: #e0e0e0; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">
-                                                            @item.Company </span>
-                                                        </span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="info-icon" style="color: #4ade80 !important;">
-                                                            <i class="fas fa-briefcase"></i>
-                                                        </span>
-                                                        <span style="color: #e0e0e0;">@item.Company</span>
-                                                    }
-                                                </div>
-
-                                                <div class="info-row">
-                                                    <span class="info-icon"><i class="fas fa-map-marker-alt"></i></span>
+                                                <div class="split-info">
+                                                    <i class="fas fa-map-marker-alt" style="color:#4ade80;"></i> 
                                                     <span>@item.Region</span>
                                                 </div>
 
+                                                <div class="split-info">
+                                                    <i class="fas fa-briefcase" style="color:#4ade80;"></i>
+                                                    
+                                                    @if (item.Company != null && item.Company.Contains("Kilang"))
+                                                    {
+                                                        <span style="color:#fff; font-weight: normal; letter-spacing:0.5px;"> PT Kilang Minyak Internasional</span>
+                                                    }
+                                                    else if (item.Company != null && item.Company.Contains("Patra"))
+                                                    {
+                                                        <span style="color:#e0e0e0; font-weight: normal;"> PT Pertamina Patra Niaga</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span style="color:#e0e0e0; font-weight: normal;">@item.Company</span>
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
 
                                         <div class="flip-card-back">
                                             <h6 class="back-title">Detail Posisi</h6>
-                                            
-                                            <p class="back-desc">
-                                                @item.Description
-                                            </p>
-                                            
+                                            <p class="back-desc">@item.Description</p>
                                             <a asp-action="Daftar" 
                                             asp-route-preCompany="@item.Company" 
                                             asp-route-preRegion="@item.Region"
