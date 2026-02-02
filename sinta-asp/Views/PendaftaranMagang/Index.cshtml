@@ -1,491 +1,475 @@
 @{
-    ViewData["Title"] = "Program Magang Pertamina";
+    ViewData["Title"] = "Portal Magang SINTA - Pertamina";
 }
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
     :root {
-        --pertamina-blue: #005EB8;
-        --pertamina-green: #00A859;
-        --pertamina-red: #E30613;
-        --pertamina-dark: #003B76;
-        --background-light: #F4F6F8;
-        --text-dark: #333333;
-        --text-light: #666666;
-        --border-color: #D1D5DB;
-        --shadow-light: rgba(0, 94, 184, 0.08);
-        --shadow-medium: rgba(0, 94, 184, 0.15);
-    }
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+        --p-biru: #003B76;
+        --p-merah: #E30613;
+        --p-abu: #f1f5f9;
+        --p-gelap: #1e293b;
+        --p-gray: #64748b;
     }
 
     body {
-        background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
-        position: relative;
-        overflow-x: hidden;
+        background-color: #f8fafc;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
-    body::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
+    /* --- HERO & STATS --- */
+    .hero-instansi {
+        background: linear-gradient(rgba(0, 59, 118, 0.9), rgba(0, 59, 118, 0.8)), url('/img/pertamina bg.jpg');
+        background-size: cover; background-position: center; padding: 100px 0 140px; color: white;
+        clip-path: ellipse(150% 100% at 50% 0%);
+    }
+
+    .wadah-statistik { margin-top: -70px; position: relative; z-index: 10; }
+    .kartu-statistik { background: white; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); padding: 30px; border: 1px solid rgba(0,0,0,0.05); }
+
+    /* --- LAYOUT UTAMA --- */
+    .kartu-formal {
+        background: white; border-radius: 16px; padding: 30px; margin-bottom: 25px; border: 1px solid #e2e8f0;
+    }
+
+    .label-bagian {
+        display: inline-block; background: rgba(0, 59, 118, 0.05); color: var(--p-biru);
+        padding: 8px 18px; border-radius: 50px; font-weight: 800; font-size: 11px;
+        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; border-left: 5px solid var(--p-biru);
+    }
+
+    /* --- GRID 5 KOLOM --- */
+    .grid-lowongan {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+    }
+
+    @@media (max-width: 1400px) { .grid-lowongan { grid-template-columns: repeat(4, 1fr); } }
+    @@media (max-width: 1100px) { .grid-lowongan { grid-template-columns: repeat(3, 1fr); } }
+    @@media (max-width: 850px) { .grid-lowongan { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 500px) { .grid-lowongan { grid-template-columns: 1fr; } }
+
+    @* /* --- ALUR PENDAFTARAN HORIZONTAL --- */
+    .alur-pendaftaran {
+        display: flex;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .alur-pendaftaran .step {
+        flex: 1;
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 6px 4px;
+        text-align: center;
+        font-size: 9px;
+        color: var(--p-gray);
+    }
+
+    .alur-pendaftaran .step i {
+        display: block;
+        font-size: 11px;
+        color: var(--p-biru);
+        margin-bottom: 2px;
+    } *@
+
+    /* --- SYARAT DOKUMEN --- */
+    .syarat-dokumen {
+        background: rgba(0, 59, 118, 0.05);
+        border-radius: 8px;
+        padding: 6px 8px;
+        font-size: 9px;
+    }
+
+
+    /* --- FLIP CARD LOGIC --- */
+    .flip-card {
+        background-color: transparent;
+        height: 260px;
+        perspective: 1000px;
+    }
+
+    .flip-card-inner {
+        position: relative;
         width: 100%;
         height: 100%;
-        background-image: 
-            radial-gradient(circle at 15% 50%, rgba(0, 94, 184, 0.03) 0%, transparent 20%),
-            radial-gradient(circle at 85% 30%, rgba(0, 168, 89, 0.03) 0%, transparent 20%),
-            radial-gradient(circle at 50% 80%, rgba(227, 6, 19, 0.02) 0%, transparent 20%);
-        z-index: -1;
-    }
-
-    /* HERO SECTION */
-    .hero-section {
-        background: linear-gradient(135deg, var(--pertamina-blue) 0%, var(--pertamina-dark) 100%);
-        color: white;
-        padding: 80px 0;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .hero-section::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: -10%;
-        width: 600px;
-        height: 600px;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-
-    .hero-section::after {
-        content: '';
-        position: absolute;
-        bottom: -10%;
-        left: -10%;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(0, 168, 89, 0.2) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-
-    .hero-content {
-        position: relative;
-        z-index: 2;
-    }
-
-    .hero-title {
-        font-size: 48px;
-        font-weight: 800;
-        margin-bottom: 20px;
-        line-height: 1.2;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .hero-subtitle {
-        font-size: 20px;
-        margin-bottom: 35px;
-        opacity: 0.95;
-        line-height: 1.6;
-    }
-
-    .btn-daftar {
-        background: linear-gradient(135deg, var(--pertamina-red), #c82333);
-        color: white !important;
-        padding: 18px 45px;
-        border-radius: 50px;
-        border: none;
-        font-weight: 700;
-        font-size: 18px;
-        cursor: pointer;
-        transition: all 0.4s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 12px;
-        box-shadow: 0 8px 25px rgba(227, 6, 19, 0.3);
-        text-decoration: none;
-    }
-
-    .btn-daftar:hover {
-        background: linear-gradient(135deg, #c82333, var(--pertamina-red));
-        transform: translateY(-5px);
-        box-shadow: 0 12px 35px rgba(227, 6, 19, 0.5);
-    }
-
-    .btn-daftar i {
-        font-size: 20px;
-        transition: transform 0.3s ease;
-    }
-
-    .btn-daftar:hover i {
-        transform: translateX(5px);
-    }
-
-    /* INFO CARDS */
-    .info-section {
-        padding: 80px 0;
-    }
-
-    .section-title {
         text-align: center;
-        font-size: 36px;
-        font-weight: 700;
-        color: var(--pertamina-blue);
-        margin-bottom: 15px;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
     }
 
-    .section-subtitle {
-        text-align: center;
-        color: var(--text-light);
-        font-size: 18px;
-        margin-bottom: 50px;
+    .flip-card:hover .flip-card-inner {
+        transform: rotateY(180deg);
     }
 
-    .info-card {
-        background: white;
-        border-radius: 20px;
-        padding: 35px;
-        box-shadow: 0 10px 30px var(--shadow-medium);
-        transition: all 0.4s ease;
+    .flip-card-front, .flip-card-back {
+        position: absolute;
+        width: 100%;
         height: 100%;
-        border-top: 4px solid var(--pertamina-blue);
-    }
-
-    .info-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 45px var(--shadow-medium);
-    }
-
-    .info-card-icon {
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(135deg, var(--pertamina-blue), var(--pertamina-dark));
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
         border-radius: 15px;
+        padding: 20px;
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        border: 1px solid #e2e8f0;
+    }
+
+    .flip-card-front {
+        background-color: white;
+        color: var(--p-gelap);
+    }
+
+    .flip-card-back {
+        background-color: var(--p-biru);
+        color: white;
+        transform: rotateY(180deg);
         justify-content: center;
-        font-size: 32px;
-        color: white;
-        margin-bottom: 25px;
-        box-shadow: 0 6px 20px rgba(0, 94, 184, 0.3);
     }
 
-    .info-card h4 {
-        font-size: 22px;
-        font-weight: 700;
-        color: var(--pertamina-blue);
-        margin-bottom: 15px;
+    .wadah-ikon-sm {
+        width: 40px; height: 40px; background: #f1f5f9; color: var(--p-biru);
+        border-radius: 10px; display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 12px; font-size: 16px;
     }
 
-    .info-card p {
-        color: var(--text-light);
-        line-height: 1.7;
-        font-size: 15px;
+    .judul-posisi {
+        font-size: 13px; font-weight: 700; color: var(--p-biru); line-height: 1.4;
+        min-height: 55px; margin-bottom: 8px; overflow: hidden;
+        display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
     }
 
-    /* TIMELINE */
-    .timeline-section {
-        padding: 80px 0;
-        background: white;
-    }
-
-    .timeline {
-        position: relative;
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 40px 0;
-    }
-
-    .timeline::before {
-        content: '';
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 4px;
-        height: 100%;
-        background: linear-gradient(to bottom, var(--pertamina-blue), var(--pertamina-green));
-    }
-
-    .timeline-item {
-        position: relative;
-        margin-bottom: 50px;
-        display: flex;
-        align-items: center;
-    }
-
-    .timeline-item:nth-child(odd) {
-        flex-direction: row;
-    }
-
-    .timeline-item:nth-child(even) {
-        flex-direction: row-reverse;
-    }
-
-    .timeline-content {
-        background: #f9fbfd;
-        border-radius: 15px;
-        padding: 25px;
-        width: 45%;
-        box-shadow: 0 8px 25px var(--shadow-light);
-        border-left: 4px solid var(--pertamina-blue);
-    }
-
-    .timeline-item:nth-child(even) .timeline-content {
-        border-left: none;
-        border-right: 4px solid var(--pertamina-green);
-    }
-
-    .timeline-dot {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 30px;
-        height: 30px;
-        background: white;
-        border: 5px solid var(--pertamina-blue);
-        border-radius: 50%;
-        z-index: 2;
-    }
-
-    .timeline-content h5 {
-        color: var(--pertamina-blue);
-        font-weight: 700;
-        margin-bottom: 10px;
-        font-size: 18px;
-    }
-
-    .timeline-content p {
-        color: var(--text-light);
-        margin: 0;
-        line-height: 1.6;
-    }
-
-    /* BENEFITS */
-    .benefits-section {
-        padding: 80px 0;
-        background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
-    }
-
-    .benefit-card {
-        background: white;
-        border-radius: 15px;
-        padding: 30px;
-        margin-bottom: 25px;
-        box-shadow: 0 6px 20px var(--shadow-light);
-        display: flex;
-        align-items: flex-start;
-        gap: 20px;
-        transition: all 0.3s ease;
-    }
-
-    .benefit-card:hover {
-        transform: translateX(10px);
-        box-shadow: 0 8px 30px var(--shadow-medium);
-    }
-
-    .benefit-icon {
-        width: 55px;
-        height: 55px;
-        background: linear-gradient(135deg, var(--pertamina-green), #007a48);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 26px;
-        color: white;
-        flex-shrink: 0;
-    }
-
-    .benefit-content h5 {
-        color: var(--pertamina-dark);
-        font-weight: 700;
-        margin-bottom: 8px;
-        font-size: 18px;
-    }
-
-    .benefit-content p {
-        color: var(--text-light);
-        margin: 0;
-        line-height: 1.6;
-    }
-
-    /* CTA SECTION */
-    .cta-section {
-        background: linear-gradient(135deg, var(--pertamina-dark) 0%, var(--pertamina-blue) 100%);
-        color: white;
-        padding: 80px 0;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
-
-    /* Styling Tooltip agar sesuai tema Pertamina */
-    .tooltip-inner {
-        background-color: var(--pertamina-blue) !important;
-        padding: 10px 15px;
-        font-size: 13px;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        max-width: 250px;
-        text-align: left;
-    }
-
-    .tooltip .tooltip-arrow::before {
-        border-top-color: var(--pertamina-blue) !important;
-    }
-
-    /* RESPONSIVE */
-    @@media (max-width: 768px) {
-        .hero-title { font-size: 32px; }
-        .hero-subtitle { font-size: 16px; }
-        .timeline::before { left: 30px; }
-        .timeline-content { width: calc(100% - 80px); margin-left: 80px; }
-        .timeline-item:nth-child(even) .timeline-content { margin-left: 80px; }
-        .timeline-dot { left: 30px; }
-    }
+    .tombol-daftar { background: var(--p-merah); color: white; padding: 12px 30px; border-radius: 12px; font-weight: 700; text-decoration: none; transition: 0.3s; display: inline-block; border:none; }
+    .tombol-daftar:hover { background: #b90510; color: white; transform: translateY(-3px); }
 </style>
 
-<section class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-7 hero-content">
-                <h1 class="hero-title">
-                    </i> Program Magang Pertamina
-                </h1>
-                <p class="hero-subtitle">
-                    Bergabunglah dalam Program Magang Kerja di PT. Pertamina (Persero) Regional Jawa Bagian Tengah. 
-                    Kembangkan potensi diri Anda bersama perusahaan energi terbesar di Indonesia dan raih pengalaman berharga untuk masa depan karir Anda.
-                </p>
-                @if (User.Identity.IsAuthenticated)
-                {
-                    <a href="@Url.Action("DataMagang", "PendaftaranMagang")" class="btn-daftar">
-                        <i class="fas fa-rocket"></i> Daftar Sekarang
-                    </a>
-                }
-                else
-                {
-                    <a href="@Url.Action("Login", "Account")" class="btn-daftar">
-                        <i class="fas fa-sign-in-alt"></i> Login untuk Mendaftar
-                    </a>
-                }
+<div class="hero-instansi text-center">
+    <div class="container animate__animated animate__fadeIn">
+        <h1 class="display-4 fw-bold mb-3">Program Magang</h1>
+        <p class="lead opacity-75 mb-5 mx-auto" style="max-width: 750px;">Kembangkan potensi profesional Anda melalui program magang terstruktur di PT Pertamina (Persero).</p>
+        <a asp-controller="PendaftaranMagang" asp-action="DataMagang" class="tombol-daftar">MULAI PENDAFTARAN</a>
+    </div>
+</div>
+
+<div class="container wadah-statistik">
+    <div class="kartu-statistik shadow-sm">
+        <div class="row text-center g-4">
+            <div class="col-md-4 border-end">
+                <small class="text-muted d-block mb-1 fw-bold">STATUS PORTAL</small>
+                <span class="fw-bold text-success"><span class="titik-aktif animate__animated animate__pulse animate__infinite"></span>PENDAFTARAN DIBUKA</span>
             </div>
-            <div class="col-lg-5 text-center d-none d-lg-block">
-                <i class="fas fa-users" style="font-size: 280px; opacity: 0.15;"></i>
+            <div class="col-md-4 border-end">
+                <small class="text-muted d-block mb-1 fw-bold">PERIODE MAGANG</small>
+                <span class="fw-bold text-dark">2026</span>
+            </div>
+            <div class="col-md-4">
+                <small class="text-muted d-block mb-1 fw-bold">SISTEM KERJA</small>
+                <span class="fw-bold text-primary">HYBRID (ONSITE/REMOTE)</span>
             </div>
         </div>
     </div>
-</section>
 
-<section class="info-section">
-    <div class="container">
-        <h2 class="section-title">Mengapa Magang di Pertamina?</h2>
-        <p class="section-subtitle">Berbagai keuntungan dan pengalaman berharga menanti Anda</p>
-        
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-university"></i>
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="kartu-formal border-0 shadow-sm">
+                <div class="label-bagian">Peluang Magang</div>
+                <h5 class="fw-bold mb-4">Posisi Yang Tersedia</h5>
+
+                <div class="row g-3 mb-5 p-3 bg-light rounded-4 border">
+                    <div class="col-md-6">
+                        <label class="small fw-bold text-muted mb-1">Cari Posisi</label>
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="searchPosisi" class="form-control border-start-0 ps-0" placeholder="Ketik posisi...">
+                        </div>
                     </div>
-                    <h4>Perusahaan Terpercaya</h4>
-                    <p>Pertamina adalah BUMN energi terbesar di Indonesia dengan pengalaman lebih dari 65 tahun dalam industri minyak dan gas.</p>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-graduation-cap"></i>
+                    <div class="col-md-2">
+                        <label class="small fw-bold text-muted mb-1">Company</label>
+                        <select id="filterCompany" class="form-select shadow-sm">
+                            <option value="">Pilih</option>
+                            <option value="KPI">PT Kilang Pertamina Internasional</option>
+                            <option value="PPN">PT Pertamina Patra Niaga</option>
+                        </select>
                     </div>
-                    <h4>Pembelajaran Praktis</h4>
-                    <p>Dapatkan pengalaman kerja nyata dengan bimbingan dari profesional berpengalaman di berbagai bidang industri energi.</p>
-                </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="info-card">
-                    <div class="info-card-icon">
-                        <i class="fas fa-network-wired"></i>
+                    <div class="col-md-2">
+                        <label class="small fw-bold text-muted mb-1">Region</label>
+                        <select id="filterRegion" class="form-select shadow-sm" disabled><option value="">Pilih</option></select>
                     </div>
-                    <h4>Jaringan Profesional</h4>
-                    <p>Bangun koneksi berharga dengan para profesional dan rekan magang lainnya yang dapat mendukung karir Anda di masa depan.</p>
+                    <div class="col-md-2">
+                        <label class="small fw-bold text-muted mb-1">Lokasi</label>
+                        <select id="filterLokasi" class="form-select shadow-sm" disabled><option value="">Pilih</option></select>
+                    </div>
                 </div>
+
+                <div id="emptyState" class="empty-state text-center py-5">
+                    <i class="fas fa-filter fa-3x mb-3 text-muted"></i>
+                    <p>Pilih filter untuk memunculkan lowongan.</p>
+                </div>
+
+                <div class="grid-lowongan" id="containerLowongan"></div>
             </div>
         </div>
     </div>
-</section>
+</div>
 
-<section class="timeline-section">
-    <div class="container">
-        <h2 class="section-title">Alur Pendaftaran Magang</h2>
-        <div class="timeline">
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <h5><i class="fas fa-edit"></i> 1. Registrasi Online</h5>
-                    <p>Lengkapi formulir pendaftaran melalui sistem SINTA dengan data diri, data kampus, dan informasi magang.</p>
-                </div>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <h5><i class="fas fa-file-upload"></i> 2. Upload Dokumen</h5>
-                    <p>Unggah dokumen pendukung seperti CV, transkrip nilai, surat pengantar, dan proposal magang.</p>
-                </div>
-            </div>
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <h5><i class="fas fa-search"></i> 3. Seleksi Administrasi</h5>
-                    <p>Tim HR akan melakukan verifikasi dan seleksi berkas yang telah Anda kirimkan.</p>
-                </div>
-            </div>
-            
-            <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                    <h5><i class="fas fa-check-circle"></i> 4. Pengumuman & Penempatan</h5>
-                    <p>Peserta yang diterima akan mendapat pemberitahuan resmi dan informasi penempatan divisi.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="cta-section">
-    <div class="container">
-        <h2 class="cta-title">Siap Memulai Perjalanan Karirmu?</h2>
-        <p class="cta-text">Daftarkan diri Anda sekarang dan jadilah bagian dari keluarga besar Pertamina!</p>
-        @if (User.Identity.IsAuthenticated)
-        {
-            <a href="@Url.Action("DataMagang", "PendaftaranMagang")" class="btn-daftar">
-                <i class="fas fa-user-plus"></i> Mulai Pendaftaran
-            </a>
-        }
-        else
-        {
-            <a href="@Url.Action("Login", "Account")" class="btn-daftar">
-                <i class="fas fa-sign-in-alt"></i> Login Sekarang
-            </a>
-        }
-    </div>
-</section>
-
-@section Scripts {
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
+      const dataKPI = {
+        "Refinery Unit VI Balongan": [
+            "Akuntansi / Ekonomi & Bisnis",
+            "Elektro (Arus Kuat)",
+            "Elektro (Arus Lemah)",
+            "Emergency & Insurance",
+            "Health",
+            "Hukum",
+            "Ilmu Komunikasi / FISIP / Administrasi Publik",
+            "Internal Audit",
+            "Kelautan / Perkapalan",
+            "Kimia Murni / MIPA",
+            "Konversi Energi / Migas / Kimia Air Bersih / Blanding / Loading",
+            "Logistik / Pergudangan / Procurement",
+            "Manajemen / SDM / Psikologi",
+            "Metalurgi / Material / Dirgantara",
+            "Safety (K3) / SMK3",
+            "Teknik Fisika",
+            "Teknik Industri",
+            "Teknik Informatika",
+            "Teknik Kimia",
+            "Teknik Lingkungan",
+            "Teknik Mesin",
+            "Teknik Mesin (Rotating)",
+            "Teknik Sipil"
+        ]};
+
+        const dataPPN = {
+        "Regional Jatimbalinus": [
+            "Asset Operation MOR V","Bitumen Plant Gresik","C&T IA Jatimbalinus","Comm, Rel, & CSR MOR V",
+            "Corporate Operation & Service Region V","Corporate Sales Region V","DPPU BIL","DPPU Eltari Group",
+            "DPPU Iswahyudi","DPPU Juanda","DPPU Ngurah Rai","Finance MOR V","Fuel Terminal Atapupu",
+            "Fuel Terminal Badas","Fuel Terminal Bima","Fuel Terminal Camplong","Fuel Terminal Ende",
+            "Fuel Terminal Kalabahi","Fuel Terminal Madiun","Fuel Terminal Malang","Fuel Terminal Maumere",
+            "Fuel Terminal Reo","Fuel Terminal Sanggaran","Fuel Terminal Tenau","Fuel Terminal Tuban",
+            "Fuel Terminal Waingapu","HC Jatimbalinus","HSSE Region V","Integrated Terminal Ampenan",
+            "Integrated Terminal Manggis","Integrated Terminal Surabaya","Integrated Terminal T. Wangi",
+            "Legal Counsel Regional Jatimbalinus","Marine Region V","Medical Jatimbalinus",
+            "Procurement MOR V","Rel & Project Dev Region V","Retail Bali","Retail Kediri",
+            "Retail Malang","Retail NTB","Retail NTT","Retail Sales Region V","Retail Surabaya",
+            "S&D Region V","SSC ICT VI Jatimbalinus","XXX"
+        ],
+        "Regional Jawa Bagian Barat": [
+            "Asset Operation JBB","Corp. Opt & Serv JBB","Corporate Sales JBB","DPPU Halim PK Group",
+            "DPPU Husein Sastranegara","DPPU Kertajati","Finance JBB","Fuel Terminal Bandung Group",
+            "Fuel Terminal Cikampek","Fuel Terminal Tasikmalaya","Fuel Terminal Tg Gerem","HSSE JBB",
+            "Human Capital","Integrated Terminal Balongan","Integrated Terminal Jakarta","Legal Counsel JBB",
+            "Medical JBB","MWH & LPG Cylinder","Procurement JBB","Reliability & Project Dev JBB",
+            "SA Retail Bandung","SA Retail Cirebon","SA Retail Karawang","SA Retail Sukabumi",
+            "SAM Retail Banten","SAM Retail Jabode","SHAFTHI","SHIPS","SCC ICT JBB",
+            "Supply & Distribution JBB","Unit Comm, Rel & CSR JBB"
+        ],
+        "Regional Jawa Bagian Tengah": [
+            "AFT Adi Sumarmo","AFT Adi Sucipto","AFT Ahmad Yani","AFT YIA",
+            "Fuel Terminal Boyolali","Fuel Terminal Lomanis","Fuel Terminal Maos",
+            "Fuel Terminal Rewulu","Fuel Terminal Tegal","Integrated Terminal Cilacap",
+            "Integrated Terminal Semarang","Kantor Branch Marketing DIY & Surakarta",
+            "Kantor Unit - Asset Operation JBT","Kantor Unit - Comm, Rel & CSR JBT",
+            "Kantor Unit - Corp Operation & Serv JBT","Kantor Unit - Corporate Sales JBT",
+            "Kantor Unit - Finance JBT","Kantor Unit - HC JBT","Kantor Unit - HSSE JBT",
+            "Kantor Unit - Internal Audit","Kantor Unit - Legal Counsel JBT",
+            "Kantor Unit - Medical JBT","Kantor Unit - Operational Risk JBT",
+            "Kantor Unit - Procurement JBT","Kantor Unit - Rel & Project Dev JBT",
+            "Kantor Unit - Retail Sales JBT","Kantor Unit - SSC ICT V JBT",
+            "Kantor Unit - Supply & Distribution JBT"
+        ],
+        "Regional Kalimantan": [
+            "DPPU APT Pranoto","DPPU H. Asan","DPPU Iskandar","DPPU Juwata",
+            "DPPU Kalimaru","DPPU Sepinggan","DPPU Supadio","DPPU Syamsudin Noor",
+            "DPPU Tjilik Riwut","Fuel Terminal Pulang Pisau","Fuel Terminal Kotabaru",
+            "Fuel Terminal Pangkalan Bun","Fuel Terminal Samarinda","Fuel Terminal Sampit",
+            "Fuel Terminal Sintang","Fuel Terminal Tarakan","Integrated Terminal Balikpapan",
+            "Integrated Terminal Banjarmasin","Integrated Terminal Pontianak",
+            "Kantor Patra Niaga Region Kalimantan","SAM Retail Kalbar","SAM Retail Kalselteng",
+            "SAM Retail Kaltimut"
+        ],
+        "Regional Maluku Papua": [
+            "Aviation FT Babullah","Aviation FT Deo","Aviation FT Depati Mopah",
+            "Aviation FT Depati Rendani","Aviation FT Dumatubun","Aviation FT Frans Kaisiepo",
+            "Aviation FT Mathilda","Aviation FT Mozes Kilangin","Aviation FT Paniai",
+            "Aviation FT Pattimura","Aviation FT Sentani","Aviation FT Utarom",
+            "FT Biak","FT Bula","FT Dobo","FT Fak-Fak","FT Kaimana","FT Labuha",
+            "FT Manokwari","FT Masohi","FT Merauke","FT Nabire","FT Namlea",
+            "FT Sanana","FT Saumlaki","FT Serui","FT Sorong","FT Ternate",
+            "FT Tobelo","FT Tual","IT Jayapura","IT Wayame",
+            "Kantor Region - Asset Operation Papua-Maluku",
+            "Kantor Region - Comm, Rel & CSR Papua-Maluku",
+            "Kantor Region - Corp Operation & Serv Papua-Maluku",
+            "Kantor Region - Corporate Sales Papua-Maluku",
+            "Kantor Region - Finance Papua-Maluku",
+            "Kantor Region - HC Papua-Maluku",
+            "Kantor Region - HSSE Papua-Maluku",
+            "Kantor Region - Legal Counsel Papua-Maluku",
+            "Kantor Region - Medical Papua-Maluku",
+            "Kantor Region - Procurement Papua-Maluku",
+            "Kantor Region - Rel & Project Dev Papua-Maluku",
+            "Kantor Region - Retail Sales Papua-Maluku",
+            "Kantor Region - Supply & Dist Papua-Maluku",
+            "Sales Area Ambon"
+        ],
+        "Regional Sumbagut": [
+            "Asset Operation Region Sumbagut","Branch Marketing Aceh",
+            "Branch Marketing Kepulauan Riau","Branch Marketing Sibolga",
+            "Branch Marketing Sumbar","Communication & CSR Region Sumbagut",
+            "Corp Operation & Serv Region Sumbagut","Corporate Sales Region Sumbagut",
+            "DPPU Hang Nadim Group","DPPU Kualanamu Group","DPPU Minangkabau",
+            "DPPU SIM","DPPU SSK II","Finance Region Sumbagut",
+            "Fuel Terminal Batam","Fuel Terminal Gunung Sitoli",
+            "Fuel Terminal Kijang Group","Fuel Terminal Kisaran",
+            "Fuel Terminal Krueng Raya","Fuel Terminal Medan Group",
+            "Fuel Terminal Meulaboh","Fuel Terminal Natuna Group",
+            "Fuel Terminal Pematang Siantar","Fuel Terminal Sabang",
+            "Fuel Terminal Sei Siak","Fuel Terminal Sibolga",
+            "Fuel Terminal Simeulue","Fuel Terminal Tembilahan",
+            "HC Region Sumbagut","HSSE Region Sumbagut",
+            "IA Region I","Integrated Terminal Dumai",
+            "Integrated Terminal Lhokseumawe","Integrated Terminal Tanjung Uban",
+            "Integrated Terminal Teluk Kabung","Legal Counsel Region Sumbagut",
+            "Medical Region Sumbagut","Procurement Region Sumbagut",
+            "Rel & Project Dev Region Sumbagut",
+            "Retail Sales Region Sumbagut",
+            "SSC ICT I Region Sumbagut",
+            "Supply & Distribution Region Sumbagut"
+        ]};
+
+    const dataMagang = { "KPI": dataKPI, "PPN": dataPPN };
+
+    const companySelect = document.getElementById('filterCompany');
+    const regionSelect = document.getElementById('filterRegion');
+    const lokasiSelect = document.getElementById('filterLokasi');
+    const container = document.getElementById('containerLowongan');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchPosisi');
+
+    function renderCards() {
+        const company = companySelect.value;
+        const region = regionSelect.value;
+        const lokasi = lokasiSelect.value;
+        const search = searchInput.value.toLowerCase();
+
+        container.innerHTML = '';
+        if (!company || !region || !lokasi) {
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        const positions = dataMagang[company][region];
+
+        positions.forEach(pos => {
+            if (pos.toLowerCase().includes(search)) {
+                const deskripsi = `Mendukung operasional di unit ${lokasi} untuk memastikan efisiensi kerja dan pengembangan sistem sesuai standar Pertamina.`;
+                
+                const card = `
+                    <div class="flip-card animate__animated animate__fadeInUp">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front shadow-sm">
+                                <div class="wadah-ikon-sm"><i class="${getIcon(pos)}"></i></div>
+                                <div class="judul-posisi">${pos}</div>
+                                <small class="text-muted d-block mb-3">
+                                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>${lokasi}
+                                </small>
+                                @* <!-- ALUR PENDAFTARAN -->
+                                    <div class="alur-pendaftaran mb-2">
+                                        <div class="step"><i class="fas fa-user-plus"></i><span>Daftar</span></div>
+                                        <div class="step"><i class="fas fa-file-alt"></i><span>Upload</span></div>
+                                        <div class="step"><i class="fas fa-search"></i><span>Seleksi</span></div>
+                                        <div class="step"><i class="fas fa-check-circle"></i><span>Diterima</span></div>
+                                    </div> *@
+
+                                    <!-- SYARAT DOKUMEN -->
+                                    <div class="syarat-dokumen mb-2">
+                                        <small class="fw-bold text-muted d-block mb-1">Dokumen:</small>
+                                        <small class="text-muted">CV, Proposal, Surat Kampus</small>
+                                    </div>
+
+                                <div class="mt-auto pt-2 border-top">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-muted" style="font-size: 11px;">KUOTA</span>
+                                        <span class="fw-bold text-primary" style="font-size: 11px;">TERSEDIA</span>
+                                    </div>
+                                    <small class="text-muted d-block mt-2" style="font-size: 9px;">Hover untuk detail fungsi</small>
+                                </div>
+                            </div>
+                            <div class="flip-card-back shadow-lg">
+                                <h6 class="fw-bold mb-3" style="font-size: 14px;">Fungsi Bidang</h6>
+                                <p style="font-size: 11px; line-height: 1.5; opacity: 0.9;">${deskripsi}</p>
+                                <div class="mt-auto">
+                                    <button 
+                                        class="btn btn-light btn-sm w-100 fw-bold py-2"
+                                        onclick="pilihPosisi(
+                                            '${company}',
+                                            '${region}',
+                                            '${lokasi}',
+                                            '${pos.replace(/'/g, "\\'")}'
+                                        )">
+                                        PILIH POSISI
+                                        </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', card);
+            }
         });
+    }
+
+    function getIcon(pos) {
+        pos = pos.toLowerCase();
+        if (pos.includes('elektro')) return 'fas fa-bolt';
+        if (pos.includes('informatika') || pos.includes('ict')) return 'fas fa-code';
+        if (pos.includes('hukum')) return 'fas fa-gavel';
+        if (pos.includes('akuntansi') || pos.includes('finance')) return 'fas fa-file-invoice-dollar';
+        if (pos.includes('kimia')) return 'fas fa-flask';
+        return 'fas fa-briefcase';
+    }
+
+    companySelect.addEventListener('change', function() {
+        regionSelect.innerHTML = '<option value="">Pilih Region</option>';
+        lokasiSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+        lokasiSelect.disabled = true;
+        if (this.value) {
+            regionSelect.disabled = false;
+            Object.keys(dataMagang[this.value]).forEach(r => {
+                regionSelect.innerHTML += `<option value="${r}">${r}</option>`;
+            });
+        } else {
+            regionSelect.disabled = true;
+        }
+        renderCards();
     });
+
+    regionSelect.addEventListener('change', function() {
+        lokasiSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+        if (this.value) {
+            lokasiSelect.disabled = false;
+            lokasiSelect.innerHTML += `<option value="${this.value}">${this.value}</option>`;
+        } else {
+            lokasiSelect.disabled = true;
+        }
+        renderCards();
+    });
+
+    lokasiSelect.addEventListener('change', renderCards);
+    searchInput.addEventListener('input', renderCards);
+
+    function pilihPosisi(company, region, lokasi, posisi) {
+        localStorage.setItem('magang_company', company);
+        localStorage.setItem('magang_region', region);
+        localStorage.setItem('magang_lokasi', lokasi);
+        localStorage.setItem('magang_posisi', posisi);
+
+        window.location.href = '/PendaftaranMagang/DataMagang';
+    }
+
 </script>
-}

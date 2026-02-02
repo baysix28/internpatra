@@ -1,89 +1,139 @@
 ﻿@{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Home - SINTA";
 }
 
-<div class="container-fluid py-3" style="min-height: 72vh;">
-    <div class="container">
-        <div class="card border-0 shadow-lg p-4" style="border-radius: 20px; background-color: #ffffff;">
-            
-            <div class="row align-items-center mb-4">
-                <div class="col-md-7 col-lg-8">
-                    <h2 class="fw-bold mb-0 text-dark">Selamat Datang, di SINTA!</h2>
-                    @* <p class="text-muted small mb-0">Kelola pendaftaran magang dan penelitian Anda di sini secara efisien.</p> *@
-                </div>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-                <div class="col-md-5 col-lg-4 d-flex justify-content-end align-items-center gap-3">
-                    <div class="text-end d-none d-md-block">
-                        <p class="mb-0 fw-bold text-dark small">Sudah daftar?</p>
-                        <p class="mb-0 text-muted" style="font-size: 0.7rem;">Masuk ke Dashboard Peserta</p>
-                    </div>
-                    
+<div class="container-fluid py-4" style="background-color: #f8fafc; font-family: 'Inter', sans-serif; min-height: 72vh;">
+    <div class="container" style="max-width: 900px;">
+        
+        <div class="d-flex justify-content-between align-items-end mb-4 px-1">
+            <div>
+                <p class="text-primary fw-bold mb-0" style="font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase;">Sistem Informasi Internship</p>
+                <h4 class="fw-bold text-dark mb-0">Portal Pendaftaran</h4>
+            </div>
+            
+            <div class="d-flex gap-2">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
                     <div class="dropdown">
-                        <a href="#" class="login-circle d-flex align-items-center justify-content-center shadow transition-all" 
-                           id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user fa-lg"></i>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown">
-                            <li><a class="dropdown-item py-2" href="@Url.Action("Login", "Auth")"><i class="fas fa-sign-in-alt me-2 text-primary"></i> Login</a></li>
+                        <button class="btn btn-white shadow-sm border px-3 py-2 btn-sm fw-bold" type="button" data-bs-toggle="dropdown" style="border-radius: 4px;">
+                            <i class="fas fa-user-circle me-1 text-primary"></i> @User.Identity.Name
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                            <li><a class="dropdown-item py-2 small" href="@Url.Action("Index", "DashboardPeserta")">Dashboard</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item py-2" href="@Url.Action("Register", "Auth")"><i class="fas fa-user-plus me-2 text-success"></i> Buat Akun</a></li>
+                            <li>
+                                <form asp-controller="Auth" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item small text-danger">Keluar</button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <a href="@Url.Action("Login", "Auth")" class="btn btn-white border px-4 py-2 btn-sm fw-bold shadow-sm" style="border-radius: 6px; color: #475569;">Masuk</a>
+                    <a href="@Url.Action("Register", "Auth")" class="btn btn-primary px-4 py-2 btn-sm fw-bold shadow-sm" style="border-radius: 6px; background-color: #0d6efd; border: none;">Daftar Akun</a>
+                }
             </div>
+        </div>
 
-            <hr class="text-muted opacity-25 mb-4">
-
-            <div class="row text-center g-3">
-                <div class="col-md-4">
-                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
-                        <h5 class="fw-bold mb-2">Magang Kerja</h5>
-                        <p class="text-muted small mb-3">Rasakan pengalaman kerja nyata di PT. Pertamina (Persero).</p>
-                        <div class="mt-auto">
-                            <a href="@Url.Action("Index", "PendaftaranMagang")" class="btn btn-primary w-100 py-2 shadow-sm">Informasi Magang</a>
+        <div class="card border-0 shadow-sm mx-auto" style="border-radius: 8px; border: 1px solid #e2e8f0 !important;">
+            <div class="card-body p-0">
+                
+                <div class="p-4 bg-white border-bottom position-relative">
+                    <div class="row align-items-center">
+                        <div class="col-md-10">
+                            <h4 class="fw-bold text-dark mb-1">Selamat Datang di SINTA</h4>
+                            <p class="text-muted mb-0 small">Layanan pendaftaran magang dan penelitian PT Pertamina.</p>
+                        </div>
+                        <div class="col-md-2 text-end d-none d-md-block">
+                            <i class="fas fa-briefcase fa-2x text-light opacity-25"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
-                        <h5 class="fw-bold mb-2">Penelitian</h5>
-                        <p class="text-muted small mb-3">Dukungan data untuk penelitian akademik Anda.</p>
-                        <div class="mt-auto">
-                            <a href="@Url.Action("Index", "Penelitian")" class="btn btn-info text-white w-100 py-2 shadow-sm">Informasi Penelitian</a>
+                <div class="p-4 bg-light">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="card border-0 h-100 p-3 service-card shadow-sm">
+                                <div class="mb-3">
+                                    <span class="label-badge bg-primary-soft text-primary">Magang</span>
+                                    <h6 class="fw-bold mt-2 mb-2">Magang Kerja</h6>
+                                    <p class="text-muted mb-0" style="font-size: 0.75rem;">Program praktis mahasiswa aktif.</p>
+                                </div>
+                                <div class="mt-auto pt-2 border-top">
+                                    <a href="@Url.Action("Index", "PendaftaranMagang")" class="text-primary text-decoration-none fw-bold small">
+                                        Buka Program <i class="fas fa-chevron-right ms-1" style="font-size: 0.6rem;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card border-0 h-100 p-3 service-card shadow-sm">
+                                <div class="mb-3">
+                                    <span class="label-badge bg-info-soft text-info">Riset</span>
+                                    <h6 class="fw-bold mt-2 mb-2">Penelitian</h6>
+                                    <p class="text-muted mb-0" style="font-size: 0.75rem;">Akses data untuk tugas akhir.</p>
+                                </div>
+                                <div class="mt-auto pt-2 border-top">
+                                    <a href="@Url.Action("Index", "Penelitian")" class="text-info text-decoration-none fw-bold small">
+                                        Buka Riset <i class="fas fa-chevron-right ms-1" style="font-size: 0.6rem;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="card border-0 h-100 p-3 service-card shadow-sm">
+                                <div class="mb-3">
+                                    <span class="label-badge bg-success-soft text-success">Status</span>
+                                    <h6 class="fw-bold mt-2 mb-2">Hasil Seleksi</h6>
+                                    <p class="text-muted mb-0" style="font-size: 0.75rem;">Pantau pengumuman pendaftaran.</p>
+                                </div>
+                                <div class="mt-auto pt-2 border-top">
+                                    <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-primary btn-sm w-100 fw-bold shadow-sm" style="border-radius: 4px; font-size: 0.7rem;">Periksa Hasil</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
-                        <h5 class="fw-bold mb-2">Hasil</h5>
-                        <p class="text-muted small mb-3">Pantau status pengajuan pendaftaran Anda secara berkala.</p>
-                        <div class="mt-auto">
-                            <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-success w-100 py-2 shadow-sm">Periksa Hasil</a>
-                        </div>
-                    </div>
-                </div>
             </div>
-        </div> </div>
+        </div>
+
+    </div>
 </div>
 
 <style>
-    .login-circle {
-        width: 45px;
-        height: 45px;
-        background-color: #102C54;
-        color: white;
-        border-radius: 50%;
-        text-decoration: none;
+    .btn-white { background-color: #fff; border-color: #e2e8f0; }
+    .btn-white:hover { background-color: #f8fafc; }
+
+    .label-badge {
+        font-size: 0.6rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
     }
-    .login-circle:hover { transform: scale(1.05); background-color: #1a417a; }
-    .transition-all { transition: all 0.2s ease-in-out; }
-    
-    /* Hover effect untuk kotak menu di dalam */
-    .bg-light:hover {
-        background-color: #f0f4f8 !important;
-        transform: translateY(-3px);
-        transition: 0.3s;
+    .bg-primary-soft { background-color: #eff6ff; }
+    .bg-info-soft { background-color: #f0f9ff; }
+    .bg-success-soft { background-color: #f0fdf4; }
+
+    .service-card {
+        background-color: #ffffff;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        border: 1px solid #f1f5f9 !important;
     }
+
+    .service-card:hover {
+        transform: translateY(-2px);
+        border-color: #e2e8f0 !important;
+    }
+
+    h4 { font-size: 1.2rem; }
+    h6 { font-size: 0.85rem; color: #0f172a; }
 </style>

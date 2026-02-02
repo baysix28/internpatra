@@ -1,79 +1,299 @@
 @{
-    Layout = "_Layout";
-    ViewData["Title"] = "Daftar Akun Baru";
+    ViewData["Title"] = "Daftar Akun Baru | SINTA Pertamina";
+    Layout = null; 
 }
 
-<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 75vh;">
-    <div class="row justify-content-center w-100">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow border-0" style="border-radius: 15px; overflow: hidden;">
-                <div class="bg-danger py-3 text-center">
-                    <h5 class="text-white fw-bold mb-0">BUAT AKUN PESERTA</h5>
-                </div>
-                <div class="card-body p-4">
-                    <form asp-action="Register" method="post">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Nama Lengkap (Sesuai KTP)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-user text-muted"></i></span>
-                                <input type="text" name="Nama" class="form-control border-start-0 bg-light" placeholder="Contoh: Budi Santoso" required>
-                            </div>
-                        </div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold">Email</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-envelope text-muted"></i></span>
-                                <input type="email" name="Email" class="form-control border-start-0 bg-light" placeholder="nama@gmail.com" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-bold">Password</label>
-                                <div class="input-group">
-                                    <input type="password" name="Password" id="pass1" class="form-control bg-light border-end-0" placeholder="********" required>
-                                    <button class="btn btn-outline-light border-start-0 bg-light" type="button" onclick="togglePass('pass1', 'eye1')" style="border: 1px solid #ced4da;">
-                                        <i class="fas fa-eye text-muted" id="eye1"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-bold">Konfirmasi</label>
-                                <div class="input-group">
-                                    <input type="password" name="ConfirmPassword" id="pass2" class="form-control bg-light border-end-0" placeholder="********" required>
-                                    <button class="btn btn-outline-light border-start-0 bg-light" type="button" onclick="togglePass('pass2', 'eye2')" style="border: 1px solid #ced4da;">
-                                        <i class="fas fa-eye text-muted" id="eye2"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-                        <button type="submit" class="btn w-100 fw-bold py-2 text-white shadow-sm mt-2" style="background-color: #102C54;">
-                            DAFTAR SEKARANG
-                        </button>
-                    </form>
+    <style>
+        :root {
+            --p-blue: #00549B;
+            --p-red: #E30613;
+            --white-pure: #ffffff;
+            --white-soft: rgba(255, 255, 255, 0.85);
+            --input-fill: rgba(255, 255, 255, 0.12);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            -webkit-font-smoothing: antialiased;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            display: flex; align-items: center; justify-content: center;
+            background: #002d54;
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        .register-wrapper {
+            position: relative; z-index: 10; width: 100%; max-width: 500px; padding: 40px 20px;
+            animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border-radius: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px 35px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+            color: white;
+            text-align: center;
+        }
+
+        .brand-section { margin-bottom: 25px; }
+        .logo-stack { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .logo-stack img { height: 35px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .divider { width: 1.5px; height: 25px; background: rgba(255,255,255,0.3); }
+
+        .brand-section h2 { font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px; color: var(--white-pure); }
+        .brand-section p { font-size: 13px; color: var(--white-soft); margin-top: 5px; }
+
+        .form-group { margin-bottom: 18px; text-align: left; }
+        .input-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; display: block; color: var(--white-pure); }
+        .input-box { position: relative; display: flex; align-items: center; }
+        .input-box i.field-icon { position: absolute; left: 18px; font-size: 16px; color: var(--white-pure); z-index: 5; opacity: 0.8; }
+
+        .input-box input {
+            width: 100%; padding: 14px 20px 14px 50px;
+            background: var(--input-fill);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            border-radius: 15px;
+            color: var(--white-pure);
+            font-size: 14px; transition: all 0.3s ease; outline: none;
+        }
+
+        .input-box input:focus { background: rgba(255, 255, 255, 0.18); border-color: var(--white-pure); }
+        .toggle-password { position: absolute; right: 18px; cursor: pointer; color: var(--white-soft); font-size: 16px; z-index: 5; }
+
+        .password-row { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            align-items: start; 
+        }
+
+        .password-error-msg {
+            display: block;
+            font-size: 10px;
+            margin-top: 6px;
+            margin-left: 5px;
+            transition: all 0.3s ease;
+            min-height: 15px;
+            color: #ffcccc;
+        }
+
+        .btn-auth {
+            width: 100%; padding: 15px; margin-top: 10px; border-radius: 15px; border: none;
+            background: var(--white-pure); color: var(--p-blue);
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+        }
+
+        .btn-auth:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); opacity: 0.95; }
+
+        .footer-link { margin-top: 25px; font-size: 13px; color: var(--white-soft); }
+        .footer-link a { color: var(--white-pure); text-decoration: none; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.4); }
+
+        .footer-text { text-align: center; color: rgba(255,255,255,0.3); font-size: 9px; font-weight: 600; margin-top: 30px; letter-spacing: 1px; text-transform: uppercase; }
+
+        @@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        @@media (max-width: 480px) {
+            .password-row { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="register-wrapper">
+        <div class="glass-card">
+            <div class="brand-section">
+                <div class="logo-stack">
+                    <img src="~/images/logo-pertamina.png" alt="Pertamina" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/b/b2/Pertamina_logo.svg'">
+                    <div class="divider"></div>
+                    <img src="~/images/logo-sinta.png" alt="SINTA" style="height: 22px;" onerror="this.style.display='none'">
                 </div>
-                <div class="card-footer bg-white border-0 text-center pb-4 pt-0">
-                    <p class="small text-muted mb-0">Sudah punya akun? 
-                        <a href="@Url.Action("Login", "Auth")" class="text-primary fw-bold" style="text-decoration: none;">Login Disini</a>
-                    </p>
+                <h2>Buat Akun Peserta</h2>
+                <p>Lengkapi data diri Anda untuk mendaftar SINTA</p>
+            </div>
+
+            <form asp-action="Register" method="post" id="regForm">
+                <div class="form-group">
+                    <label class="input-label">Nama Lengkap (Sesuai KTP)</label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-user field-icon"></i>
+                        <input type="text" name="Nama" placeholder="Contoh: Budi Santoso" required>
+                    </div>
                 </div>
+
+                <div class="form-group">
+                    <label class="input-label">Email Address</label>
+                    <div class="input-box">
+                        <i class="fa-solid fa-envelope field-icon"></i>
+                        <input type="email" name="Email" placeholder="nama@gmail.com" required>
+                    </div>
+                </div>
+
+                <div class="password-row">
+                    <div class="form-group">
+                        <label class="input-label">Password</label>
+                        <div class="input-box">
+                            <i class="fa-solid fa-lock field-icon"></i>
+                            <input type="password" name="Password" id="pass1" placeholder="********" required>
+                            <i class="fa-solid fa-eye toggle-password" onclick="togglePass('pass1', this)"></i>
+                        </div>
+                        <small id="msg-pass1" class="password-error-msg">* Minimal 6 karakter</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="input-label">Konfirmasi</label>
+                        <div class="input-box">
+                            <i class="fa-solid fa-shield-check field-icon"></i>
+                            <input type="password" name="ConfirmPassword" id="pass2" placeholder="********" required>
+                            <i class="fa-solid fa-eye toggle-password" onclick="togglePass('pass2', this)"></i>
+                        </div>
+                        <small id="msg-pass2" class="password-error-msg">* Ulangi password</small>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth">
+                    <span>DAFTAR SEKARANG</span>
+                    <i class="fa-solid fa-user-plus"></i>
+                </button>
+            </form>
+
+            <div class="footer-link">
+                Sudah memiliki akun? <a href="@Url.Action("Login", "Auth")">Login Disini</a>
             </div>
         </div>
-    </div>
-</div>
 
-<script>
-    function togglePass(inputId, iconId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            input.type = "password";
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        <div class="footer-text">
+            &copy; 2026 PT PERTAMINA (PERSERO)<br>
+            SINERGI TEKNOLOGI ADAPTIF
+        </div>
+    </div>
+
+    <script>
+        /* --- Background Animation --- */
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
-    }
-</script>
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() { this.init(); }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.4 - 0.2;
+                this.opacity = Math.random() * 0.5 + 0.1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0) this.init();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, '#00549B');
+            grad.addColorStop(1, '#001a33');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        /* --- Toggle Password Logic --- */
+        function togglePass(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            const isPass = input.type === "password";
+            input.type = isPass ? "text" : "password";
+            iconElement.className = isPass ? "fa-solid fa-eye-slash toggle-password" : "fa-solid fa-eye toggle-password";
+        }
+
+        /* --- Password Validation Logic --- */
+        const p1 = document.getElementById('pass1');
+        const p2 = document.getElementById('pass2');
+        const m1 = document.getElementById('msg-pass1');
+        const m2 = document.getElementById('msg-pass2');
+
+        function validatePasswords() {
+            // Password 1
+            if (p1.value.length === 0) {
+                m1.style.color = "#ffcccc";
+                m1.innerHTML = "* Minimal 6 karakter";
+                p1.style.borderColor = "rgba(255, 255, 255, 0.25)";
+            } else if (p1.value.length < 6) {
+                m1.style.color = "#E30613";
+                m1.innerHTML = '<i class="fas fa-times-circle"></i> Password kurang panjang';
+                p1.style.borderColor = "#E30613";
+            } else {
+                m1.style.color = "#ccffdd";
+                m1.innerHTML = '<i class="fas fa-check-circle"></i> Memenuhi syarat';
+                p1.style.borderColor = "#28a745";
+            }
+
+            // Password 2
+            if (p2.value.length === 0) {
+                m2.style.color = "#ffcccc";
+                m2.innerHTML = "* Ulangi password";
+                p2.style.borderColor = "rgba(255, 255, 255, 0.25)";
+            } else if (p2.value !== p1.value) {
+                m2.style.color = "#E30613";
+                m2.innerHTML = '<i class="fas fa-times-circle"></i> Tidak sesuai';
+                p2.style.borderColor = "#E30613";
+            } else {
+                m2.style.color = "#ccffdd";
+                m2.innerHTML = '<i class="fas fa-check-circle"></i> Password sesuai';
+                p2.style.borderColor = "#28a745";
+            }
+        }
+
+        p1.addEventListener('input', validatePasswords);
+        p2.addEventListener('input', validatePasswords);
+
+        document.getElementById('regForm').addEventListener('submit', function(e) {
+            if (p1.value.length < 6 || p1.value !== p2.value) {
+                e.preventDefault();
+                alert("Periksa kembali password Anda.");
+            }
+        });
+    </script>
+</body>
+</html>

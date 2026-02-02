@@ -1,3 +1,7 @@
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 @{
     ViewData["Title"] = "Data Diri - Program Magang Pertamina";
 }
@@ -21,6 +25,7 @@
         position: relative;
         overflow-x: hidden;
         min-height: 100vh;
+        font-size: 14px;
     }
 
     body::before {
@@ -34,121 +39,19 @@
         z-index: -1;
     }
 
-    /* MODAL KONFIRMASI */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        z-index: 9999;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn 0.3s ease;
-    }
-
-    .modal-overlay.show {
-        display: flex;
-    }
-
-    .modal-box {
-        background: white;
-        border-radius: 20px;
-        padding: 40px;
-        max-width: 500px;
-        width: 90%;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        text-align: center;
-        animation: slideUp 0.4s ease;
-    }
-
-    @@keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .modal-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, var(--pertamina-blue), var(--pertamina-green));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 20px;
-        font-size: 40px;
-        color: white;
-    }
-
-    .modal-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text-dark);
-        margin-bottom: 15px;
-    }
-
-    .modal-text {
-        font-size: 16px;
-        color: var(--text-light);
-        margin-bottom: 30px;
-        line-height: 1.6;
-    }
-
-    .modal-buttons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-    }
-
-    .modal-btn {
-        padding: 12px 35px;
-        border: none;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 16px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .modal-btn-cancel {
-        background: #6c757d;
-        color: white;
-    }
-
-    .modal-btn-cancel:hover {
-        background: #5a6268;
-    }
-
-    .modal-btn-confirm {
-        background: var(--pertamina-green);
-        color: white;
-    }
-
-    .modal-btn-confirm:hover {
-        background: #008f4a;
-    }
-
-    /* STEPPER UI */
+    /* ================= STEPPER ================= */
     .step-wrapper {
         background: white;
-        padding: 30px 0;
+        padding: 18px 0;
         box-shadow: 0 2px 10px var(--shadow-light);
-        margin-bottom: 40px;
+        margin-bottom: 25px;
     }
 
     .step {
         position: relative;
         display: flex;
         justify-content: space-between;
-        max-width: 800px;
+        max-width: 760px;
         margin: auto;
         padding: 0 20px;
     }
@@ -156,81 +59,74 @@
     .step::before {
         content: "";
         position: absolute;
-        top: 22px;
+        top: 18px;
         left: 15%;
         right: 15%;
-        height: 3px;
+        height: 2px;
         background: var(--border-color);
         z-index: 0;
     }
 
     .step-item {
         text-align: center;
-        font-size: 14px;
+        font-size: 12px;
         color: var(--text-light);
         width: 25%;
         position: relative;
         z-index: 1;
-        transition: all 0.3s ease;
         cursor: pointer;
     }
 
     .step-circle {
-        width: 45px;
-        height: 45px;
+        width: 26px;
+        height: 26px;
         border-radius: 50%;
-        border: 3px solid var(--border-color);
+        border: 2px solid var(--border-color);
         background: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 12px;
+        margin: 0 auto 8px;
         font-weight: 700;
-        font-size: 18px;
-        transition: all 0.4s ease;
-        box-shadow: 0 3px 10px var(--shadow-light);
+        font-size: 13px;
+        box-shadow: 0 2px 6px var(--shadow-light);
     }
 
     .error-dot {
         position: absolute;
-        top: -5px;
-        right: 25%;
+        top: -6px;
+        right: 26%;
         background: var(--pertamina-red);
         color: white;
-        width: 20px;
-        height: 20px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: bold;
-        display: none; 
+        display: none;
         align-items: center;
         justify-content: center;
         border: 2px solid white;
         z-index: 5;
     }
 
-    .step-active { color: var(--pertamina-red); font-weight: 600; }
+    .step-active {
+        color: var(--pertamina-red);
+        font-weight: 600;
+    }
+
     .step-active .step-circle {
-        background: linear-gradient(135deg, var(--pertamina-red), #c82333);
-        color: #fff;
+        background: var(--pertamina-red);
+        color: white;
         border-color: var(--pertamina-red);
-        transform: scale(1.15);
-        box-shadow: 0 6px 20px rgba(227, 6, 19, 0.4);
+        transform: scale(1.1);
     }
 
-    /* KONTEN STEP DINAMIS */
-    .step-content { display: none; }
-    .step-content.active { display: block; animation: fadeIn 0.5s ease; }
-
-    @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
+    /* ================= CARD ================= */
     .card {
         border: none;
-        border-radius: 20px;
-        box-shadow: 0 12px 35px var(--shadow-medium);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px var(--shadow-medium);
         background: white;
         overflow: hidden;
         position: relative;
@@ -239,47 +135,276 @@
     .card::before {
         content: '';
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 5px;
+        top: 0; left: 0; width: 100%; height: 4px;
         background: linear-gradient(90deg, var(--pertamina-blue), var(--pertamina-green), var(--pertamina-red));
     }
 
+    .card-body {
+        padding: 24px !important;
+    }
+
+    /* ================= UPLOAD FOTO ================= */
     .upload-box {
-        border: 3px dashed var(--pertamina-blue);
-        border-radius: 16px;
-        width: 220px;
-        height: 280px;
-        margin: 0 auto 30px;
+        border: 2px dashed var(--pertamina-blue);
+        border-radius: 14px;
+        width: 180px;
+        height: 230px;
+        margin: 0 auto 20px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         background: #f9fbfd;
         overflow: hidden;
-        transition: all 0.3s ease;
     }
 
-    .upload-box:hover { border-color: var(--pertamina-green); transform: translateY(-5px); }
-    .upload-box img { width: 100%; height: 100%; object-fit: cover; }
+    .upload-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
 
-    .form-label { font-weight: 600; color: var(--text-dark); margin-bottom: 8px; font-size: 14px; }
-    .form-control { padding: 12px 18px; border-radius: 10px; border: 2px solid var(--border-color); background-color: #f9fbfd; }
-    .form-control:focus { border-color: var(--pertamina-green); box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.15); background-color: white; }
+    /* ================= FORM ================= */
+    .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
 
-    .btn-custom { padding: 14px 35px; border-radius: 10px; border: none; font-weight: 700; transition: all 0.4s ease; display: inline-flex; align-items: center; }
-    .btn-back { background: #6c757d; color: white; }
-    .btn-next { background: var(--pertamina-blue); color: white; }
+    .form-control {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1.8px solid var(--border-color);
+        font-size: 13px;
+    }
 
-    .alert-validation {
-        background: rgba(227, 6, 19, 0.1);
-        border-left: 5px solid var(--pertamina-red);
-        color: var(--pertamina-red);
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 25px;
-        display: none;
+    /* ================= BUTTON ================= */
+    .btn-custom {
+        padding: 10px 26px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        font-size: 13px;
+        display: inline-flex;
         align-items: center;
     }
-    .alert-validation.show { display: flex; }
+
+    .btn-back {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-next {
+        background: var(--pertamina-blue);
+        color: white;
+    }
+
+    /* ===== STEP VISIBILITY FIX ===== */
+    .step-content {
+        display: none;
+    }
+
+    .step-content.active {
+        display: block;
+    }
+
+   /* ================= TOOLTIP HOVER ================= */
+    .lokasi-tooltip {
+        position: fixed; /* WAJIB: Agar bisa muncul di atas dropdown yang melayang */
+        background: linear-gradient(135deg, #2c3e50, #1a1a2e);
+        color: #fff;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 12px;
+        width: 280px;
+        z-index: 99999; /* Sangat tinggi */
+        display: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        border-left: 5px solid var(--pertamina-red);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .lokasi-tooltip.show {
+        display: block;
+        opacity: 1;
+    }
+
+    .lokasi-tooltip h6 {
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: #fff;
+    }
+
+    .lokasi-tooltip p {
+        margin-bottom: 0;
+        line-height: 1.5;
+        color: #e0e0e0;
+    }
+
+    .lokasi-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: -10px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent var(--pertamina-red) transparent transparent;
+    }
+
+    /* ================= MODAL KONFIRMASI ================= */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .modal-overlay.show {
+        display: flex;
+    }
+
+    .modal-box {
+        background: white;
+        border-radius: 14px;
+        padding: 28px 24px;
+        max-width: 420px;
+        width: 100%;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        text-align: center;
+        animation: scaleIn 0.25s ease;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            transform: scale(0.9);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .modal-icon {
+        font-size: 42px;
+        color: var(--pertamina-blue);
+        margin-bottom: 12px;
+    }
+
+    .modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .modal-text {
+        font-size: 13px;
+        color: var(--text-light);
+        margin-bottom: 22px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .modal-btn {
+        padding: 8px 18px;
+        border-radius: 6px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .modal-btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+
+    .modal-btn-confirm {
+        background: var(--pertamina-green);
+        color: white;
+    }
+
+    /* Gaya untuk pesan error di bawah input */
+    .error-message {
+        color: var(--pertamina-red);
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: 4px;
+        display: none; /* Sembunyi secara default */
+        align-items: center;
+        gap: 4px;
+    }
+
+    .is-invalid {
+        border-color: var(--pertamina-red) !important;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    #error-final {
+        animation: shake 0.3s ease-in-out;
+        background-color: rgba(227, 6, 19, 0.05); /* Merah tipis transparan */
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--pertamina-red);
+    }
+
+    /* Container untuk mengatur posisi tombol di kanan */
+    .header-action-container {
+        display: flex;
+        justify-content: flex-end; /* Memindah tombol ke sisi kanan */
+        margin-bottom: 20px;
+    }
+
+    .btn-sinta-back {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 24px;
+        background-color: var(--pertamina-blue); /* Biru Pertamina sesuai :root kamu */
+        color: #ffffff !important;
+        border-radius: 50px; /* Membuat bentuk kapsul sempurna */
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 94, 184, 0.2);
+        border: none;
+    }
+
+    .btn-sinta-back i {
+        margin-right: 10px;
+        font-size: 12px;
+    }
+
+    .btn-sinta-back:hover {
+        background-color: var(--pertamina-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 94, 184, 0.3);
+        color: #ffffff;
+    }
+
+    /* Biar gak tabrakan sama elemen lain di mobile */
+    @@media (max-width: 768px) {
+        .btn-sinta-back {
+            padding: 6px 18px;
+            font-size: 13px;
+        }
+    }
 </style>
 
 <div class="step-wrapper">
@@ -334,9 +459,15 @@
     </div>
 </div>
 
-<div class="container my-5" style="max-width: 900px;">
+<div class="container my-3" style="max-width: 700px;">
+    <div class="d-flex justify-content-between mb-3">
+        <a href="javascript:history.back()" class="btn-sinta-back">
+            <i class="fas fa-chevron-left"></i> Back
+        </a>
+    </div>
+
     <div class="card">
-        <div class="card-body p-4 p-md-5">
+        <div class="card-body p-4">
 
             <form id="formMagang"
                   asp-controller="PendaftaranMagang"
@@ -348,7 +479,7 @@
             <div id="content-1" class="step-content active">
                 <h5><i class="fas fa-user-circle"></i> Data Diri Peserta</h5>
 
-                <div class="mb-4 text-center">
+                <div class="mb-3 text-center">
                     <input type="file" id="foto" name="Foto" hidden accept="image/*">
                     <label for="foto" style="cursor: pointer;">
                         <div class="upload-box" id="uploadBox">
@@ -360,6 +491,9 @@
                             </div>
                         </div>
                     </label>
+                    <div id="error-foto" class="error-message justify-content-center">
+                        <i class="fas fa-exclamation-circle"></i> Ukuran foto maksimal 2MB!
+                    </div>
                 </div>
 
                 <div class="row">
@@ -385,7 +519,9 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">No HP <span class="text-danger">*</span></label>
-                        <input type="tel" class="form-control wajib" id="no_hp" name="NoHp" placeholder="Masukkan nomor HP">
+                        <input type="tel" class="form-control wajib" id="no_hp" name="NoHp" placeholder="Contoh: 08123456789" maxlength="13"
+                            oninput="validatePhone(this)" pattern="^08[0-9]{7,11}$">
+                        <div id="hp-error" class="error-message">Nomor harus diawali 08 dan maksimal 13 digit.</div>
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -394,8 +530,7 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <button type="button" class="btn-custom btn-back" onclick="kembaliKeHomepage()">Keluar</button>
+                <div class="d-flex justify-content-end">
                     <button type="button" class="btn-custom btn-next" onclick="showStep(2)">Selanjutnya</button>
                 </div>
             </div>
@@ -489,16 +624,32 @@
                 <div class="mb-3">
                     <label class="form-label">CV <span class="text-danger">*</span></label>
                     <input type="file" class="form-control wajib" id="file_cv" name="FileCV" accept=".pdf">
+                    <div id="error-file_cv" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> Ukuran file maksimal 5MB!
+                    </div>
+                    <small class="text-muted">Format PDF, maksimal 5MB.</small>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Surat Pengantar <span class="text-danger">*</span></label>
                     <input type="file" class="form-control wajib" id="file_surat_pengantar" name="FileSuratPengantar" accept=".pdf">
+                    <div id="error-file_surat_pengantar" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> Ukuran file maksimal 5MB!
+                    </div>
+                    <small class="text-muted">Format PDF, maksimal 5MB.</small>
                 </div>
 
                 <div class="mb-4">
                     <label class="form-label">Proposal <span class="text-danger">*</span></label>
                     <input type="file" class="form-control wajib" id="file_transkrip" name="FileProposal" accept=".pdf">
+                    <div id="error-file_transkrip" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> Ukuran file maksimal 5MB!
+                    </div>
+                    <small class="text-muted">Format PDF, maksimal 5MB.</small>
+                </div>
+
+                <div id="error-final" class="error-message justify-content-center mb-3" style="font-size: 14px;">
+                    <i class="fas fa-exclamation-triangle"></i> Mohon lengkapi semua data yang wajib diisi (cek tanda seru merah di atas)!
                 </div>
 
                 <div class="d-flex justify-content-between">
@@ -510,10 +661,15 @@
                     </button>
                 </div>
             </div>
-
             </form>
         </div>
     </div>
+</div>
+
+<!-- Tooltip diletakkan di sini, di luar container -->
+<div id="tooltipHover" class="lokasi-tooltip">
+    <h6 id="tooltipHoverTitle">Tentang Posisi</h6>
+    <p id="tooltipHoverDesc"></p>
 </div>
 
 @section Scripts {
@@ -682,29 +838,241 @@
         });
     });
 
-    // Preview Foto
+    document.addEventListener('DOMContentLoaded', function () {
+@* 
+        /* ===============================
+        1️⃣ AUTO ISI DARI PILIH POSISI
+        =============================== */
+        const company = localStorage.getItem('magang_company');
+        const region  = localStorage.getItem('magang_region');
+        const lokasi  = localStorage.getItem('magang_lokasi');
+
+        if (company && region && lokasi) {
+            const companySelect = document.getElementById('company');
+            const regionSelect  = document.getElementById('region');
+            const lokasiSelect  = document.getElementById('lokasi');
+
+            if (companySelect && regionSelect && lokasiSelect) {
+                companySelect.value = company;
+                companySelect.dispatchEvent(new Event('change'));
+
+                setTimeout(() => {
+                    regionSelect.value = region;
+                    regionSelect.dispatchEvent(new Event('change'));
+
+                    setTimeout(() => {
+                        lokasiSelect.value = lokasi;
+
+                        // Kunci biar gak bisa diubah
+                        companySelect.disabled = true;
+                        regionSelect.disabled = true;
+                        lokasiSelect.disabled = true;
+                    }, 200);
+                }, 200);
+            }
+        } *@
+
+        /* ===============================
+        2️⃣ ENTER KEY NAVIGATION (KODE KAMU)
+        =============================== */
+        const form = document.getElementById('formMagang');
+        if (!form) return;
+
+        form.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+
+                // Textarea tetap boleh enter
+                if (e.target.tagName.toLowerCase() === 'textarea') return;
+
+                e.preventDefault();
+
+                const currentStepElement = document.querySelector('.step-content.active');
+                if (!currentStepElement) return;
+
+                const focusableElements = currentStepElement.querySelectorAll(
+                    'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button.btn-next'
+                );
+
+                const index = Array.from(focusableElements).indexOf(e.target);
+
+                if (index > -1) {
+                    const nextElement = focusableElements[index + 1];
+
+                    if (nextElement) {
+                        nextElement.focus();
+                    } else {
+                        const nextBtn = currentStepElement.querySelector('.btn-next');
+                        if (nextBtn) nextBtn.click();
+                    }
+                }
+            }
+        });
+    });
+
+
+    // Preview Foto dengan Validasi In-Page
     document.getElementById('foto').addEventListener('change', function () {
         const file = this.files[0];
+        const errorMsg = document.getElementById('error-foto');
+        const uploadBox = document.getElementById('uploadBox');
+        const prev = document.getElementById('preview');
+        const place = document.getElementById('placeholder');
+
         if (file) {
+            // Jika ukuran lebih dari 2MB
             if (file.size > 2 * 1024 * 1024) {
-                alert('Ukuran foto maksimal 2MB!');
+                // Tampilkan error di page
+                errorMsg.style.display = 'flex';
+                uploadBox.classList.add('is-invalid');
+                
+                // Reset input dan preview
                 this.value = '';
-                return;
+                prev.style.display = 'none';
+                place.style.display = 'block';
+                fotoTerisi = false;
+            } else {
+                // Jika valid, sembunyikan error
+                errorMsg.style.display = 'none';
+                uploadBox.classList.remove('is-invalid');
+
+                const reader = new FileReader();
+                reader.onload = e => {
+                    prev.src = e.target.result;
+                    prev.style.display = 'block';
+                    place.style.display = 'none';
+                    fotoTerisi = true;
+                    if (typeof cekDataLengkap === "function") cekDataLengkap();
+                };
+                reader.readAsDataURL(file);
             }
-            const reader = new FileReader();
-            reader.onload = e => {
-                const prev = document.getElementById('preview');
-                const place = document.getElementById('placeholder');
-                prev.src = e.target.result;
-                prev.style.display = 'block';
-                place.style.display = 'none';
-                fotoTerisi = true;
-                cekDataLengkap();
-            };
-            reader.readAsDataURL(file);
         }
     });
 
+    // Validasi File PDF dengan pesan error di page (Tanpa Alert)
+    const fileInputs = ['file_cv', 'file_surat_pengantar', 'file_transkrip'];
+
+    fileInputs.forEach(id => {
+        const input = document.getElementById(id);
+        const errorMsg = document.getElementById('error-' + id);
+
+        if (input) {
+            input.addEventListener('change', function() {
+                const file = this.files[0];
+                const maxMB = 5;
+                const maxSize = maxMB * 1024 * 1024; // 5MB
+
+                if (file && file.size > maxSize) {
+                    // Tampilkan gaya error merah (sama seperti foto)
+                    errorMsg.style.display = 'flex';
+                    this.classList.add('is-invalid');
+                    
+                    // Reset input
+                    this.value = '';
+                } else {
+                    // Sembunyikan error jika file aman
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+                // Update titik merah di stepper
+                cekDataLengkap();
+            });
+        }
+    });
+
+    // Data deskripsi - TAMBAHKAN SEMUA POSISI YANG ADA
+    const deskripsiPosisi = {
+        // data KPI
+        "Akuntansi / Ekonomi & Bisnis": "Analisis keuangan, akuntansi manajemen, dan studi kelayakan ekonomi proyek.",
+        "Elektro (Arus Kuat)": "Desain dan pemeliharaan sistem distribusi listrik, pembangkit, dan jaringan tegangan tinggi.",
+        "Elektro (Arus Lemah)": "Sistem kontrol, instrumentasi, otomasi, dan jaringan komunikasi industri.",
+        "Emergency & Insurance": "Manajemen risiko, asuransi, dan penanganan keadaan darurat operasional.",
+        "Health": "Kesehatan kerja, pemeriksaan medis, dan program kesehatan karyawan.",
+        "Hukum": "Penelaahan kontrak, compliance regulasi, dan pendampingan hukum operasional.",
+        "Ilmu Komunikasi / FISIP / Administrasi Publik": "Komunikasi korporat, public relations, dan administrasi publik.",
+        "Internal Audit": "Audit operasional dan finansial untuk memastikan kepatuhan terhadap regulasi perusahaan.",
+        "Kelautan / Perkapalan": "Operasi dan pemeliharaan fasilitas pelabuhan serta transportasi maritim.",
+        "Kimia Murni / MIPA": "Analisis laboratorium, kontrol kualitas bahan baku, dan penelitian kimia terapan.",
+        "Konversi Energi / Migas / Kimia Air Bersih / Blanding / Loading": "Optimasi proses produksi, blending produk, dan operasi loading terminal.",
+        "Logistik / Pergudangan / Procurement": "Manajemen rantai pasok, pergudangan, dan pengadaan barang/jasa.",
+        "Manajemen / SDM / Psikologi": "Pengembangan SDM, rekrutmen, dan program pengembangan organisasi.",
+        "Metalurgi / Material / Dirgantara": "Pengujian material, analisis kegagalan, dan seleksi material teknik.",
+        "Safety (K3) / SMK3": "Implementasi sistem manajemen keselamatan kerja, inspeksi peralatan, dan prosedur darurat.",
+        "Teknik Fisika": "Instrumentasi, kontrol proses, dan pemantauan kondisi peralatan.",
+        "Teknik Industri": "Optimasi proses, studi kelayakan, dan perancangan sistem kerja.",
+        "Teknik Informatika": "Maintenance sistem informasi, pengembangan aplikasi internal, dan dukungan infrastruktur IT.",
+        "Teknik Kimia": "Terlibat dalam optimasi proses pengolahan minyak mentah, pemantauan katalis, dan efisiensi energi produksi.",
+        "Teknik Lingkungan": "Pengelolaan limbah, pemantauan kualitas lingkungan, dan program keberlanjutan.",
+        "Teknik Mesin": "Perawatan dan perbaikan peralatan mekanik, analisis kegagalan, dan improvement reliability.",
+        "Teknik Mesin (Rotating)": "Fokus pada pemeliharaan dan analisis performa mesin rotasi seperti pompa, kompresor, dan turbin di area kilang.",
+        "Teknik Sipil": "Perawatan infrastruktur, konstruksi, dan manajemen proyek fasilitas."
+
+        @* // data PPN
+        "Fuel Terminal": "Fokus pada operasional penerimaan, penimbunan, dan penyaluran BBM serta pemeliharaan sarana fasilitas distribusi.",
+        "Integrated Terminal": "Operasional terpadu yang mengelola BBM dan LPG mulai dari bongkar muat kapal (tanker) hingga distribusi ke mobil tangki.",
+        "DPPU": "Depot Pengisian Pesawat Udara: Fokus pada manajemen kualitas dan pengisian bahan bakar pesawat (Avtur) sesuai standar internasional.",
+        "AFT": "Aviation Fuel Terminal: Teknis operasional pengisian bahan bakar pesawat dan pemeliharaan kendaraan pengisi (refueller).",
+        "Aviation FT": "Sama dengan DPPU/AFT, fokus pada layanan bahan bakar untuk sektor penerbangan.",
+        "Corporate Sales": "Melayani penjualan produk BBM, Pelumas, dan Gas secara langsung ke sektor industri, pertambangan, dan korporasi.",
+        "Retail Sales": "Manajemen pemasaran produk retail (Pertalite, Pertamax, dsb), pengawasan SPBU, dan pengembangan bisnis kemitraan.",
+        "Retail": "Fokus pada strategi pemasaran di tingkat wilayah dan dukungan operasional jaringan SPBU.",
+        "Supply & Distribution": "Rantai pasok energi nasional, mengatur arus logistik BBM/LPG agar distribusi tetap aman dan tepat waktu.",
+        "S&D": "Supply & Distribution: Perencanaan dan pengawasan distribusi energi di wilayah regional.",
+        "Asset Operation": "Pengelolaan aset fisik perusahaan, pemeliharaan bangunan, dan optimalisasi sarana pendukung kerja.",
+        "Comm, Rel, & CSR": "Komunikasi korporat, publikasi, hubungan masyarakat, serta program Tanggung Jawab Sosial dan Lingkungan (TJSL).",
+        "HSSE": "Health, Safety, Security, & Environment: Menjamin keselamatan kerja, keamanan objek vital, dan kelestarian lingkungan operasional.",
+        "Human Capital": "Manajemen SDM, mulai dari administrasi pekerja, rekrutmen, hingga pengembangan budaya organisasi.",
+        "Finance": "Pengelolaan arus kas, perpajakan, verifikasi penagihan, dan pelaporan keuangan berkala.",
+        "Procurement": "Proses pengadaan barang dan jasa perusahaan secara transparan dan sesuai regulasi yang berlaku.",
+        "Legal Counsel": "Pemberian saran hukum, penyusunan kontrak kerjasama, dan penanganan aspek kepatuhan hukum perusahaan.",
+        "SSC ICT": "Dukungan teknologi informasi, jaringan internet, maintenance hardware, dan pengembangan sistem aplikasi internal.",
+        "Internal Audit": "Evaluasi dan pengawasan internal untuk memastikan operasional berjalan sesuai aturan (Good Corporate Governance).",
+        "Medical": "Pelayanan kesehatan kerja, pemeriksaan medis rutin pekerja, dan pengawasan sanitasi lingkungan.",
+        "Marine": "Operasional kapal, manajemen pelabuhan (jetty), dan pengawasan proses bongkar muat komoditas cair.",
+        "Bitumen Plant": "Fokus khusus pada pengolahan, penyimpanan, dan distribusi aspal (bitumen).",
+        }; *@
+    };
+    
+    $(document).ready(function() {
+    // Inisialisasi Select2 pada dropdown lokasi
+        $('#lokasi').select2({
+            placeholder: "Pilih Lokasi",
+            width: '100%'
+        });
+
+        const tooltipHover = document.getElementById('tooltipHover');
+        const tTitle = document.getElementById('tooltipHoverTitle');
+        const tDesc = document.getElementById('tooltipHoverDesc');
+
+        // MENDETEKSI HOVER PADA LIST (SESUAI ARAHAN KURSOR)
+        $(document).on('mouseenter', '.select2-results__option', function() {
+            const posisiText = $(this).text().trim();
+            
+            // Cek apakah teks ada di data deskripsiPosisi
+            if (deskripsiPosisi[posisiText]) {
+                tTitle.innerText = posisiText;
+                tDesc.innerText = deskripsiPosisi[posisiText];
+                
+                // Ambil posisi elemen yang di-hover
+                const rect = this.getBoundingClientRect();
+                
+                // Munculkan tooltip di sebelah kanan baris yang ditunjuk
+                tooltipHover.style.top = rect.top + 'px';
+                tooltipHover.style.left = (rect.right + 20) + 'px';
+                tooltipHover.classList.add('show');
+            }
+        });
+
+        // SEMBUNYIKAN SAAT KELUAR DARI BARIS TERSEBUT
+        $(document).on('mouseleave', '.select2-results__option', function() {
+            tooltipHover.classList.remove('show');
+        });
+
+        // SEMBUNYIKAN JIKA DROPDOWN TERTUTUP
+        $('#lokasi').on('select2:closing', function() {
+            tooltipHover.classList.remove('show');
+        });
+    });
+    
     function showStep(n) {
         document.querySelectorAll('.step-item').forEach(item => item.classList.remove('step-active'));
         document.getElementById('step-tab-' + n).classList.add('step-active');
@@ -743,17 +1111,14 @@
         input.addEventListener('change', cekDataLengkap);
     });
 
-    function kembaliKeHomepage() {
-        if (confirm('Keluar? Data yang belum disimpan akan hilang.')) {
-            window.location.href = '/PendaftaranMagang';
-        }
-    }
-
     function simpanSemua() {
-        // Cek apakah semua data sudah lengkap
+        // 1. Jalankan pengecekan ulang untuk memastikan semua dot merah terupdate
         cekDataLengkap();
 
         let semuaLengkap = true;
+        const errorFinal = document.getElementById('error-final');
+
+        // 2. Cek apakah masih ada dot merah di stepper (1-4)
         for (let i = 1; i <= 4; i++) {
             const dot = document.getElementById('dot-' + i);
             if (dot && dot.style.display === 'flex') {
@@ -762,12 +1127,24 @@
             }
         }
 
+        // 3. Logika tampilan tanpa alert
         if (!semuaLengkap) {
-            alert('Mohon lengkapi semua data yang wajib diisi!');
-            return;
+            // Munculkan pesan error di halaman
+            errorFinal.style.display = 'flex';
+            
+            // Scroll halus ke arah pesan error agar user melihatnya
+            errorFinal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Opsional: Hilangkan pesan secara otomatis setelah 5 detik
+            setTimeout(() => {
+                errorFinal.style.display = 'none';
+            }, 5000);
+
+            return; // Berhenti di sini, jangan lanjut ke modal
         }
 
-        // Tampilkan modal konfirmasi
+        // 4. Jika sudah lengkap, sembunyikan error (jika ada) dan buka modal konfirmasi
+        errorFinal.style.display = 'none';
         document.getElementById('modalKonfirmasi').classList.add('show');
     }
 
@@ -779,6 +1156,48 @@
     tutupModal();
     document.getElementById('formMagang').submit();
     }
+
+    // Jalankan ini di halaman DataMagang.cshtml setiap kali input diisi
+    function updateSavedProgress() {
+        const inputs = document.querySelectorAll('.profile-input');
+        const filled = Array.from(inputs).filter(i => i.value.trim() !== "").length;
+        const percent = Math.round((filled / inputs.length) * 100);
+        
+        // Simpan ke storage agar bisa dibaca halaman Dashboard
+        localStorage.setItem('profile_completion', percent);
+    }
+
+    $(document).ready(function() {
+        $('#no_hp').on('input', function() {
+            // 1. Ambil nilai dan buang karakter non-angka
+            let value = $(this).val().replace(/\D/g, '');
+            $(this).val(value); // Update field hanya dengan angka
+
+            const errorMsg = $('#hp-error');
+            
+            // 2. Validasi: Jika sudah mulai mengetik, cek apakah diawali 08
+            if (value.length >= 2) {
+                if (value.substring(0, 2) !== '08') {
+                    $(this).addClass('is-invalid');
+                    errorMsg.css('display', 'flex').text('Nomor HP harus diawali dengan 08');
+                } else if (value.length < 10) {
+                    $(this).addClass('is-invalid');
+                    errorMsg.css('display', 'flex').text('Nomor HP minimal 10 digit');
+                } else {
+                    $(this).removeClass('is-invalid');
+                    errorMsg.hide();
+                }
+            } else if (value.length > 0 && value[0] !== '0') {
+                // Cek digit pertama harus 0
+                $(this).addClass('is-invalid');
+                errorMsg.css('display', 'flex').text('Nomor HP harus diawali dengan 08');
+            } else {
+                // Jika kosong atau baru 1 digit benar (angka 0)
+                $(this).removeClass('is-invalid');
+                errorMsg.hide();
+            }
+        });
+    });
 
     window.onload = cekDataLengkap;
 </script>

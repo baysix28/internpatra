@@ -22,6 +22,16 @@ namespace sinta_asp.Controllers
         [HttpGet]
         public IActionResult Login() => View();
 
+        // AuthController.cs
+        public async Task<IActionResult> Logout()
+        {
+            // Menghapus cookie autentikasi
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            
+            // Redirect ke halaman utama atau login
+            return RedirectToAction("Login", "Auth"); 
+        }
+
         [HttpPost]
         public async Task<IActionResult> Login(string Email, string Password)
         {

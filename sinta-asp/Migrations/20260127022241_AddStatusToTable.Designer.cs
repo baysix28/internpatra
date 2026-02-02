@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using sinta_asp.Data;
 
@@ -11,9 +12,11 @@ using sinta_asp.Data;
 namespace sinta_asp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260127022241_AddStatusToTable")]
+    partial class AddStatusToTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -36,7 +39,8 @@ namespace sinta_asp.Migrations
 
                     b.Property<string>("Nama")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -116,7 +120,8 @@ namespace sinta_asp.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("TanggalLahir")
                         .HasColumnType("datetime2");
@@ -137,29 +142,14 @@ namespace sinta_asp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CVPath")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Company")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("DetailTambahan")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Fakultas")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FotoPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Instagram")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -167,30 +157,15 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Lokasi")
+                    b.Property<string>("Nama")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NIM")
+                    b.Property<string>("Nim")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("NamaKampus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NamaLengkap")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NoHP")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProposalPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Region")
+                    b.Property<string>("NoHp")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -198,23 +173,8 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SuratKampusPath")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("TanggalLahir")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("TanggalMulai")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("TanggalSelesai")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("TempatLahir")
+                    b.Property<string>("Universitas")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TipePendaftaran")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -315,38 +275,6 @@ namespace sinta_asp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Pendaftarans");
-                });
-
-            modelBuilder.Entity("sinta_asp.Models.User", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nama")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
                 });
 #pragma warning restore 612, 618
         }
