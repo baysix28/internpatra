@@ -46,6 +46,9 @@ namespace sinta_asp.Controllers
 
             try
             {
+                string currentUserEmail = User.Identity?.Name ?? "guest@gmail.com";
+                model.EmailPribadi = currentUserEmail;
+
                 // ===== UPLOAD FILE =====
                 model.FotoProfil = SimpanFile(Foto, "uploads/foto");
                 model.FileCv = SimpanFile(FileCV, "uploads/cv");
@@ -54,11 +57,25 @@ namespace sinta_asp.Controllers
 
                 model.CreatedAt = DateTime.Now;
 
-                // ===== SIMPAN KE DATABASE =====
+                // ===== SIMPAN PENDAFTARAN KE DATABASE =====
                 _context.PendaftaranMagang.Add(model);
+                
+                // 🔥 TAMBAHKAN LOGIKA NOTIFIKASI DI SINI (Sebelum SaveChanges)
+                var notif = new Notification
+                {
+                    Title = "Pendaftaran Berhasil",
+                    Message = $"Pendaftaran Magang di unit {model.Company} berhasil dikirim.",
+                    Type = "Dokumen",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now,
+                    UserEmail = currentUserEmail // Menggunakan email user yang sedang login
+                };
+                
+                _context.Set<Notification>().Add(notif);
+
+                // Simpan keduanya (Pendaftaran & Notifikasi) sekaligus
                 await _context.SaveChangesAsync();
 
-                // 🔥 HALAMAN SUKSES MUNCUL DARI SINI
                 return RedirectToAction("Sukses");
             }
             catch (Exception ex)
@@ -67,6 +84,19 @@ namespace sinta_asp.Controllers
                 return View("Index", model);
             }
         }
+
+        // // Contoh saat pendaftaran berhasil
+        // // DI DALAM fungsi pendaftaran, bukan di luar
+        // var notif = new Notification
+        // {
+        //     Title = "Pendaftaran Berhasil",
+        //     Message = "Berkas pendaftaran Anda sedang ditinjau.",
+        //     Type = "Dokumen",
+        //     UserEmail = "user@gmail.com" // Ganti dengan email user yang login
+        // };
+
+        // _context.Set<Notification>().Add(notif);
+        // await _context.SaveChangesAsync();
 
         // ================= HELPER UPLOAD =================
         private string SimpanFile(IFormFile? file, string folder)

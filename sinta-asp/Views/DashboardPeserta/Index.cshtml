@@ -391,11 +391,12 @@
                     </div>
                 </div>
             </div>
-        </div> <div id="page-riwayat" class="page-section">
+        </div>
+        <div id="page-riwayat" class="page-section">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 0;">Riwayat Pengajuan Magang</h4>
-                    <p class="subtitle-portal" style="font-size: 14px; color: #64748b; margin-top: 4px; margin-bottom: 0;">Pantau status pengajuan magang industri Anda secara real-time.</p>
+                    <h4 class="font-weight-bold" style="color: var(--p-blue);">Riwayat Pengajuan Magang</h4>
+                    <p class="text-muted small">Pantau status pengajuan magang industri Anda.</p>
                 </div>
                 <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue);" onclick="window.location.href='/PendaftaranMagang/DataMagang'">
                     <i class="fa fa-plus mr-2"></i> Daftar Magang Baru
@@ -405,43 +406,39 @@
                 <table class="table mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th class="border-0 px-4">Program</th>
-                            <th class="border-0">Company</th>
+                            <th class="border-0 px-4">Company</th>
+                            <th class="border-0">Region</th>
+                            <th class="border-0">Posisi</th>
                             <th class="border-0">Tanggal</th>
                             <th class="border-0">Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (ViewBag.RiwayatMagang != null && ((List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang).Any())
-                        {
-                            @foreach (var item in (List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang)
-                            {
+                        @if (ViewBag.RiwayatMagang != null) {
+                            foreach (var item in ViewBag.RiwayatMagang) {
                                 <tr>
-                                    <td class="px-4 font-weight-bold">Magang Industri</td>
-                                    <td>@item.Company</td> 
+                                    <td class="px-4 font-weight-bold">@item.Company</td>
+                                    <td>@item.Region</td>
+                                    <td>@item.Lokasi</td>
                                     <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
-                                    <td>
-                                        <span class="status-badge @(item.Status == "Disetujui" ? "status-approved" : "status-review")">
-                                            @(item.Status ?? "Proses Review")
-                                        </span>
-                                    </td>
+                                    <td><span class="status-badge status-review">@item.Status</span></td>
                                 </tr>
                             }
-                        }
-                        else
-                        {
-                            <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada riwayat magang.</td></tr>
+                        } else {
+                            <tr><td colspan="4" class="text-center py-5">Belum ada data.</td></tr>
                         }
                     </tbody>
                 </table>
             </div>
-        </div> <div id="page-penelitian" class="page-section">
+        </div>
+
+        <div id="page-penelitian" class="page-section">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 0;">Riwayat Pengajuan Riset</h4>
-                    <p class="subtitle-portal" style="font-size: 14px; color: #64748b; margin-top: 4px; margin-bottom: 0;">Daftar pengajuan riset dan penelitian yang telah Anda ajukan.</p>
+                    <h4 class="font-weight-bold" style="color: var(--p-blue);">Riwayat Pengajuan Riset</h4>
+                    <p class="text-muted small">Pantau status pengajuan riset Anda secara real-time.</p>
                 </div>
-                <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue);" onclick="window.location.href='/Penelitian/Daftar'">
+                <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue);" onclick="window.location.href='/PendaftaranRiset/DataRiset'">
                     <i class="fa fa-plus mr-2"></i> Ajukan Riset Baru
                 </button>
             </div>
@@ -456,7 +453,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                         <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada riwayat riset.</td></tr>
+                        @if (ViewBag.RiwayatRiset != null) {
+                            foreach (var item in ViewBag.RiwayatRiset) {
+                                <tr>
+                                    <td class="px-4 font-weight-bold">@item.JudulPenelitian</td>
+                                    <td>@item.Instansi</td>
+                                    <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                                    <td><span class="status-badge status-review">@item.Status</span></td>
+                                </tr>
+                            }
+                        } else {
+                            <tr><td colspan="4" class="text-center py-5">Belum ada data.</td></tr>
+                        }
                     </tbody>
                 </table>
             </div>

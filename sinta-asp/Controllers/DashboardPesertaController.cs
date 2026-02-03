@@ -42,6 +42,34 @@ namespace sinta_asp.Controllers
             return View(profil); 
         }
 
+        [HttpGet]
+        public IActionResult GetNotifications()
+        {
+            // Gunakan Set<Notification> untuk menghindari ambiguity
+            var notifications = _context.Set<Notification>() 
+                .OrderByDescending(n => n.CreatedAt)
+                .Select(n => new NotificationViewModel {
+                    Title = n.Title,
+                    Message = n.Message,
+                    IconClass = n.Type == "Email" ? "fa-envelope-open-text" : "fa-file-circle-check",
+                    IconColor = n.Type == "Email" ? "text-primary" : "text-warning",
+                    TimeAgo = CalculateTimeAgo(n.CreatedAt),
+                    IsRead = n.IsRead
+                }).ToList();
+
+            return Json(notifications);
+        }
+
+        // Tambahkan fungsi ini di dalam class yang sama
+        private string CalculateTimeAgo(DateTime dateTime)
+        {
+            var timeSpan = DateTime.Now - dateTime;
+            if (timeSpan <= TimeSpan.FromSeconds(60)) return "Baru saja";
+            if (timeSpan <= TimeSpan.FromMinutes(60)) return $"{timeSpan.Minutes} menit yang lalu";
+            if (timeSpan <= TimeSpan.FromHours(24)) return $"{timeSpan.Hours} jam yang lalu";
+            return dateTime.ToString("dd MMM yyyy");
+        }
+
         [HttpPost]
         public async Task<IActionResult> UpdateProfil(string nama, string noHp, string univ)
         {
