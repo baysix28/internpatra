@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,8 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.UseStaticFiles();
 
 // PROGRAM BERHENTI DI SINI
 app.Run(); 

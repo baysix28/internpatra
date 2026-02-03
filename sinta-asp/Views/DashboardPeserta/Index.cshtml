@@ -1,5 +1,7 @@
 @using Microsoft.AspNetCore.Http
 @using System.Security.Claims
+@using sinta_asp.Models
+@model sinta_asp.Models.UserProfile
 @inject IHttpContextAccessor HttpContextAccessor
 
 @{
@@ -16,8 +18,11 @@
                     ? (User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.Identity.Name) 
                     : "belum_login@mail.com") ?? "user@mail.com";
 
-    // Gunakan ! (null-forgiving operator) pada namaUser agar EscapeDataString tidak error
-    var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(namaUser)}&background=00549B&color=fff";
+    // Ambil Foto Profil dari Model
+    var fotoUser = Model?.FotoProfil;
+    var avatarUrl = !string.IsNullOrEmpty(fotoUser) 
+                   ? $"/uploads/profile/{fotoUser}" 
+                   : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(namaUser)}&background=00549B&color=fff";
 }
 
 <!DOCTYPE html>
@@ -102,6 +107,87 @@
             to { opacity: 1; transform: translateY(0); } 
         }
 
+        /* Styling tambahan untuk Profil ala Gambar 2 */
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .profile-nav-tabs {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 0 20px;
+        }
+
+        .profile-nav-tabs .nav-link {
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 15px 20px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .profile-nav-tabs .nav-link.active {
+            color: var(--p-blue);
+            border-bottom: 3px solid var(--p-blue);
+            background: transparent;
+        }
+
+        .avatar-box {
+            width: 70px;
+            height: 70px;
+            background-color: var(--p-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 800;
+            border-radius: 12px;
+        }
+
+        .badge-role-peserta {
+            background: #e0efff;
+            color: #00549b;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 5px;
+        }
+
+        .label-custom {
+            font-size: 11px;
+            font-weight: 800;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-custom {
+            background-color: #f8fafc !important;
+            border: none !important;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        /* Efek saat input terkunci (readonly) */
+        .input-custom[readonly] {
+            cursor: not-allowed;
+            opacity: 0.7;
+            background-color: #f8fafc !important; /* Warna abu-abu panel */
+        }
+
+        /* Efek saat input aktif */
+        .input-custom:not([readonly]) {
+            background-color: #ffffff !important;
+            border: 1px solid var(--p-blue) !important;
+            box-shadow: 0 0 0 3px rgba(0, 84, 155, 0.1);
+        }
+
         /* Notifikasi ala Tokopedia */
         .notification-btn { position: relative; cursor: pointer; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; transition: 0.2s; }
         .notification-btn:hover { background: #f8fafc; }
@@ -133,6 +219,7 @@
         to { 
             opacity: 1; 
             transform: translateY(10px);}
+        }
     </style>
 </head>
 <body>
@@ -319,13 +406,32 @@
                     <thead class="bg-light">
                         <tr>
                             <th class="border-0 px-4">Program</th>
-                            <th class="border-0">Unit Kerja</th>
+                            <th class="border-0">Company</th>
                             <th class="border-0">Tanggal</th>
                             <th class="border-0">Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada riwayat magang.</td></tr>
+                        @if (ViewBag.RiwayatMagang != null && ((List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang).Any())
+                        {
+                            @foreach (var item in (List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang)
+                            {
+                                <tr>
+                                    <td class="px-4 font-weight-bold">Magang Industri</td>
+                                    <td>@item.Company</td> 
+                                    <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <span class="status-badge @(item.Status == "Disetujui" ? "status-approved" : "status-review")">
+                                            @(item.Status ?? "Proses Review")
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada riwayat magang.</td></tr>
+                        }
                     </tbody>
                 </table>
             </div>
@@ -354,30 +460,318 @@
                     </tbody>
                 </table>
             </div>
-        </div> <div id="page-profil" class="page-section">
-            <div class="glass-card">
-                <div class="mb-4">
-                    <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 0;">Pengaturan Informasi Profil</h4>
-                    <p class="subtitle-portal" style="font-size: 14px; color: #64748b; margin-top: 4px; margin-bottom: 0;">Pastikan data diri Anda valid untuk mempercepat verifikasi.</p>
-                </div>
-                <div class="row">
-                    <div class="col-md-6"><div class="form-group"><label class="small font-weight-bold">Nama Lengkap</label><input type="text" class="form-control" placeholder="Nama Lengkap"></div></div>
-                    <div class="col-md-6"><div class="form-group"><label class="small font-weight-bold">Email</label><input type="email" class="form-control" placeholder="Masukkan Email"></div></div>
-                    <div class="col-md-6"><div class="form-group"><label class="small font-weight-bold">No Hp</label><input type="text" class="form-control" placeholder="Contoh: 088834637577"></div></div>
-                    <div class="col-md-6"><div class="form-group"><label class="small font-weight-bold">Nama Perguruan Tinggi</label><input type="text" class="form-control" placeholder="Perguruan Tinggi"></div></div>
-                </div>
-                <hr class="my-4">
-                <div class="text-right">
-                    <button class="btn btn-primary px-5" onclick="saveProfile()" style="border-radius:10px; background: var(--p-blue);">Simpan Perubahan</button>
+        </div>
+        <div id="page-profil" class="page-section">
+    <div class="mb-4">
+        <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 0;">Pengaturan Akun</h4>
+        <p class="subtitle-portal" style="font-size: 14px; color: #64748b; margin-top: 4px;">
+            Kelola informasi kredensial dan keamanan <span class="text-danger">@namaUser</span>
+        </p>
+    </div>
+
+    <div class="profile-card">
+        <div class="profile-nav-tabs">
+            <ul class="nav" id="profileTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="data-tab" data-toggle="tab" href="#tab-data" role="tab">
+                        <i class="fa-solid fa-address-card mr-2"></i> Profil Saya
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="security-tab" data-toggle="tab" href="#tab-security" role="tab">
+                        <i class="fa-solid fa-shield-halved mr-2"></i> Keamanan
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content" id="profileTabContent">
+            
+            <div class="tab-pane fade show active" id="tab-data" role="tabpanel">
+                <div class="p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="position-relative">
+                            <div id="avatarContainer" onclick="showPhotoOptions()" class="avatar-box mr-3" style="cursor: pointer; overflow: hidden; width: 80px; height: 80px;">
+                                @if (Model != null && !string.IsNullOrEmpty(Model.FotoProfil)) 
+                                {
+                                    <img src="/uploads/profile/@Model.FotoProfil" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">
+                                } 
+                                else 
+                                {
+                                    <span id="initialsText">
+                                        @{
+                                            var inisial = "??";
+                                            if (!string.IsNullOrEmpty(namaUser))
+                                            {
+                                                inisial = namaUser.Length >= 2 ? namaUser.Substring(0, 2).ToUpper() : namaUser.ToUpper();
+                                            }
+                                        }
+                                        @inisial
+                                    </span>
+                                }
+                            </div>
+                            <button type="button" class="btn btn-sm btn-light position-absolute shadow-sm" 
+                                    style="bottom: 0; right: 10px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;"
+                                    onclick="document.getElementById('fileInput').click()">
+                                <i class="fa-solid fa-camera text-primary" style="font-size: 12px;"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <h5 class="font-weight-bold mb-1">@namaUser</h5>
+                            <div class="d-flex align-items-center">
+                                <span class="badge-role-peserta mr-2">PESERTA MAGANG</span>
+                                <a href="javascript:void(0)" id="btnEditInfo" class="small text-muted font-weight-bold" onclick="enableEdit()">
+                                    <i class="fa-solid fa-pencil mr-1"></i> Edit Informasi
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="file" id="fileInput" hidden accept="image/*" onchange="uploadPhoto(this)">
+
+                    <hr class="my-4 opacity-50">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="label-custom">NAMA LENGKAP PESERTA</label>
+                            <input type="text" id="inputNama" class="form-control input-custom" value="@Model?.NamaLengkap" placeholder="Nama Lengkap" readonly>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="label-custom">USERNAME / EMAIL</label>
+                            <input type="email" id="inputEmail" class="form-control input-custom" value="@userEmail" readonly>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="label-custom">NOMOR HANDPHONE</label>
+                            <input type="text" id="inputNoHP" class="form-control input-custom" value="@Model?.NoHP" placeholder="Contoh: 0888..." readonly>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="label-custom">INSTANSI / PERGURUAN TINGGI</label>
+                            <input type="text" id="inputUniv" class="form-control input-custom" value="@Model?.NamaPerguruanTinggi" placeholder="Nama Perguruan Tinggi" readonly>
+                        </div>
+                    </div>
+
+                    <div class="text-right mt-2">
+                        <button type="button" class="btn btn-primary" id="btnSimpan" onclick="saveProfile()" disabled>Simpan Perubahan</button>
+                    </div>
                 </div>
             </div>
-        </div> </div>
+
+            <div class="tab-pane fade" id="tab-security" role="tabpanel">
+                <div class="p-4">
+                    <div class="mb-4">
+                        <h5 class="font-weight-bold">Keamanan Akun</h5>
+                        <p class="text-muted small">Disarankan untuk mengganti kata sandi secara berkala untuk menjaga keamanan akun Anda.</p>
+                    </div>
+
+                    <form id="securityForm" style="max-width: 500px;">
+                        <div class="mb-4">
+                            <label class="label-custom">KATA SANDI SAAT INI</label>
+                            <div class="input-group">
+                                <input type="password" id="oldPass" class="form-control input-custom" placeholder="Masukkan password lama" required>
+                                <div class="input-group-append">
+                                    <span class="input-group-text bg-light border-0" onclick="togglePassword('oldPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                                        <i class="fa-solid fa-eye" id="icon-oldPass"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="label-custom">KATA SANDI BARU</label>
+                                <div class="input-group">
+                                    <input type="password" id="newPass" class="form-control input-custom" placeholder="Min 6 karakter" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text bg-light border-0" onclick="togglePassword('newPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                                            <i class="fa-solid fa-eye" id="icon-newPass"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="label-custom">KONFIRMASI PASSWORD</label>
+                                <div class="input-group">
+                                    <input type="password" id="confirmPass" class="form-control input-custom" placeholder="Ulangi password baru" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text bg-light border-0" onclick="togglePassword('confirmPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                                            <i class="fa-solid fa-eye" id="icon-confirmPass"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0 shadow-sm" style="border-radius: 10px; background: #e0efff; color: #00549b;">
+                            <i class="fa-solid fa-circle-info mr-2"></i>
+                            <small>Password harus minimal 6 karakter kombinasi huruf dan angka.</small>
+                        </div>
+
+                        <div class="text-right mt-4">
+                            <button type="submit" class="btn btn-danger px-5 py-2 font-weight-bold shadow-sm" style="border-radius:8px; background: var(--p-red); border: none;">
+                                Perbarui Kata Sandi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById('icon-' + inputId);
+        
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    $(document).ready(function() {
+        // Fungsi ketika tombol Edit Informasi diklik
+        $('#btnEditInfo').on('click', function() {
+            // Cek apakah saat ini sedang readonly atau tidak
+            const isReadOnly = $('#inputNama').prop('readonly');
+
+            if (isReadOnly) {
+                // AKTIFKAN MODE EDIT
+                $('.input-custom').prop('readonly', false); // Lepas status readonly
+                $('#btnSimpan').prop('disabled', false); 
+                $('.input-custom').css('background-color', '#fff'); // Ubah background jadi putih agar kontras
+                $('.input-custom').first().focus(); // Fokuskan ke input pertama
+                
+                $(this).html('<i class="fa-solid fa-xmark mr-1"></i> Batal Edit'); // Ganti teks tombol
+                $(this).removeClass('text-muted').addClass('text-danger');
+            } else {
+                // KEMBALI KE MODE LOCK (Batal)
+                $('.input-custom').prop('readonly', true);
+                $('#btnSimpan').prop('disabled', true);
+                $('.input-custom').css('background-color', '#f8fafc'); // Kembalikan warna abu-abu
+                
+                $(this).html('<i class="fa-solid fa-pencil mr-1"></i> Edit Informasi');
+                $(this).removeClass('text-danger').addClass('text-muted');
+            }
+        });
+
+        // 2. Handle Submit Ganti Password
+        $('#securityForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            // Cek konfirmasi password baru dulu di sisi client
+            if ($('#newPass').val() !== $('#confirmPass').val()) {
+                Swal.fire('Error', 'Konfirmasi password baru tidak cocok!', 'error');
+                return;
+            }
+
+            $.ajax({
+                url: '/DashboardPeserta/UpdatePassword', // Sesuaikan route-nya
+                type: 'POST',
+                data: {
+                    oldPass: $('#oldPass').val(),
+                    newPass: $('#newPass').val()
+                },
+                success: function(res) {
+                    if(res.success) {
+                        Swal.fire('Berhasil', 'Password diganti!', 'success');
+                    } else {
+                        // Ini akan memunculkan pesan kenapa password dianggap salah
+                        Swal.fire('Gagal', res.message, 'error'); 
+                    }
+                }
+            });
+        });
+    });
+
+    function showPhotoOptions() {
+        Swal.fire({
+            title: 'Foto Profil',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Unggah Foto Baru',
+            denyButtonText: 'Hapus Foto',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#00549B',
+            denyButtonColor: '#ec1c24',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#fileInput').click();
+            } else if (result.isDenied) {
+                deletePhoto();
+            }
+        });
+    }
+
+    function uploadPhoto(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // 1. Validasi Ukuran (Max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire('Opps!', 'Ukuran file terlalu besar (Max 2MB)', 'error');
+                return;
+            }
+
+            // 2. Preview Langsung
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const container = document.getElementById('avatarContainer');
+                container.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
+            };
+            reader.readAsDataURL(file);
+
+            // 3. Kirim ke Backend pakai AJAX
+            const formData = new FormData();
+            formData.append("fotoProfil", file);
+
+            fetch('/Auth/UpdateFoto', { // Sesuaikan dengan Route Controller kamu
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Foto Terupdate!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    // Update juga foto kecil di Topbar jika ada
+                    document.querySelectorAll('.rounded-circle.shadow-sm.border').forEach(img => {
+                        img.src = `/uploads/profile/${data.fileName}?t=${new Date().getTime()}`;
+                    });
+                } else {
+                    Swal.fire('Gagal!', data.message, 'error');
+                }
+            })
+            .catch(err => console.error("Error:", err));
+        }
+    }
+
+    function deletePhoto() {
+        Swal.fire({
+            title: 'Hapus foto?',
+            text: "Foto profil akan dikembalikan ke inisial nama.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/DashboardPeserta/DeleteFoto', function(res) {
+                    if(res.success) location.reload();
+                });
+            }
+        });
+    }
+
     function showPage(pageId) {
         $('.page-section').removeClass('active');
         $('#page-' + pageId).addClass('active');
@@ -393,7 +787,45 @@
         $('#page-breadcrumb').text(breadcrumbs[pageId]);
     }
 
-    function saveProfile() { Swal.fire('Berhasil', 'Data profil diperbarui.', 'success'); }
+    function saveProfile() {
+        // Tampilkan loading
+        Swal.fire({ 
+            title: 'Menyimpan...', 
+            allowOutsideClick: false, 
+            didOpen: () => { Swal.showLoading() } 
+        });
+
+        $.ajax({
+            url: '/DashboardPeserta/UpdateProfil',
+            type: 'POST',
+            data: {
+                nama: $('#inputNama').val(),
+                noHp: $('#inputNoHP').val(),
+                univ: $('#inputUniv').val()
+            },
+            success: function(res) {
+                if(res.success) {
+                    Swal.fire('Berhasil', 'Profil diperbarui!', 'success').then(() => {
+                        // Hanya mengunci input yang ada di tab profil
+                        $('#tab-data .input-custom').prop('readonly', true);
+                        
+                        // Kembalikan tombol edit ke mode normal
+                        $('#btnEditInfo').html('<i class="fa-solid fa-pencil mr-1"></i> Edit Informasi');
+                        $('#btnEditInfo').removeClass('text-danger');
+                        
+                        // Update nama di header agar sinkron
+                        $('.font-weight-bold.mb-1').text($('#inputNama').val());
+                    });
+                } else {
+                    Swal.fire('Gagal', res.message, 'error');
+                }
+            }, // Tutup success
+            error: function() {
+                Swal.fire('Error', 'Gagal tersambung ke server', 'error');
+            }
+        }); // Tutup $.ajax
+    }
+
     function handleLogout() {
         Swal.fire({
             title: 'Keluar?', text: "Sesi akan berakhir.", icon: 'warning',

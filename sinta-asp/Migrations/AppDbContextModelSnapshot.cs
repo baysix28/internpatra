@@ -348,6 +348,42 @@ namespace sinta_asp.Migrations
 
                     b.ToTable("Users");
                 });
+
+            modelBuilder.Entity("sinta_asp.Models.UserProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FotoProfil")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NamaLengkap")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NamaPerguruanTinggi")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NoHP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserProfile");
+                });
 #pragma warning restore 612, 618
         }
     }

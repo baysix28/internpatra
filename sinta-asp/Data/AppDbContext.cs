@@ -22,5 +22,7 @@ namespace sinta_asp.Data
 
         // ===== MAGANG =====
         public DbSet<Magang> PendaftaranMagang { get; set; }
+
+        public DbSet<UserProfile> UserProfile { get; set; } 
     }
 }

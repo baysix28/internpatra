@@ -9,19 +9,16 @@ namespace sinta_asp.Models
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Nama wajib diisi")]
+        [Required]
         public string Nama { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email wajib diisi")]
+        [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password wajib diisi")]
-        [DataType(DataType.Password)]
+        [Required]
         public string Password { get; set; } = string.Empty;
 
-        // TAMBAHKAN INI: Memberikan nilai default agar database tidak komplain NULL
-        [Required]
         public string Role { get; set; } = "Peserta"; 
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

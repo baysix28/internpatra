@@ -12,8 +12,8 @@ using sinta_asp.Data;
 namespace sinta_asp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260202064515_TambahStatusFix")]
-    partial class TambahStatusFix
+    [Migration("20260203102600_MigrasiFixTabelProfile")]
+    partial class MigrasiFixTabelProfile
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -350,6 +350,42 @@ namespace sinta_asp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("sinta_asp.Models.UserProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FotoProfil")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NamaLengkap")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NamaPerguruanTinggi")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NoHP")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserProfile");
                 });
 #pragma warning restore 612, 618
         }
