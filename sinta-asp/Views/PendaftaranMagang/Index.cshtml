@@ -5,6 +5,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
     :root {
@@ -143,6 +144,25 @@
         display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
     }
 
+    /* Mengecilkan font khusus untuk SweetAlert */
+    .swal2-title {
+        font-size: 1.1rem !important;
+        padding-top: 10px !important;
+    }
+    .swal2-html-container {
+        font-size: 0.85rem !important;
+        margin: 10px 20px !important;
+    }
+    .swal2-styled {
+        font-size: 0.8rem !important;
+    }
+
+    /* Mengecilkan font khusus untuk SweetAlert agar lebih compact */
+    .swal2-small-text {
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+    }
+
     .tombol-daftar { background: var(--p-merah); color: white; padding: 12px 30px; border-radius: 12px; font-weight: 700; text-decoration: none; transition: 0.3s; display: inline-block; border:none; }
     .tombol-daftar:hover { background: #b90510; color: white; transform: translateY(-3px); }
 </style>
@@ -151,7 +171,9 @@
     <div class="container animate__animated animate__fadeIn">
         <h1 class="display-4 fw-bold mb-3">Program Magang</h1>
         <p class="lead opacity-75 mb-5 mx-auto" style="max-width: 750px;">Kembangkan potensi profesional Anda melalui program magang terstruktur di PT Pertamina (Persero).</p>
-        <a asp-controller="PendaftaranMagang" asp-action="DataMagang" class="tombol-daftar">MULAI PENDAFTARAN</a>
+        <button onclick="handleMulaiDaftar()" class="tombol-daftar" style="border:none; cursor:pointer;">
+            MULAI PENDAFTARAN
+        </button>
     </div>
 </div>
 
@@ -460,16 +482,73 @@
         renderCards();
     });
 
+    // 1. Ambil status login dari C# (PASTIKAN INI DI DALAM .cshtml)
+    const currentUser = "@(Context.User.Identity?.IsAuthenticated == true ? Context.User.Identity.Name : "Guest")";
+
+    function showLoginWarning() {
+        Swal.fire({
+            title: 'Akses Terbatas',
+            text: 'Silakan login untuk mengakses formulir pendaftaran magang.',
+            icon: 'info',
+            iconColor: '#003B76',
+            width: '340px', 
+            showCancelButton: true,
+            confirmButtonText: 'Login Sekarang',
+            cancelButtonText: 'Kembali',
+            confirmButtonColor: '#003B76', // Biru Navy Pertamina
+            cancelButtonColor: '#6c757d',  // Abu-abu elegan untuk tombol 'Kembali'
+            reverseButtons: true,
+            padding: '1.5rem',
+            customClass: {
+                popup: 'rounded-3 shadow',
+                title: 'fs-5 fw-bold text-dark',
+                htmlContainer: 'small text-muted',
+                confirmButton: 'btn btn-primary btn-sm px-3 py-2', 
+                cancelButton: 'btn btn-link btn-sm text-decoration-none text-muted' 
+            },
+            buttonsStyling: true, // Menggunakan styling asli Swal agar warna confirmButtonColor muncul
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/Auth/Login';
+            }
+        });
+    }
+
+    // 2. Perbaiki fungsi pilihPosisi agar cek login dulu
+    function pilihPosisi(company, region, lokasi, posisi) {
+        if (currentUser === "Guest") {
+            showLoginWarning(); // Munculkan Alert jika belum login
+        } else {
+            // Jika sudah login, simpan data dan pindah halaman
+            localStorage.setItem('magang_company', company);
+            localStorage.setItem('magang_region', region);
+            localStorage.setItem('magang_lokasi', lokasi);
+            localStorage.setItem('magang_posisi', posisi);
+
+            window.location.href = '/PendaftaranMagang/DataMagang';
+        }
+    }
+
+    // 3. Tambahkan juga proteksi pada tombol "Mulai Pendaftaran" di Hero Section
+    function handleMulaiDaftar() {
+        console.log("Status User Saat Ini:", currentUser);
+        
+        if (currentUser === "Guest" || currentUser === "") {
+            showLoginWarning();
+        } else {
+            const section = document.getElementById('filterSection');
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                console.error("Error: Element dengan ID 'filterSection' tidak ditemukan!");
+                // Fallback jika scroll gagal: langsung arahkan ke halaman data
+                window.location.href = '/PendaftaranMagang/DataMagang';
+            }
+        }
+    }
+
+    // Event Listeners (Tetap)
     lokasiSelect.addEventListener('change', renderCards);
     searchInput.addEventListener('input', renderCards);
-
-    function pilihPosisi(company, region, lokasi, posisi) {
-        localStorage.setItem('magang_company', company);
-        localStorage.setItem('magang_region', region);
-        localStorage.setItem('magang_lokasi', lokasi);
-        localStorage.setItem('magang_posisi', posisi);
-
-        window.location.href = '/PendaftaranMagang/DataMagang';
-    }
 
 </script>

@@ -504,7 +504,10 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Email Pribadi <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control wajib" id="email" name="EmailPribadi" placeholder="contoh: nama@gmail.com">
+                        <input type="email" class="form-control wajib" id="email" name="EmailPribadi" 
+                            placeholder="contoh: nama@gmail.com"
+                            oninput="validateEmail(this)">
+                        <div id="email-error" class="error-message">Format email tidak valid!</div>
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -607,7 +610,10 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Selesai Magang <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control wajib" id="tanggal_selesai" name="SelesaiMagang">
+                        <input type="date" class="form-control" id="SelesaiMagang" name="SelesaiMagang">
+                        <div id="error-selesai" class="text-danger" style="display:none; font-size: 12px; margin-top: 5px;">
+                            Tanggal tidak valid!
+                        </div>
                     </div>
                 </div>
 
@@ -908,6 +914,60 @@
             }
         });
     });
+
+    function validateEmail(input) {
+        const emailError = document.getElementById('email-error');
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if (input.value === "") {
+            // Jika kosong, hilangkan merah (karena nanti divalidasi oleh class 'wajib')
+            input.classList.remove('is-invalid');
+            emailError.style.display = 'none';
+        } else if (!emailPattern.test(input.value)) {
+            // Jika format salah, kasih merah
+            input.classList.add('is-invalid');
+            emailError.style.display = 'flex';
+        } else {
+            // Jika sudah benar, bersihkan merah
+            input.classList.remove('is-invalid');
+            emailError.style.display = 'none';
+        }
+    }
+
+    // ========== VALIDASI TANGGAL REAL-TIME ==========
+    function validasiPeriodeMagang() {
+        const tglMulai = document.getElementById('tanggal_mulai');
+        const tglSelesai = document.getElementById('SelesaiMagang');
+        const errorMsg = document.getElementById('error-selesai');
+
+        if (tglMulai.value && tglSelesai.value) {
+            const mulai = new Date(tglMulai.value);
+            const selesai = new Date(tglSelesai.value);
+
+            if (selesai <= mulai) {
+                // 1. Tambahkan border merah pada input
+                tglSelesai.style.borderColor = "#dc3545"; 
+                tglSelesai.classList.add('is-invalid');
+
+                // 2. Munculkan pesan teks di bawahnya
+                errorMsg.style.display = 'block';
+            } else {
+                // Kembalikan ke normal jika sudah benar
+                tglSelesai.style.borderColor = "#dee2e6";
+                tglSelesai.classList.remove('is-invalid');
+                errorMsg.style.display = 'none';
+            }
+        }
+        
+        // Update status kelengkapan data (stepper)
+        if (typeof cekDataLengkap === "function") {
+            cekDataLengkap();
+        }
+    }
+
+    // Pasang listener pada kedua input tanggal
+    document.getElementById('tanggal_mulai')?.addEventListener('change', validasiPeriodeMagang);
+    document.getElementById('SelesaiMagang')?.addEventListener('change', validasiPeriodeMagang);
 
 
     // Preview Foto dengan Validasi In-Page
