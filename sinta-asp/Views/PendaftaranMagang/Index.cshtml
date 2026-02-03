@@ -360,7 +360,7 @@
                     Bergabunglah dalam Program Magang Kerja di PT. Pertamina (Persero) Regional Jawa Bagian Tengah. 
                     Kembangkan potensi diri Anda bersama perusahaan energi terbesar di Indonesia dan raih pengalaman berharga untuk masa depan karir Anda.
                 </p>
-                @if (User.Identity.IsAuthenticated)
+                @if (User.Identity?.IsAuthenticated == true)
                 {
                     <a href="@Url.Action("DataMagang", "PendaftaranMagang")" class="btn-daftar">
                         <i class="fas fa-rocket"></i> Daftar Sekarang
@@ -458,7 +458,7 @@
     <div class="container">
         <h2 class="cta-title">Siap Memulai Perjalanan Karirmu?</h2>
         <p class="cta-text">Daftarkan diri Anda sekarang dan jadilah bagian dari keluarga besar Pertamina!</p>
-        @if (User.Identity.IsAuthenticated)
+        @if (User.Identity?.IsAuthenticated == true)
         {
             <a href="@Url.Action("DataMagang", "PendaftaranMagang")" class="btn-daftar">
                 <i class="fas fa-user-plus"></i> Mulai Pendaftaran
