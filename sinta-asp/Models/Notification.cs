@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace sinta_asp.Models
@@ -6,11 +7,14 @@ namespace sinta_asp.Models
     {
         [Key]
         public int Id { get; set; }
+        public string? Nama { get; set; }
+        public string? Lokasi { get; set; }
+        public string? Type { get; set; } // 'new', 'expired', 'status_update'
+        public bool IsRead { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string? ExternalId { get; set; }
+        public string UserEmail { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public bool IsRead { get; set; } = false; // Gunakan = bukan -
-        public DateTime CreatedAt { get; set; } = DateTime.Now; // Gunakan = bukan -
-        public string UserEmail { get; set; } = string.Empty;
     }
 }

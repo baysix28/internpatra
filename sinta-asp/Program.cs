@@ -1,16 +1,24 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.FileProviders;
+using sinta_asp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. KONEKSI KE DATABASE
+// 1. KONEKSI DATABASE (SQL SERVER)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
-// 2. KONFIGURASI SERVICE (Pindahkan ke sini!)
-builder.Services.AddHttpContextAccessor(); // Solusi untuk error IHttpContextAccessor
+// 2. REGISTER EMAIL SERVICE (FIXED)
+// Gunakan AddScoped dengan Interface agar sinkron dengan Controller kamu
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// 3. HTTP CONTEXT ACCESSOR (Untuk keperluan Session/User context)
+builder.Services.AddHttpContextAccessor();
+
+// 4. SESSION CONFIGURATION
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -19,6 +27,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// 5. MVC CONFIGURATION
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -28,10 +37,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Home/AccessDenied";
     });
 
-// HANYA ADA SATU builder.Build()
-var app = builder.Build(); 
-
-// 3. MIDDLEWARE PIPELINE
+// 6. CONFIGURE HTTP PIPELINE
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -50,6 +56,7 @@ app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}");
 
+// Route Default
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

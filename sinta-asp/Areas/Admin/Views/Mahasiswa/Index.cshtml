@@ -1,177 +1,179 @@
-﻿@model IEnumerable<sinta_asp.Models.Mahasiswa>
+﻿@model sinta_asp.Areas.Admin.Models.DashboardModel
+@using System.Text.Json
 @{
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Manajemen Pendaftaran | SINTA";
+    ViewData["Title"] = "Manajemen Mahasiswa Magang";
 }
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
 <style>
-    :root {
-        --primary: #00549B;
-        --primary-light: #e6f0f8;
-        --primary-gradient: linear-gradient(135deg, #00549B 0%, #0086D6 100%);
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --slate-50: #f8fafc;
-        --slate-100: #f1f5f9;
-        --slate-200: #e2e8f0;
-        --slate-400: #94a3b8;
-        --slate-600: #475569;
-        --slate-900: #0f172a;
-        --radius-lg: 20px;
-        --radius-md: 12px;
-        --radius-sm: 8px;
-        --shadow-sm: 0 4px 12px rgba(0, 84, 155, 0.08);
-        --shadow-md: 0 8px 32px rgba(0, 84, 155, 0.12);
+    :root { 
+        --p-blue: #00549B; --p-red: #EC1C24; --p-green: #10b981; --p-orange: #f59e0b; --p-bg: #F8FAFC;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background: #f8fafc;
-        color: var(--slate-900);
+    body { background-color: var(--p-bg); font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; }
+    .dashboard-wrapper { padding: 1.2rem 1.8rem; margin-top: -20px; }
+    .title-bold { font-weight: 800; color: var(--p-blue); letter-spacing: -0.8px; font-size: 1.5rem; }
+
+    /* --- Stat Cards --- */
+    .stat-card {
+        background: #fff; border-radius: 12px; padding: 0.85rem 1rem; border: 1px solid #e2e8f0;
+        transition: var(--transition); cursor: pointer; display: flex; align-items: center; height: 100%;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    .stat-card.active[data-status="all"] { border: 2px solid var(--p-blue); background: #f0f7ff; }
+    .stat-card.active[data-status="Menunggu"] { border: 2px solid var(--p-orange); background: #fffbeb; }
+    .stat-card.active[data-status="Diterima"] { border: 2px solid var(--p-green); background: #ecfdf5; }
+    .stat-card.active[data-status="Ditolak"] { border: 2px solid var(--p-red); background: #fef2f2; }
+
+    .icon-box {
+        width: 40px; height: 40px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1.1rem;
+    }
+    .bg-light-blue { background: rgba(0, 84, 155, 0.1); color: var(--p-blue); }
+    .bg-light-orange { background: rgba(245, 158, 11, 0.1); color: var(--p-orange); }
+    .bg-light-green { background: rgba(16, 185, 129, 0.1); color: var(--p-green); }
+    .bg-light-red { background: rgba(236, 28, 36, 0.1); color: var(--p-red); }
+
+    .stat-label { color: #64748b; font-size: 0.7rem; font-weight: 700; }
+    .stat-value { font-weight: 800; font-size: 1.15rem; color: #1e293b; }
+
+    /* --- Table Styling --- */
+    .main-table-card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; }
+    .table thead th { background: #f8fafc; font-weight: 700; color: #64748b; font-size: 0.7rem; padding: 12px 15px; text-transform: uppercase; border: none; }
+    .badge-status { padding: 5px 12px; border-radius: 50px; font-weight: 700; font-size: 0.65rem; text-transform: uppercase; }
+    .status-Diterima { background: #dcfce7; color: #065f46; }
+    .status-Ditolak { background: #fee2e2; color: #991b1b; }
+    .status-Menunggu { background: #fef3c7; color: #92400e; }
+
+    .btn-pertamina { 
+        background: var(--p-blue); 
+        color: white; 
+        border: none; 
+        font-weight: 700; 
+        border-radius: 6px; 
+        padding: 5px 12px; 
+        font-size: 0.7rem; 
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .btn-pertamina:hover { background: #00447a; }
+    .user-avatar-list { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+
+    /* --- MODAL DETAIL --- */
+    .modal-content { border-radius: 28px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+    .modal-header-premium { 
+        background: linear-gradient(135deg, #00549B 0%, #003d70 100%); 
+        padding: 2.5rem; color: white; position: relative;
+    }
+    .header-flex-container { display: flex; align-items: center; gap: 25px; }
+    .profile-circle-frame { 
+        width: 110px; height: 110px; border-radius: 50% !important; 
+        object-fit: cover; border: 5px solid rgba(255,255,255,0.2); 
+        background: white; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        cursor: pointer; transition: transform 0.2s;
+    }
+    .profile-circle-frame:hover { transform: scale(1.05); }
+    .header-text-info h2 { font-weight: 800; font-size: 1.8rem; margin: 0; letter-spacing: -0.5px; }
+    .status-pill-modal {
+        display: inline-block; width: fit-content; padding: 4px 15px; border-radius: 50px;
+        font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-top: 5px;
     }
 
-    /* Table Styles */
-    .table-modern thead th {
-        background: var(--primary);
-        color: white;
-        padding: 1rem;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        border: none;
+    /* --- ACTION AREA --- */
+    .action-area { background: #f8fafc; padding: 25px 40px; border-top: 1px solid #e2e8f0; }
+    .btn-outline-modern {
+        border: 1.5px solid #e2e8f0; background: white; color: #475569;
+        padding: 10px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; transition: var(--transition);
+    }
+    .btn-primary-modern {
+        background: var(--p-blue); color: white; border: none;
+        padding: 10px 25px; border-radius: 12px; font-size: 0.85rem; font-weight: 700;
+        box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2); transition: var(--transition);
+    }
+    .btn-danger-light {
+        background: #fff; color: #dc2626; border: 1.5px solid #fee2e2;
+        padding: 10px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; transition: var(--transition);
     }
 
-    .table-modern tbody tr {
-        transition: all 0.2s;
+    .detail-body { padding: 40px; background: #fff; }
+    .info-card-premium { background: #f8fafc; border-radius: 16px; padding: 20px; height: 100%; border: 1px solid #eef2f6; }
+    .info-label { color: #94a3b8; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
+    .info-value { color: #1e293b; font-weight: 700; font-size: 0.95rem; margin-bottom: 15px; }
+    
+    .doc-link {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 18px; background: #fff; border-radius: 12px;
+        text-decoration: none !important; color: #1e293b; font-weight: 700;
+        border: 1px solid #e2e8f0; margin-bottom: 12px; transition: 0.2s;
     }
+    .doc-link:hover { border-color: var(--p-blue); background: #f0f7ff; }
 
-    .table-modern tbody tr:hover {
-        background-color: var(--slate-50);
+    .row-highlight {
+        background-color: rgba(0, 84, 155, 0.08) !important;
+        transition: background-color 2s ease;
     }
-
-    .name-bold { font-weight: 700; color: var(--slate-900); }
-    .email-sub { font-size: 0.75rem; color: var(--slate-400); }
-
-    /* Custom Checkbox */
-    .form-check-input:checked {
-        background-color: var(--primary);
-        border-color: var(--primary);
-    }
-
-    /* Modal Styling */
-    .border-dashed {
-        border: 2px dashed var(--slate-200);
-        border-radius: var(--radius-md);
-        transition: all 0.3s;
-    }
-    .border-dashed:hover { border-color: var(--primary); background: var(--primary-light); }
 </style>
 
-<div class="admin-container">
-    <div class="header-section">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4">
-            <div>
-                <h1 class="fw-800 mb-2" style="font-size: 2.2rem; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                    Registrations Management
-                </h1>
-                <p class="text-muted">Kelola dan monitor seluruh pendaftaran mahasiswa</p>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn-secondary-modern" data-bs-toggle="modal" data-bs-target="#importModal">
-                    <i class="fas fa-file-import"></i> Import
-                </button>
-            </div>
+<div class="dashboard-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="title-bold mb-0">Manajemen Mahasiswa</h3>
+            <p class="text-muted small mb-0">Portal Kendali <span class="fw-bold text-danger">Internship Pertamina</span></p>
         </div>
-
-        <div class="stats-grid">
-            <div class="stat-card total">
-                <div class="stat-value">@Model?.Count()</div>
-                <div class="stat-label">Total Pendaftar</div>
-            </div>
-            <div class="stat-card pending">
-                <div class="stat-value">@Model?.Count(m => m.Status == "Pending" || m.Status == null)</div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card approved">
-                <div class="stat-value">@Model?.Count(m => m.Status == "Diterima")</div>
-                <div class="stat-label">Diterima</div>
-            </div>
-        </div>
+        <button class="btn btn-pertamina shadow-sm" style="background: #10b981; padding: 8px 16px; font-size: 0.8rem;" onclick="exportExcel()">
+            <i class="fas fa-file-excel me-1"></i> Export Excel
+        </button>
     </div>
 
-    <div class="advanced-search-card mt-4">
-        <div class="row g-3">
-            <div class="col-md-8">
-                <div class="search-input-group">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="customSearch" placeholder="Cari Mahasiswa, NIM, atau Kampus...">
-                </div>
-            </div>
-            <div class="col-md-4 text-end">
-                <button class="btn-secondary-modern" onclick="location.reload()">
-                    <i class="fas fa-sync"></i> Refresh
-                </button>
-            </div>
-        </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="stat-card active" data-status="all" id="card-all" onclick="filterByStatus('all', 'card-all')"><div class="icon-box bg-light-blue"><i class="fas fa-user-group"></i></div><div><div class="stat-label">Total Pendaftar</div><div class="stat-value" id="val-all">@Model.DaftarMagang.Count</div></div></div></div>
+        <div class="col-md-3"><div class="stat-card" data-status="Menunggu" id="card-proses" onclick="filterByStatus('Menunggu', 'card-proses')"><div class="icon-box bg-light-orange"><i class="fas fa-hourglass-half"></i></div><div><div class="stat-label">Menunggu</div><div class="stat-value" id="val-proses">@Model.StatusDiproses</div></div></div></div>
+        <div class="col-md-3"><div class="stat-card" data-status="Diterima" id="card-terima" onclick="filterByStatus('Diterima', 'card-terima')"><div class="icon-box bg-light-green"><i class="fas fa-check-double"></i></div><div><div class="stat-label">Diterima</div><div class="stat-value" id="val-terima">@Model.StatusDiterima</div></div></div></div>
+        <div class="col-md-3"><div class="stat-card" data-status="Ditolak" id="card-tolak" onclick="filterByStatus('Ditolak', 'card-tolak')"><div class="icon-box bg-light-red"><i class="fas fa-user-xmark"></i></div><div><div class="stat-label">Ditolak</div><div class="stat-value" id="val-tolak">@Model.StatusDitolak</div></div></div></div>
     </div>
 
-    <div class="custom-card mt-4">
+    <div class="main-table-card">
+        <div class="p-3 border-bottom bg-white">
+            <input type="text" id="tableSearch" class="form-control" placeholder="Cari mahasiswa..." style="border-radius: 10px; max-width: 300px;">
+        </div>
         <div class="table-responsive">
-            <table class="table-modern" id="registrationTable">
+            <table class="table align-middle mb-0 table-hover" id="magangTable">
                 <thead>
                     <tr>
-                        <th width="40"><input type="checkbox" class="form-check-input" id="selectAll"></th>
-                        <th>Mahasiswa</th>
+                        <th class="ps-4">Mahasiswa</th>
                         <th>Institusi</th>
-                        <th>Kategori</th>
+                        <th>Penempatan</th>
                         <th>Status</th>
                         <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        foreach (var item in Model)
-                        {
-                            <tr class="align-middle">
-                                <td><input type="checkbox" class="form-check-input row-checkbox" value="@item.Id"></td>
-                                <td>
-                                    <div class="avatar-wrapper">
-                                        <div class="avatar-img">@(string.IsNullOrEmpty(item.NamaLengkap) ? "?" : item.NamaLengkap.Substring(0, 1))</div>
-                                        <div>
-                                            <div class="name-bold">@item.NamaLengkap</div>
-                                            <div class="email-sub">@item.NIM</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="fw-600">@item.NamaKampus</div>
-                                    <div class="small text-muted">@item.Jurusan</div>
-                                </td>
-                                <td><span class="badge bg-light text-primary border">@item.TipePendaftaran</span></td>
-                                <td>
+                    @foreach (var m in Model.DaftarMagang) {
+                        <tr class="magang-row" data-status="@m.Status" id="row-@m.Id">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
                                     @{
-                                        var s = item.Status ?? "Pending";
-                                        var cls = s == "Diterima" ? "status-approve" : (s == "Ditolak" ? "status-reject" : "status-pending");
-                                        var icon = s == "Diterima" ? "fa-check" : (s == "Ditolak" ? "fa-times" : "fa-clock");
+                                        var cleanFoto = m.FotoProfil?.Split('/').Last();
+                                        var fotoPath = string.IsNullOrEmpty(cleanFoto) ? "/img/default-user.png" : "/uploads/foto/" + cleanFoto;
                                     }
-                                    <span class="badge-status @cls">
-                                        <i class="fas @icon"></i> @s
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="@Url.Action("Details", "Mahasiswa", new { id = item.Id })" class="btn-action view"><i class="far fa-eye"></i></a>
-                                        <button class="btn-action delete" onclick="deleteRegistration('@item.Id')"><i class="far fa-trash-alt"></i></button>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
+                                    <img src="@fotoPath" class="user-avatar-list me-3 shadow-sm">
+                                    <div><div class="fw-700 text-dark">@m.NamaLengkap</div><div class="text-muted small">@m.NIM</div></div>
+                                </div>
+                            </td>
+                            <td><div class="fw-600">@m.NamaPerguruanTinggi</div><div class="text-muted small">@m.Jurusan</div></td>
+                            <td><div class="text-primary fw-700">@m.Company</div><div class="text-muted small">@m.Lokasi</div></td>
+                            <td><span class="badge-status status-@m.Status">@m.Status</span></td>
+                            <td class="text-center">
+                                <button class="btn-pertamina" onclick='showDetail(@Html.Raw(JsonSerializer.Serialize(m)))'>Review</button>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -179,57 +181,274 @@
     </div>
 </div>
 
-<div class="bulk-actions-panel" id="bulkActionsPanel" style="display: none;">
-    <span class="fw-600 me-3" id="bulkSelectionCount">0 terpilih</span>
-    <button class="btn btn-sm btn-success" onclick="bulkApprove()">Terima</button>
-    <button class="btn btn-sm btn-danger" onclick="bulkReject()">Tolak</button>
-    <button class="btn btn-sm btn-link text-dark" onclick="clearSelection()">Batal</button>
+<div class="modal fade" id="modalDetail" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header-premium">
+                <div class="header-flex-container">
+                    <a id="d-foto-link" target="_blank">
+                        <img id="d-foto" src="/img/default-user.png" class="profile-circle-frame" title="Klik untuk lihat foto asli">
+                    </a>
+                    <div class="header-text-info">
+                        <div id="d-status-badge-container"></div>
+                        <h2 id="d-nama"></h2>
+                        <span class="opacity-75 small"><i class="fas fa-clock me-1"></i> Terdaftar: <span id="d-created-at"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-id-card me-2"></i>Kontak & Pribadi</div>
+                        <div class="info-card-premium">
+                            <div class="info-label">Email</div><div id="d-email" class="info-value"></div>
+                            <div class="info-label">WhatsApp</div>
+                            <div class="info-value">
+                                <a id="d-hp-link" target="_blank" style="color: #1e293b; text-decoration: none;">
+                                    <span id="d-hp"></span>
+                                </a>
+                            </div>
+                            <div class="info-label">Tempat, Tgl Lahir</div><div class="info-value"><span id="d-tempat"></span>, <span id="d-tgl-lahir"></span></div>
+                            <div class="info-label">Instagram</div>
+                            <div class="info-value">
+                                <a href="#" id="d-ig-link" target="_blank" class="fw-bold" style="text-decoration: underline !important; color: #1e293b;">@@<span id="d-ig-text"></span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-graduation-cap me-2"></i>Akademik & Unit</div>
+                        <div class="info-card-premium">
+                            <div class="info-label">Kampus (NIM)</div><div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
+                            <div class="info-label">Fakultas / Jurusan</div><div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
+                            <div class="info-label">Penempatan</div><div class="info-value text-primary fw-bold"><span id="d-company"></span> - <span id="d-lokasi"></span></div>
+                            <div class="info-label">Periode Magang</div><div id="d-periode" class="info-value text-danger"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-file-alt me-2"></i>Berkas Digital</div>
+                        <a id="link-cv" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a id="link-surat" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a id="link-proposal" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-signature text-success me-2"></i> Proposal Magang</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area">
+                <input type="hidden" id="d-id">
+                <div id="detail-actions" class="d-flex justify-content-between align-items-center w-100">
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-outline-modern dropdown-toggle" id="dropdownStatus" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-sliders-h me-2"></i> Kelola Status
+                        </button>
+                        <ul class="dropdown-menu shadow-lg border-0" aria-labelledby="dropdownStatus">
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus('Diterima')">Set ke Diterima</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus('Ditolak')">Set ke Ditolak</a></li>
+                        </ul>
+                    </div>
+                    <div id="quick-actions">
+                        <button id="btn-tolak-quick" onclick="updateStatus('Ditolak')" class="btn btn-danger-light fw-bold me-2"><i class="fas fa-user-times me-2"></i>Tolak</button>
+                        <button id="btn-terima-quick" onclick="updateStatus('Diterima')" class="btn btn-primary-modern"><i class="fas fa-user-check me-2"></i>Terima Mahasiswa</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    $(document).ready(function() {
-        // Search Logic
-        $("#customSearch").on("keyup", function() {
-            var value = $(this).val().toLowerCase();
-            $("#registrationTable tbody tr").filter(function() {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-            });
-        });
+    $(document).ready(function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const highlightId = urlParams.get('highlightId');
 
-        // Select All Logic
-        $("#selectAll").click(function() {
-            $(".row-checkbox").prop('checked', $(this).prop('checked'));
-            updateBulkPanel();
-        });
+        if (highlightId) {
+            const targetRow = $(`#row-${highlightId}`);
+            if (targetRow.length) {
+                $('html, body').animate({
+                    scrollTop: targetRow.offset().top - 150
+                }, 800);
 
-        $(".row-checkbox").change(function() {
-            updateBulkPanel();
-        });
-
-        function updateBulkPanel() {
-            var count = $(".row-checkbox:checked").length;
-            $("#bulkSelectionCount").text(count + " item dipilih");
-            if (count > 0) {
-                $("#bulkActionsPanel").fadeIn().css('display', 'flex');
-            } else {
-                $("#bulkActionsPanel").fadeOut();
+                targetRow.addClass('row-highlight');
+                setTimeout(function () {
+                    targetRow.removeClass('row-highlight');
+                }, 3000);
             }
         }
     });
 
-    function deleteRegistration(id) {
-        if(confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-            // Lakukan AJAX Delete di sini
-            console.log("Deleting ID: " + id);
+    function exportExcel() {
+        const rawData = @Html.Raw(JsonSerializer.Serialize(Model.DaftarMagang));
+        if (!rawData || rawData.length === 0) {
+            Swal.fire('Data Kosong', 'Tidak ada data untuk diexport', 'warning');
+            return;
         }
+
+        const baseUrl = window.location.origin;
+
+        const mappedData = rawData.map((m, index) => {
+            const tglLahir = m.TanggalLahir ? new Date(m.TanggalLahir).toLocaleDateString('id-ID') : "-";
+            const mulai = m.MulaiMagang ? new Date(m.MulaiMagang).toLocaleDateString('id-ID') : "-";
+            const selesai = m.SelesaiMagang ? new Date(m.SelesaiMagang).toLocaleDateString('id-ID') : "-";
+            const terdaftar = m.CreatedAt ? new Date(m.CreatedAt).toLocaleString('id-ID') : "-";
+
+            return {
+                "No": index + 1,
+                "Waktu Mendaftar": terdaftar,
+                "Nama Lengkap": m.NamaLengkap,
+                "NIM": m.NIM,
+                "Email": m.EmailPribadi,
+                "No HP/WA": m.NoHp,
+                "Tempat Lahir": m.TempatLahir,
+                "Tanggal Lahir": tglLahir,
+                "Instagram": m.Instagram,
+                "Universitas": m.NamaPerguruanTinggi,
+                "Fakultas": m.Fakultas,
+                "Jurusan": m.Jurusan,
+                "Company": m.Company,
+                "Region": m.Region,
+                "Lokasi Penempatan": m.Lokasi,
+                "Rekomendasi Pegawai": m.RekomendasiPegawai || "-",
+                "Periode Mulai": mulai,
+                "Periode Selesai": selesai,
+                "Status": m.Status,
+                "Link Foto": m.FotoProfil ? baseUrl + "/uploads/foto/" + m.FotoProfil.split('/').pop() : "-",
+                "Link CV": m.FileCv ? baseUrl + "/uploads/cv/" + m.FileCv.split('/').pop() : "-",
+                "Link Surat Pengantar": m.FileSuratPengantar ? baseUrl + "/uploads/surat/" + m.FileSuratPengantar.split('/').pop() : "-",
+                "Link Proposal": m.FileProposal ? baseUrl + "/uploads/proposal/" + m.FileProposal.split('/').pop() : "-"
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(mappedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Lengkap Mahasiswa");
+        
+        const dateStr = new Date().toISOString().slice(0,10);
+        XLSX.writeFile(workbook, `Rekap_Mahasiswa_Magang_${dateStr}.xlsx`);
     }
 
-    function clearSelection() {
-        $(".row-checkbox, #selectAll").prop('checked', false);
-        $("#bulkActionsPanel").fadeOut();
+    $("#tableSearch").on("keyup", function() {
+        const value = $(this).val().toLowerCase();
+        $("#magangTable tbody tr").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
+
+    function filterByStatus(status, cardId) {
+        $(".stat-card").removeClass("active");
+         $("#" + cardId).addClass("active");
+        $(".magang-row").each(function() {
+            const match = (status === 'all' || $(this).attr("data-status") === status);
+            $(this).toggle(match);
+        });
+    }
+
+    function showDetail(data) {
+        $("#d-id").val(data.Id || data.id);
+        $("#d-nama").text(data.NamaLengkap || data.namaLengkap);
+        $("#d-created-at").text(formatDate(data.CreatedAt || data.createdAt));
+        
+        const st = data.Status || data.status;
+        updateModalStatusUI(st);
+        
+        const pf = data.FotoProfil || data.fotoProfil;
+        const finalFoto = pf ? "/uploads/foto/" + pf.split('/').pop() : "/img/default-user.png";
+        $("#d-foto").attr("src", finalFoto);
+        $("#d-foto-link").attr("href", finalFoto);
+
+        $("#d-email").text(data.EmailPribadi || data.emailPribadi);
+        
+        const rawHp = data.NoHp || "";
+        let cleanHp = rawHp.replace(/\D/g, '');
+        if (cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.slice(1);
+        
+        $("#d-hp").text(rawHp || "-");
+        if(cleanHp) {
+            $("#d-hp-link").attr("href", `https://wa.me/${cleanHp}`).css("cursor", "pointer");
+        } else {
+            $("#d-hp-link").removeAttr("href").css("cursor", "default");
+        }
+
+        $("#d-tempat").text(data.TempatLahir || "-");
+        $("#d-tgl-lahir").text(formatDate(data.TanggalLahir));
+        
+        let rawIg = (data.Instagram || "").replace(/@@/g, '').trim();
+        $("#d-ig-text").text(rawIg || "-");
+        $("#d-ig-link").attr("href", rawIg ? `https://instagram.com/${rawIg}` : "#");
+        
+        $("#d-univ").text(data.NamaPerguruanTinggi || "-");
+        $("#d-nim").text(data.NIM || "-");
+        $("#d-fakultas").text(data.Fakultas || "-");
+        $("#d-jurusan").text(data.Jurusan || "-");
+        $("#d-company").text(data.Company || "-");
+        $("#d-lokasi").text(data.Lokasi || "-");
+        $("#d-periode").text(formatDate(data.MulaiMagang) + " - " + formatDate(data.SelesaiMagang));
+
+        $("#link-cv").attr("href", "/uploads/cv/" + (data.FileCv || "").split('/').pop());
+        $("#link-surat").attr("href", "/uploads/surat/" + (data.FileSuratPengantar || "").split('/').pop());
+        $("#link-proposal").attr("href", "/uploads/proposal/" + (data.FileProposal || "").split('/').pop());
+
+        $("#modalDetail").modal('show');
+    }
+
+    function updateModalStatusUI(st) {
+        $("#d-status-badge-container").html(`<span class="status-pill-modal status-${st}">${st}</span>`);
+        st === "Menunggu" ? $("#quick-actions").show() : $("#quick-actions").hide();
+    }
+
+    function formatDate(d) {
+        if(!d) return "-";
+        return new Date(d).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+    }
+
+    function updateStatus(s) {
+        const id = $("#d-id").val();
+        const oldStatus = $(`#row-${id}`).attr("data-status");
+
+        Swal.fire({
+            title: 'Konfirmasi',
+            text: `Ubah status menjadi ${s}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Simpan'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // UI UPDATE LGSG (FAST RESPONSE)
+                const row = $(`#row-${id}`);
+                row.attr("data-status", s);
+                row.find(".badge-status").attr("class", `badge-status status-${s}`).text(s);
+                updateModalStatusUI(s);
+
+                // Update Stat Card Numbers
+                if (oldStatus !== s) {
+                    updateStatCount(oldStatus, -1);
+                    updateStatCount(s, 1);
+                }
+
+                $("#modalDetail").modal('hide');
+
+                // BACKGROUND SYNC
+                $.post("/Admin/Mahasiswa/UpdateStatus", { id: id, status: s }, function(res) {
+                    if(!res.success) {
+                         Swal.fire('Gagal Sinkronisasi', 'Data di server gagal diupdate, silakan refresh.', 'error');
+                    }
+                });
+            }
+        });
+    }
+
+    function updateStatCount(status, change) {
+        let elementId = "";
+        if (status === "Menunggu") elementId = "#val-proses";
+        else if (status === "Diterima") elementId = "#val-terima";
+        else if (status === "Ditolak") elementId = "#val-tolak";
+
+        if (elementId) {
+            let currentVal = parseInt($(elementId).text());
+            $(elementId).text(currentVal + change);
+        }
     }
 </script>
