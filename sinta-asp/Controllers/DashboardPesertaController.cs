@@ -107,6 +107,46 @@ namespace sinta_asp.Controllers
         }
 
         [HttpPost]
+        public IActionResult UpdatePassword(string oldPass, string newPass) // Pastikan nama ini sama dengan di AJAX
+        {
+            try 
+            {
+                var userEmail = User.Identity?.Name;
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    return Json(new { success = false, message = "Sesi habis, silakan login ulang." });
+                }
+
+                var user = _context.Users.FirstOrDefault(u => u.Email == userEmail);
+                if (user == null) 
+                {
+                    return Json(new { success = false, message = "User tidak ditemukan." });
+                }
+
+                // Cek apakah data dari AJAX masuk atau null
+                if (string.IsNullOrEmpty(oldPass) || string.IsNullOrEmpty(newPass))
+                {
+                    return Json(new { success = false, message = "Data tidak diterima oleh server." });
+                }
+
+                if (user.Password.Trim() != oldPass.Trim())
+                {
+                    return Json(new { success = false, message = "Password lama salah!" });
+                }
+
+                user.Password = newPass.Trim();
+                _context.SaveChanges();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                // Ini akan membantu kamu melihat error apa yang terjadi di server via Debugger
+                return Json(new { success = false, message = "Error Server: " + ex.Message });
+            }
+        }
+    
+        [HttpPost]
         public async Task<IActionResult> UpdateFoto(IFormFile fotoProfil)
         {
             if (fotoProfil == null || fotoProfil.Length == 0)
@@ -116,8 +156,8 @@ namespace sinta_asp.Controllers
             {
                 var userEmail = User.Identity?.Name;
                 
-                // 1. Tentukan folder
-                string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/profile");
+                // 1. Tentukan folder (Gunakan Path.Combine agar aman)
+                string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profile");
                 if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
 
                 // 2. Nama File Unik
@@ -125,22 +165,30 @@ namespace sinta_asp.Controllers
                 string fileName = $"profile_{Guid.NewGuid()}{extension}";
                 string fullPath = Path.Combine(folderPath, fileName);
 
-                // 3. Simpan File
+                // 3. Simpan File Fisik
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await fotoProfil.CopyToAsync(stream);
                 }
 
-                // 4. UPDATE KE USERPROFILE (Bukan ke tabel Users)
+                // 4. Update Database
                 var profile = await _context.UserProfile.FirstOrDefaultAsync(u => u.Email == userEmail);
                 if (profile != null) 
                 {
+                    // Hapus foto lama dari folder jika ada
+                    if (!string.IsNullOrEmpty(profile.FotoProfil))
+                    {
+                        string oldPath = Path.Combine(folderPath, profile.FotoProfil);
+                        if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                    }
+
                     profile.FotoProfil = fileName;
                     _context.UserProfile.Update(profile);
                     await _context.SaveChangesAsync();
                 }
 
-                return Json(new { success = true, fileName = fileName });
+                // Return path lengkap untuk preview di Frontend
+                return Json(new { success = true, fileName = fileName, filePath = "/uploads/profile/" + fileName });
             }
             catch (Exception ex)
             {
@@ -149,47 +197,17 @@ namespace sinta_asp.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdatePassword(string oldPass, string newPass)
-        {
-            // 1. Ambil ID dalam bentuk string
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // 2. Konversi string ke int (Ini kuncinya!)
-            if (!int.TryParse(userIdStr, out int userId))
-            {
-                return Json(new { success = false, message = "Sesi tidak valid." });
-            }
-
-            // 3. Sekarang bandingkan int dengan int
-            var user = _context.Users.SingleOrDefault(u => u.Id == userId);
-
-            if (user == null) 
-            {
-                return Json(new { success = false, message = "User tidak ditemukan" });
-            }
-
-            // 4. Cek Password (Gunakan .Trim() untuk jaga-jaga spasi)
-            if (user.Password.Trim() != oldPass.Trim())
-            {
-                return Json(new { success = false, message = "Password lama tidak sesuai!" });
-            }
-
-            // 5. Update dan Simpan
-            user.Password = newPass.Trim();
-            _context.SaveChanges();
-
-            return Json(new { success = true });
-        }
-    
-
-        [HttpPost]
         public async Task<IActionResult> DeleteFoto()
         {
             var userEmail = User.Identity?.Name;
             var profile = await _context.UserProfile.FirstOrDefaultAsync(u => u.Email == userEmail);
             
-            if (profile != null)
+            if (profile != null && !string.IsNullOrEmpty(profile.FotoProfil))
             {
+                // Hapus file fisik
+                string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profile", profile.FotoProfil);
+                if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
+
                 profile.FotoProfil = null;
                 await _context.SaveChangesAsync();
             }

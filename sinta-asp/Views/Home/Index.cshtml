@@ -17,15 +17,16 @@
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <div class="dropdown">
-                        <button class="btn btn-white shadow-sm border px-3 py-2 btn-sm fw-bold" type="button" data-bs-toggle="dropdown" style="border-radius: 4px;">
+                        <button class="btn btn-white shadow-sm border px-3 py-2 btn-sm fw-bold" type="button" style="border-radius: 4px;">
                             <i class="fas fa-user-circle me-1 text-primary"></i> @User.Identity.Name
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                        
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-0">
                             <li><a class="dropdown-item py-2 small" href="@Url.Action("Index", "DashboardPeserta")">Dashboard</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form asp-controller="Auth" asp-action="Logout" method="post">
-                                    <button type="submit" class="dropdown-item small text-danger">Keluar</button>
+                                    <button type="submit" class="dropdown-item small text-danger">Logout</button>
                                 </form>
                             </li>
                         </ul>

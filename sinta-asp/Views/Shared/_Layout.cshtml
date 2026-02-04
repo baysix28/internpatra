@@ -26,6 +26,25 @@
             background: white;
         }
 
+        /* Membuat dropdown muncul saat hover */
+        .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0; /* Menghilangkan celah agar tidak kedip saat kursor pindah ke menu */
+        }
+
+        /* Opsional: Memberi sedikit transisi agar lebih halus */
+        .dropdown-menu {
+            transition: all 0.3s ease;
+            opacity: 0;
+            display: block;
+            visibility: hidden;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+        }
+
         .logo-link {
             text-decoration: none;
             cursor: pointer;

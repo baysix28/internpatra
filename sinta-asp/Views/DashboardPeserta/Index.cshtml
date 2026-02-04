@@ -261,7 +261,7 @@
         <div class="dropdown mr-3">
             <div class="notification-btn" id="notiDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa-solid fa-bell text-muted"></i>
-                <div class="notification-badge-dot"></div>
+                @* <div class="notification-badge-dot"></div> *@
             </div>
             
             <div class="dropdown-menu dropdown-menu-right shadow border-0 p-0" style="width: 360px;">
@@ -273,7 +273,7 @@
                     <div class="tab-pane fade show active" id="pendaftaran">
                         <div class="list-group list-group-flush">
                             
-                            <div class="list-group-item p-3 border-bottom" style="background-color: #f0f9ff;">
+                            @* <div class="list-group-item p-3 border-bottom" style="background-color: #f0f9ff;">
                                 <div class="d-flex align-items-start">
                                     <div class="mr-3 mt-1">
                                         <i class="fa-solid fa-envelope-open-text text-primary" style="font-size: 20px;"></i>
@@ -286,9 +286,9 @@
                                         <small class="text-muted" style="font-size: 10px;">Baru saja</small>
                                     </div>
                                 </div>
-                            </div>
+                            </div> *@
 
-                            <div class="list-group-item p-3 border-bottom">
+                            @* <div class="list-group-item p-3 border-bottom">
                                 <div class="d-flex align-items-start">
                                     <div class="mr-3 mt-1">
                                         <i class="fa-solid fa-file-circle-check text-warning" style="font-size: 20px;"></i>
@@ -301,7 +301,7 @@
                                         <small class="text-muted" style="font-size: 10px;">2 jam yang lalu</small>
                                     </div>
                                 </div>
-                            </div>
+                            </div> *@
 
                         </div>
                     </div>
@@ -362,15 +362,25 @@
             <div class="row">
                 <div class="col-md-6 col-lg-4 mb-4">
                     <div class="glass-card">
-                        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 10px;">Aktivitas Terakhir</small>
+                        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 10px;">Pendaftaran</small>
                         <h4 class="font-weight-bold mt-2">Magang Industri</h4>
                         <div class="mt-auto pt-3">
                             <a href="javascript:void(0)" onclick="showPage('riwayat')" class="text-primary small font-weight-bold">Lihat detail →</a>
                         </div>
                     </div>
                 </div>
+
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="glass-card">
+                        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 10px;">Pendaftaran</small>
+                        <h4 class="font-weight-bold mt-2">Penelitian</h4>
+                        <div class="mt-auto pt-3">
+                            <a href="javascript:void(0)" onclick="showPage('riwayat')" class="text-primary small font-weight-bold">Lihat detail →</a>
+                        </div>
+                    </div>
+                </div>
                 
-                <div class="col-md-6 col-lg-5 mb-4">
+                @* <div class="col-md-6 col-lg-5 mb-4">
                     <div class="glass-card">
                         <div class="d-flex justify-content-between align-items-start">
                             <small class="text-muted font-weight-bold text-uppercase" style="font-size: 10px;">Status Verifikasi Data</small>
@@ -389,7 +399,7 @@
                             <p class="text-muted mt-2 mb-0" style="font-size: 10.5px;">Lengkapi profil Anda untuk verifikasi.</p>
                         </div>
                     </div>
-                </div>
+                </div> *@
             </div>
         </div>
         <div id="page-riwayat" class="page-section">
@@ -438,7 +448,7 @@
                     <h4 class="font-weight-bold" style="color: var(--p-blue);">Riwayat Pengajuan Riset</h4>
                     <p class="text-muted small">Pantau status pengajuan riset Anda secara real-time.</p>
                 </div>
-                <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue);" onclick="window.location.href='/PendaftaranRiset/DataRiset'">
+                <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue);" onclick="window.location.href='/Penelitian/Daftar'">
                     <i class="fa fa-plus mr-2"></i> Ajukan Riset Baru
                 </button>
             </div>
@@ -499,31 +509,46 @@
                 <div class="p-4">
                     <div class="d-flex align-items-center mb-4">
                         <div class="position-relative">
-                            <div id="avatarContainer" onclick="showPhotoOptions()" class="avatar-box mr-3" style="cursor: pointer; overflow: hidden; width: 80px; height: 80px;">
-                                @if (Model != null && !string.IsNullOrEmpty(Model.FotoProfil)) 
-                                {
-                                    <img src="/uploads/profile/@Model.FotoProfil" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">
-                                } 
-                                else 
-                                {
-                                    <span id="initialsText">
-                                        @{
-                                            var inisial = "??";
-                                            if (!string.IsNullOrEmpty(namaUser))
-                                            {
-                                                inisial = namaUser.Length >= 2 ? namaUser.Substring(0, 2).ToUpper() : namaUser.ToUpper();
+                            <div class="dropdown">
+                                <input type="file" id="fileInputFoto" style="display:none;" omaccept="image/*">
+                                <div id="avatarContainer" class="avatar-box mr-3 shadow-sm" 
+                                    style="cursor: pointer; overflow: hidden; width: 80px; height: 80px; border: 2px solid #e2e8f0;" 
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    
+                                    @if (Model != null && !string.IsNullOrEmpty(Model.FotoProfil)) 
+                                    {
+                                        <img src="/uploads/profile/@Model.FotoProfil" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">
+                                    } 
+                                    else 
+                                    {
+                                        <span id="initialsText">
+                                            @{
+                                                var inisial = "??";
+                                                if (!string.IsNullOrEmpty(namaUser))
+                                                {
+                                                    inisial = namaUser.Length >= 2 ? namaUser.Substring(0, 2).ToUpper() : namaUser.ToUpper();
+                                                }
                                             }
-                                        }
-                                        @inisial
-                                    </span>
-                                }
+                                            @inisial
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="dropdown-menu shadow border-0" style="border-radius: 12px; font-size: 14px; min-width: 160px; margin-top: 10px;">
+                                    <a class="dropdown-item py-2" href="javascript:void(0)" onclick="document.getElementById('fileInput').click()">
+                                        <i class="fa-solid fa-file-import mr-2 text-muted"></i> Pilih Foto
+                                    </a>
+                                    <a class="dropdown-item py-2" href="javascript:void(0)" onclick="viewPhoto()">
+                                        <i class="fa-solid fa-image mr-2 text-muted"></i> Lihat Foto
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="deletePhoto()">
+                                        <i class="fa-solid fa-trash-can mr-2"></i> Hapus Foto
+                                    </a>
+                                </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-light position-absolute shadow-sm" 
-                                    style="bottom: 0; right: 10px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;"
-                                    onclick="document.getElementById('fileInput').click()">
-                                <i class="fa-solid fa-camera text-primary" style="font-size: 12px;"></i>
-                            </button>
                         </div>
+                        
                         <div>
                             <h5 class="font-weight-bold mb-1">@namaUser</h5>
                             <div class="d-flex align-items-center">
@@ -536,7 +561,6 @@
                     </div>
 
                     <input type="file" id="fileInput" hidden accept="image/*" onchange="uploadPhoto(this)">
-
                     <hr class="my-4 opacity-50">
 
                     <div class="row">
@@ -571,7 +595,7 @@
                         <p class="text-muted small">Disarankan untuk mengganti kata sandi secara berkala untuk menjaga keamanan akun Anda.</p>
                     </div>
 
-                    <form id="securityForm" style="max-width: 500px;">
+                    <form id="securityForm" onsubmit="updatePassword(event)" style="max-width: 500px;">
                         <div class="mb-4">
                             <label class="label-custom">KATA SANDI SAAT INI</label>
                             <div class="input-group">
@@ -644,9 +668,23 @@
     }
 
     $(document).ready(function() {
+        const lastPage = localStorage.getItem('lastOpenedPage') || 'dashboard';
+        showPage(lastPage);
+
+        const activeTab = localStorage.getItem('activeProfileTab');
+        if (activeTab) {
+            // Aktifkan tab berdasarkan ID link-nya
+            $(`#${activeTab}`).tab('show');
+        }
+
+        // 2. Simpan tab ke LocalStorage setiap kali tab diklik
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            const tabId = $(e.target).attr('id');
+            localStorage.setItem('activeProfileTab', tabId);
+        });
+
         // Fungsi ketika tombol Edit Informasi diklik
         $('#btnEditInfo').on('click', function() {
-            // Cek apakah saat ini sedang readonly atau tidak
             const isReadOnly = $('#inputNama').prop('readonly');
 
             if (isReadOnly) {
@@ -667,34 +705,6 @@
                 $(this).html('<i class="fa-solid fa-pencil mr-1"></i> Edit Informasi');
                 $(this).removeClass('text-danger').addClass('text-muted');
             }
-        });
-
-        // 2. Handle Submit Ganti Password
-        $('#securityForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            // Cek konfirmasi password baru dulu di sisi client
-            if ($('#newPass').val() !== $('#confirmPass').val()) {
-                Swal.fire('Error', 'Konfirmasi password baru tidak cocok!', 'error');
-                return;
-            }
-
-            $.ajax({
-                url: '/DashboardPeserta/UpdatePassword', // Sesuaikan route-nya
-                type: 'POST',
-                data: {
-                    oldPass: $('#oldPass').val(),
-                    newPass: $('#newPass').val()
-                },
-                success: function(res) {
-                    if(res.success) {
-                        Swal.fire('Berhasil', 'Password diganti!', 'success');
-                    } else {
-                        // Ini akan memunculkan pesan kenapa password dianggap salah
-                        Swal.fire('Gagal', res.message, 'error'); 
-                    }
-                }
-            });
         });
     });
 
@@ -727,11 +737,11 @@
                 return;
             }
 
-            // 2. Preview Langsung
+            // 2. Preview Langsung di Browser
             const reader = new FileReader();
             reader.onload = function(e) {
                 const container = document.getElementById('avatarContainer');
-                container.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
+                container.innerHTML = `<img src="${e.target.result}" id="profileImage" style="width:100%; height:100%; object-fit:cover;">`;
             };
             reader.readAsDataURL(file);
 
@@ -739,35 +749,46 @@
             const formData = new FormData();
             formData.append("fotoProfil", file);
 
-            fetch('/Auth/UpdateFoto', { // Sesuaikan dengan Route Controller kamu
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Foto Terupdate!',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                    // Update juga foto kecil di Topbar jika ada
-                    document.querySelectorAll('.rounded-circle.shadow-sm.border').forEach(img => {
-                        img.src = `/uploads/profile/${data.fileName}?t=${new Date().getTime()}`;
-                    });
-                } else {
-                    Swal.fire('Gagal!', data.message, 'error');
+            @* // Tampilkan loading agar user tahu proses sedang berjalan
+            Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } }); *@
+
+            $.ajax({
+                url: '/DashboardPeserta/UpdateFoto',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if (res.success) {
+                        // Update semua elemen foto di halaman
+                        const newPath = res.filePath + '?t=' + new Date().getTime();
+                        
+                        // Update gambar profil utama dan navbar
+                        $('#profileImage, #navbarAvatar, .avatar-box img').attr('src', newPath);
+                    @* 
+                        Swal.fire({ 
+                            icon: 'success', 
+                            title: 'Berhasil!', 
+                            text: 'Foto profil diperbarui.', 
+                            timer: 1500, 
+                            showConfirmButton: false 
+                        }); *@
+                    } else {
+                        Swal.fire('Gagal!', res.message, 'error');
+                    }
+                },
+                error: function(err) {
+                    console.error("Error:", err);
+                    Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
                 }
-            })
-            .catch(err => console.error("Error:", err));
-        }
-    }
+            }); 
+        } 
+    } 
 
     function deletePhoto() {
         Swal.fire({
             title: 'Hapus foto?',
-            text: "Foto profil akan dikembalikan ke inisial nama.",
+            text: "Foto profil akan dihapus.",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Ya, Hapus'
@@ -776,6 +797,101 @@
                 $.post('/DashboardPeserta/DeleteFoto', function(res) {
                     if(res.success) location.reload();
                 });
+            }
+        });
+    }
+
+    // --- FUNGSI LIHAT FOTO ---
+    function viewPhoto() {
+        const photoUrl = $('#imgPreview').attr('src'); 
+        
+        console.log("Viewing photo from:", photoUrl);
+        if (!photoUrl || photoUrl.includes("default-avatar.png")) {
+            Swal.fire('Info', 'Anda belum mengunggah foto profil.', 'info');
+            return;
+        }
+        Swal.fire({
+            imageUrl: photoUrl,
+            imageAlt: 'Foto Profil',
+            showCloseButton: true,
+            showConfirmButton: false,
+            background: '#fff',
+            customClass: { image: 'rounded shadow-lg border' }
+        });
+    }
+
+    // --- FUNGSI PILIH FOTO ---
+    function selectPhoto() {
+        $('#fileInputFoto').click(); // Trigger klik pada input file tersembunyi
+    }
+
+    // Event listener saat file dipilih
+    $('#fileInputFoto').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            // 1. Tampilkan Loading
+            Swal.fire({ title: 'Mengunggah...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            // 2. Kirim ke Server pake FormData
+            const formData = new FormData();
+            formData.append('fotoProfil', file);
+
+            $.ajax({
+                url: '/Profile/UploadFoto', // Sesuaikan dengan Route Controller kamu
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if(res.success) {
+                        location.reload(); // Refresh untuk update foto di semua menu
+                    } else {
+                        Swal.fire('Gagal', res.message, 'error');
+                    }
+                }
+            });
+        }
+    });
+
+    function updatePassword(e) {
+        e.preventDefault(); 
+
+        const oldP = $('#oldPass').val();
+        const newP = $('#newPass').val();
+        const confirmP = $('#confirmPass').val();
+
+        if (!oldP || !newP || !confirmP) {
+            Swal.fire('Opps!', 'Semua kolom password wajib diisi.', 'warning');
+            return;
+        }
+
+        if (newP !== confirmP) {
+            Swal.fire('Error', 'Konfirmasi password tidak cocok!', 'error');
+            return;
+        }
+
+        Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        $.ajax({
+            url: '/DashboardPeserta/UpdatePassword',
+            type: 'POST',
+            data: { 
+                oldPass: oldP, 
+                newPass: newP,
+                // Token keamanan ASP.NET Core
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() 
+            },
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire('Berhasil!', 'Password diperbarui.', 'success');
+                    $('#securityForm')[0].reset(); 
+                } else {
+                    Swal.fire('Gagal!', res.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+                Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
             }
         });
     }
@@ -793,6 +909,8 @@
             'profil': 'Panel Peserta / Pengaturan Profil'
         };
         $('#page-breadcrumb').text(breadcrumbs[pageId]);
+
+        localStorage.setItem('lastOpenedPage', pageId);
     }
 
     function saveProfile() {
@@ -835,10 +953,13 @@
     }
 
     function handleLogout() {
-        Swal.fire({
-            title: 'Keluar?', text: "Sesi akan berakhir.", icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#ec1c24', confirmButtonText: 'Logout'
-        }).then((r) => { if (r.isConfirmed) window.location.href = '/Auth/Logout'; });
+        Swal.fire({title: 'Keluar?', text: "Sesi akan berakhir.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ec1c24', confirmButtonText: 'Logout'
+        }).then((r) => { 
+            if (r.isConfirmed) {
+                localStorage.removeItem('lastOpenedPage');
+                window.location.href = '/Auth/Logout'; 
+            }
+        });
     }
 </script>
 </body>
