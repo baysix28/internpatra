@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
+using sinta_asp.Models;
 using sinta_asp.Areas.Admin.Models;
-using System.Net;
-using System.Net.Mail;
+using sinta_asp.Services;
 using System.Globalization;
+using ClosedXML.Excel;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
@@ -13,11 +14,85 @@ namespace sinta_asp.Areas.Admin.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly IEmailService _emailService;
 
-        public MahasiswaController(AppDbContext context, IWebHostEnvironment env)
+        public MahasiswaController(AppDbContext context, IWebHostEnvironment env, IEmailService emailService)
         {
             _context = context;
             _env = env;
+            _emailService = emailService;
+        }
+
+        // --- METHOD UNTUK CEK MAHASISWA SELESAI HARI INI ---
+        [HttpGet]
+        public async Task<IActionResult> CheckCompletion()
+        {
+            try
+            {
+                var hariIni = DateTime.Today;
+                
+                var pesertaSelesai = await _context.PendaftaranMagang
+                    .Where(m => m.Status == "Diterima" && m.SelesaiMagang.Date == hariIni)
+                    .ToListAsync();
+
+                int emailTerkirim = 0;
+
+                foreach (var item in pesertaSelesai)
+                {
+                    // Simpan ke tabel Notifikasi agar muncul di lonceng (Type: expired)
+                    var existingNotif = await _context.Notifications
+                        .AnyAsync(n => n.ExternalId == item.Id.ToString() && n.Type == "expired");
+
+                    if (!existingNotif)
+                    {
+                        _context.Notifications.Add(new Notification
+                        {
+                            Nama = item.NamaLengkap,
+                            Lokasi = item.Region,
+                            Type = "expired",
+                            IsRead = false, 
+                            CreatedAt = DateTime.Now,
+                            ExternalId = item.Id.ToString()
+                        });
+                    }
+
+                    var admin = await _context.Admins.FirstOrDefaultAsync(a => 
+                        a.RegionManaged.ToLower().Trim() == item.Region.ToLower().Trim());
+
+                    if (admin != null)
+                    {
+                        await _emailService.SendCompletionNotificationToAdminAsync(
+                            admin.Email, 
+                            item.NamaLengkap, 
+                            item.Region
+                        );
+                        emailTerkirim++;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { 
+                    success = true, 
+                    message = $"{pesertaSelesai.Count} peserta selesai hari ini. {emailTerkirim} email notifikasi dikirim." 
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Gagal memproses notifikasi: " + ex.Message });
+            }
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var adminNama = HttpContext.Session.GetString("AdminNama");
+            if (string.IsNullOrEmpty(adminNama))
+                return RedirectToAction("Index", "Login", new { area = "Admin" });
+
+            var mahasiswa = await _context.PendaftaranMagang.FirstOrDefaultAsync(m => m.Id == id);
+            if (mahasiswa == null) return NotFound();
+
+            return View(mahasiswa);
         }
 
         public async Task<IActionResult> Index()
@@ -26,17 +101,7 @@ namespace sinta_asp.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(adminNama))
                 return RedirectToAction("Index", "Login", new { area = "Admin" });
 
-            // --- FILTER LOGIC (Sama dengan Dashboard) ---
-            var query = _context.PendaftaranMagang.AsQueryable();
-
-            if (adminNama == "Admin MOR I") query = query.Where(x => x.Region == "Regional Sumbagut");
-            else if (adminNama == "Admin MOR III") query = query.Where(x => x.Region == "Regional Jawa Bagian Barat");
-            else if (adminNama == "Admin MOR IV") query = query.Where(x => x.Region == "Regional Jawa Bagian Tengah");
-            else if (adminNama == "Admin MOR V") query = query.Where(x => x.Region == "Regional Jatimbalinus");
-            else if (adminNama == "Admin MOR VI") query = query.Where(x => x.Region == "Regional Kalimantan");
-            else if (adminNama == "Admin MOR VIII") query = query.Where(x => x.Region == "Regional Maluku Papua");
-            else if (adminNama == "Admin RU VI") query = query.Where(x => x.Region == "Refinery Unit VI Balongan");
-
+            var query = GetFilteredQuery(adminNama);
             var magang = await query.OrderByDescending(m => m.CreatedAt).ToListAsync();
 
             var viewModel = new DashboardModel
@@ -56,87 +121,147 @@ namespace sinta_asp.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, string status)
         {
-            try 
+            try
             {
                 var data = await _context.PendaftaranMagang.FindAsync(id);
-                if (data == null) 
-                    return Json(new { success = false, message = "Data tidak ditemukan." });
+                if (data == null)
+                    return Json(new { success = false, message = "Data mahasiswa tidak ditemukan." });
 
                 if (data.Status == status)
-                    return Json(new { success = true, message = "Status tidak berubah." });
+                    return Json(new { success = true, message = "Status sudah sesuai." });
 
                 data.Status = status;
+
+                // Tambahkan notifikasi update status
+                _context.Notifications.Add(new Notification
+                {
+                    Nama = data.NamaLengkap,
+                    Lokasi = data.Region,
+                    Type = "status_update",
+                    IsRead = false,
+                    CreatedAt = DateTime.Now,
+                    ExternalId = data.Id.ToString()
+                });
+
                 await _context.SaveChangesAsync();
 
-                // Kirim email hanya jika status Diterima/Ditolak
                 if (status == "Diterima" || status == "Ditolak")
                 {
-                    // Jangan pakai 'await' di sini jika ingin proses UI lebih cepat 
-                    // (Fire and Forget) atau tetap pakai await agar yakin terkirim.
-                    await KirimEmailNotifikasi(data, status);
+                    try 
+                    {
+                        await KirimEmailNotifikasi(data, status);
+                    }
+                    catch (Exception emailEx)
+                    {
+                        return Json(new { 
+                            success = true, 
+                            message = "Status terupdate, tapi EMAIL GAGAL: " + emailEx.Message 
+                        });
+                    }
                 }
-                
-                return Json(new { success = true });
+
+                return Json(new { success = true, message = "Status diperbarui, notifikasi dibuat, dan email terkirim." });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error: " + ex.Message });
+                return Json(new { success = false, message = "Terjadi kesalahan: " + ex.Message });
             }
         }
 
-        private async Task KirimEmailNotifikasi(dynamic mhs, string status)
+        // Logic baru untuk menangkap pendaftar baru hari ini (Biasanya dipanggil saat submit form pendaftaran)
+        // Namun sebagai pengaman, logic notifikasi "new" biasanya diletakkan di DashboardController 
+        // atau saat entitas Magang pertama kali dibuat.
+
+        private async Task KirimEmailNotifikasi(Magang mhs, string status)
         {
-            try
+            var admin = await _context.Admins.FirstOrDefaultAsync(a => 
+                a.RegionManaged.ToLower().Trim() == mhs.Region.ToLower().Trim());
+
+            if (admin == null) 
+                throw new Exception($"Admin untuk region '{mhs.Region}' tidak ditemukan.");
+
+            string root = _env.WebRootPath;
+            string pathHtml = Path.Combine(root, "templates", status == "Diterima" ? "EmailDiterima.html" : "EmailDitolak.html");
+            string pathTxt = Path.Combine(root, "templates", "raw", status == "Diterima" ? "Diterima.txt" : "Ditolak.txt");
+
+            if (!System.IO.File.Exists(pathHtml) || !System.IO.File.Exists(pathTxt))
+                throw new Exception("File template email (HTML/TXT) tidak ditemukan.");
+
+            var culture = new CultureInfo("id-ID");
+            string isiPesan = await System.IO.File.ReadAllTextAsync(pathTxt);
+            isiPesan = isiPesan.Replace("{Nama}", mhs.NamaLengkap)
+                               .Replace("{Region}", mhs.Region)
+                               .Replace("{Unit}", mhs.Jurusan ?? "-")
+                               .Replace("{TanggalMulai}", mhs.MulaiMagang.ToString("dd MMMM yyyy", culture))
+                               .Replace("{TanggalSelesai}", mhs.SelesaiMagang.ToString("dd MMMM yyyy", culture));
+
+            string htmlBody = await System.IO.File.ReadAllTextAsync(pathHtml);
+            htmlBody = htmlBody.Replace("{IsiPesan}", isiPesan)
+                               .Replace("{Tahun}", DateTime.Now.Year.ToString());
+
+            await _emailService.SendAsAdminAsync(
+                admin.Email, 
+                admin.SmtpPassword, 
+                mhs.EmailPribadi, 
+                status == "Diterima" ? "Selamat! Seleksi Magang Diterima" : "Informasi Seleksi Magang",
+                htmlBody,
+                "HC Pertamina - " + admin.RegionManaged
+            );
+        }
+
+        private IQueryable<Magang> GetFilteredQuery(string adminNama)
+        {
+            var query = _context.PendaftaranMagang.AsQueryable();
+            var regionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                string fileName = status == "Diterima" ? "EmailDiterima.html" : "EmailDitolak.html";
-                string pathToFile = Path.Combine(_env.WebRootPath, "templates", fileName);
+                { "Admin MOR I", "Regional Sumbagut" },
+                { "Admin MOR III", "Regional Jawa Bagian Barat" },
+                { "Admin MOR IV", "Regional Jawa Bagian Tengah" },
+                { "Admin MOR V", "Regional Jatimbalinus" },
+                { "Admin MOR VI", "Regional Kalimantan" },
+                { "Admin MOR VIII", "Regional Maluku Papua" },
+                { "Admin RU VI", "Refinery Unit VI Balongan" }
+            };
 
-                string body = "";
-                if (System.IO.File.Exists(pathToFile))
-                {
-                    body = await System.IO.File.ReadAllTextAsync(pathToFile);
-                }
-                else
-                {
-                    body = $"<p>Halo {mhs.NamaLengkap}, lamaran Anda dinyatakan: <b>{status}</b></p>";
-                }
-
-                var cultureInfo = new CultureInfo("id-ID");
-                string tglMulai = mhs.MulaiMagang != null ? ((DateTime)mhs.MulaiMagang).ToString("dd MMMM yyyy", cultureInfo) : "-";
-                string tglSelesai = mhs.SelesaiMagang != null ? ((DateTime)mhs.SelesaiMagang).ToString("dd MMMM yyyy", cultureInfo) : "-";
-
-                // Replace Placeholder
-                body = body.Replace("{Nama}", mhs.NamaLengkap)
-                           .Replace("{Unit}", mhs.UnitKerja ?? mhs.Jurusan ?? "-") // Mengambil Unit atau Jurusan
-                           .Replace("{Lokasi}", mhs.Region ?? "-")
-                           .Replace("{TanggalMulai}", tglMulai)
-                           .Replace("{TanggalSelesai}", tglSelesai)
-                           .Replace("{Tahun}", DateTime.Now.Year.ToString());
-
-                // --- KONFIGURASI SMTP ---
-                string senderEmail = "email-anda@gmail.com"; 
-                string senderPass = "xxxx xxxx xxxx xxxx"; // Masukkan App Password Anda
-
-                using (var message = new MailMessage())
-                {
-                    message.From = new MailAddress(senderEmail, "Pertamina Internship");
-                    message.To.Add(new MailAddress(mhs.EmailPribadi));
-                    message.Subject = status == "Diterima" ? "Selamat! Anda Diterima Magang" : "Informasi Seleksi Magang";
-                    message.Body = body;
-                    message.IsBodyHtml = true;
-
-                    using (var smtp = new SmtpClient("smtp.gmail.com", 587))
-                    {
-                        smtp.Credentials = new NetworkCredential(senderEmail, senderPass);
-                        smtp.EnableSsl = true;
-                        await smtp.SendMailAsync(message);
-                    }
-                }
+            if (regionMap.ContainsKey(adminNama))
+            {
+                var targetRegion = regionMap[adminNama];
+                query = query.Where(x => x.Region == targetRegion);
             }
-            catch (Exception ex)
+            return query;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportMahasiswa()
+        {
+            var adminNama = HttpContext.Session.GetString("AdminNama");
+            if (string.IsNullOrEmpty(adminNama)) return Unauthorized();
+            var data = await GetFilteredQuery(adminNama).ToListAsync();
+
+            using (var workbook = new XLWorkbook())
             {
-                // Log error ke Console agar bisa dicek di Output Visual Studio
-                System.Diagnostics.Debug.WriteLine("Email Error: " + ex.Message);
+                var worksheet = workbook.Worksheets.Add("Daftar Mahasiswa");
+                string[] headers = { "NIM", "Nama Lengkap", "Email", "No HP", "Universitas", "Fakultas", "Jurusan", "Company", "Lokasi", "Mulai Magang", "Selesai Magang", "Status" };
+                for (int i = 0; i < headers.Length; i++) worksheet.Cell(1, i + 1).Value = headers[i];
+
+                int row = 2;
+                foreach (var item in data)
+                {
+                    worksheet.Cell(row, 1).Value = item.NIM;
+                    worksheet.Cell(row, 2).Value = item.NamaLengkap;
+                    worksheet.Cell(row, 3).Value = item.EmailPribadi;
+                    worksheet.Cell(row, 10).Value = item.MulaiMagang.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 11).Value = item.SelesaiMagang.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 12).Value = item.Status;
+                    row++;
+                }
+                
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Data_Mahasiswa_{DateTime.Now:yyyyMMdd}.xlsx");
+                }
             }
         }
     }

@@ -32,7 +32,6 @@
         background: #f8fafc; resize: vertical; transition: var(--transition);
         font-family: 'Plus Jakarta Sans', sans-serif;
     }
-    /* Style saat mode edit aktif */
     .textarea-editor.editing { background: #fff; border-color: var(--p-blue); color: #1e293b; }
     .textarea-editor:disabled { cursor: not-allowed; opacity: 0.8; }
 
@@ -46,6 +45,9 @@
     .btn-save-red { background: var(--p-red); color: white; display: none; }
 
     .var-pill { background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
+    
+    /* Tambahan agar judul benar-benar bold */
+    .fw-800 { font-weight: 800 !important; }
 </style>
 
 <div class="dashboard-wrapper">
@@ -54,18 +56,12 @@
             <h3 class="title-bold mb-0">Format Konfirmasi Email</h3>
             <p class="text-muted small mb-0">Portal Kendali <span class="fw-bold text-danger">Internship Pertamina</span></p>
         </div>
-        <div class="d-flex gap-2 mb-1">
-            <span class="var-pill">{Nama}</span>
-            <span class="var-pill">{Unit}</span>
-            <span class="var-pill">{TanggalMulai}</span>
         </div>
-    </div>
 
     <div class="editor-card">
         <div class="card-header-premium">
             <div class="d-flex align-items-center gap-2">
-                <i class="fas fa-check-circle text-success"></i>
-                <span class="fw-800 text-uppercase small letter-spacing-1">Email Penerimaan (Diterima)</span>
+                <span class="fw-800 text-uppercase small letter-spacing-1" style="color: var(--p-blue);">Email Penerimaan (Diterima)</span>
             </div>
             <div class="d-flex gap-2">
                 <button id="btnEditDiterima" class="btn-action btn-edit" onclick="enableEdit('Diterima')">
@@ -85,8 +81,7 @@
     <div class="editor-card">
         <div class="card-header-premium">
             <div class="d-flex align-items-center gap-2">
-                <i class="fas fa-times-circle text-danger"></i>
-                <span class="fw-800 text-uppercase small letter-spacing-1">Email Penolakan (Ditolak)</span>
+                <span class="fw-800 text-uppercase small letter-spacing-1" style="color: var(--p-red);">Email Penolakan (Ditolak)</span>
             </div>
             <div class="d-flex gap-2">
                 <button id="btnEditDitolak" class="btn-action btn-edit" onclick="enableEdit('Ditolak')">
@@ -108,7 +103,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // 1. Fungsi Aktifkan Mode Edit
     function enableEdit(type) {
         $(`#text${type}`).prop('disabled', false).addClass('editing').focus();
         $(`#btnEdit${type}`).hide();
@@ -125,22 +119,14 @@
         });
     }
 
-    // 2. Simpan Template
     function saveTemplate(type) {
         const textContent = $(`#text${type}`).val();
-        
-        // SINKRONISASI: Karena kita hanya edit teks biasa, 
-        // kita kirim content teks ini ke controller. 
-        // Controller/Service nanti yang bertugas membungkusnya ke HTML Frame.
-        
         const btn = $(`#btnSave${type}`);
         btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Memproses...');
 
         $.post('/Admin/EmailTemplate/SaveTemplate', { type: type, content: textContent }, function (res) {
             if (res.success) {
                 Swal.fire({ icon: 'success', title: 'Berhasil Diperbarui', showConfirmButton: false, timer: 1500 });
-                
-                // Kembalikan ke mode Read-Only
                 $(`#text${type}`).prop('disabled', true).removeClass('editing');
                 $(`#btnSave${type}`).hide();
                 $(`#btnEdit${type}`).fadeIn();
@@ -151,10 +137,8 @@
         });
     }
 
-    // Otomatis sinkronisasi konten HTML (Buffer) jika user mengetik
-    // Ini memastikan jika suatu saat Anda butuh data HTML di Client-Side, datanya sudah update
     $('textarea[id^="text"]').on('input', function() {
         const type = this.id.replace('text', '');
         $(`#html${type}`).val($(this).val());
     });
-</script>        
+</script>

@@ -22,6 +22,9 @@ namespace sinta_asp.Areas.Admin.Models
         public List<string> TopJurusanLabels { get; set; } = new();
         public List<int> TopJurusanCounts { get; set; } = new();
 
+        public List<string> KampusLabels { get; set; } = new();
+        public List<int> KampusCounts { get; set; } = new();
+
         public List<string> WeeklyLabels { get; set; } = new();
         public List<int> WeeklyCounts { get; set; } = new();
         public List<string> MonthlyLabels { get; set; } = new();

@@ -1,8 +1,8 @@
-Yth. Sdr/i {Nama},
+﻿Yth. Sdr/i {Nama},
 
 Menindaklanjuti pengajuan MAGANG KERJA Anda di PT Pertamina Patra Niaga Regional Jawa Bagian Tengah sebelumnya, bersama ini dapat kami sampaikan bahwa Anda dinyatakan:
 
-DITERIMA
+                                                                                                                                           DITERIMA
 
 Perlu disampaikan bahwa selama pelaksanaan kegiatan magang / praktek kerja pada tanggal {TanggalMulai} - {TanggalSelesai} di Kantor Unit - {Unit}, PT Pertamina Patra Niaga Regional Jawa Bagian Tengah tidak menyediakan/memberikan fasilitas berupa transportasi, akomodasi, makan dan biaya atau fasilitas lainnya kepada mahasiswa. 
 

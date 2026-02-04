@@ -30,27 +30,31 @@ namespace sinta_asp.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult SaveTemplate(string type, string content)
+        public async Task<IActionResult> SaveTemplate(string type, string content)
         {
             try
             {
-                // Menentukan apakah yang disimpan teks murni (raw) atau kode HTML
-                // Jika tipenya mengandung 'Html', simpan ke file .html
+                string fileName;
+                string subFolder = "";
+
                 if (type.EndsWith("Html"))
                 {
                     string realType = type.Replace("Html", "");
-                    string fileName = realType == "Diterima" ? "EmailDiterima.html" : "EmailDitolak.html";
-                    string path = Path.Combine(_env.WebRootPath, "templates", fileName);
-                    System.IO.File.WriteAllText(path, content);
+                    fileName = realType == "Diterima" ? "EmailDiterima.html" : "EmailDitolak.html";
                 }
                 else
                 {
-                    // Simpan ke teks murni (raw) agar admin awam mudah mengedit
-                    string fileName = type == "Diterima" ? "Diterima.txt" : "Ditolak.txt";
-                    string path = Path.Combine(_env.WebRootPath, "templates", "raw", fileName);
-                    System.IO.File.WriteAllText(path, content);
+                    subFolder = "raw";
+                    fileName = type == "Diterima" ? "Diterima.txt" : "Ditolak.txt";
                 }
 
+                string path = Path.Combine(_env.WebRootPath, "templates", subFolder, fileName);
+                
+                // Pastikan direktori ada
+                string directory = Path.GetDirectoryName(path);
+                if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
+
+                await System.IO.File.WriteAllTextAsync(path, content, System.Text.Encoding.UTF8);
                 return Json(new { success = true });
             }
             catch (Exception ex)

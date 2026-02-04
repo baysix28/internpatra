@@ -11,7 +11,6 @@ namespace sinta_asp.Data
         }
 
         // ===== USER / ADMIN =====
-        public DbSet<Mahasiswa> Mahasiswa { get; set; }
         public DbSet<Admin> Admins { get; set; }
 
         // ===== PENDAFTARAN =====
@@ -19,5 +18,15 @@ namespace sinta_asp.Data
 
         // ===== MAGANG =====
         public DbSet<Magang> PendaftaranMagang { get; set; }
+
+        // ===== NOTIFIKASI =====
+        // Tambahkan ini agar Controller bisa mengakses tabel Notifications
+        public DbSet<Notification> Notifications { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            
+        }
     }
 }

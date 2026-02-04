@@ -5,6 +5,8 @@
     ViewData["Title"] = "Manajemen Mahasiswa Magang";
 }
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -16,7 +18,7 @@
     }
 
     body { background-color: var(--p-bg); font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; }
-    .dashboard-wrapper { padding: 1.2rem 1.8rem; }
+    .dashboard-wrapper { padding: 1.2rem 1.8rem; margin-top: -20px; }
     .title-bold { font-weight: 800; color: var(--p-blue); letter-spacing: -0.8px; font-size: 1.5rem; }
 
     /* --- Stat Cards --- */
@@ -50,8 +52,18 @@
     .status-Ditolak { background: #fee2e2; color: #991b1b; }
     .status-Menunggu { background: #fef3c7; color: #92400e; }
 
-    .btn-pertamina { background: var(--p-blue); color: white; border: none; font-weight: 700; border-radius: 8px; padding: 6px 14px; font-size: 0.75rem; transition: var(--transition); }
-    .btn-pertamina:disabled { opacity: 0.7; cursor: not-allowed; }
+    .btn-pertamina { 
+        background: var(--p-blue); 
+        color: white; 
+        border: none; 
+        font-weight: 700; 
+        border-radius: 6px; 
+        padding: 5px 12px; 
+        font-size: 0.7rem; 
+        transition: var(--transition);
+        white-space: nowrap;
+    }
+    .btn-pertamina:hover { background: #00447a; }
     .user-avatar-list { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
 
     /* --- MODAL DETAIL --- */
@@ -65,52 +77,36 @@
         width: 110px; height: 110px; border-radius: 50% !important; 
         object-fit: cover; border: 5px solid rgba(255,255,255,0.2); 
         background: white; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        cursor: pointer; transition: transform 0.2s;
     }
+    .profile-circle-frame:hover { transform: scale(1.05); }
     .header-text-info h2 { font-weight: 800; font-size: 1.8rem; margin: 0; letter-spacing: -0.5px; }
     .status-pill-modal {
         display: inline-block; width: fit-content; padding: 4px 15px; border-radius: 50px;
         font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-top: 5px;
     }
 
-    /* --- ACTION AREA & DROPDOWN --- */
+    /* --- ACTION AREA --- */
     .action-area { background: #f8fafc; padding: 25px 40px; border-top: 1px solid #e2e8f0; }
-    
-    .dropdown-menu {
-        border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border-radius: 15px; padding: 10px;
-        min-width: 220px; animation: dropdownFade 0.25s ease-out;
-    }
-    @@keyframes dropdownFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .dropdown-item {
-        border-radius: 10px; padding: 10px 15px; font-size: 0.85rem; font-weight: 600;
-        color: #475569; transition: var(--transition); display: flex; align-items: center; margin-bottom: 2px;
-    }
-    .dropdown-item:hover { background-color: #f1f5f9; color: var(--p-blue); transform: translateX(5px); }
-    
     .btn-outline-modern {
         border: 1.5px solid #e2e8f0; background: white; color: #475569;
         padding: 10px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; transition: var(--transition);
     }
-    .btn-outline-modern:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
-
     .btn-primary-modern {
         background: var(--p-blue); color: white; border: none;
         padding: 10px 25px; border-radius: 12px; font-size: 0.85rem; font-weight: 700;
         box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2); transition: var(--transition);
     }
-    .btn-primary-modern:hover { background: #00447a; transform: translateY(-2px); color: white; }
-
     .btn-danger-light {
         background: #fff; color: #dc2626; border: 1.5px solid #fee2e2;
         padding: 10px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; transition: var(--transition);
     }
-    .btn-danger-light:hover { background: #fef2f2; border-color: #fca5a5; }
 
-    /* Other Detail UI */
     .detail-body { padding: 40px; background: #fff; }
     .info-card-premium { background: #f8fafc; border-radius: 16px; padding: 20px; height: 100%; border: 1px solid #eef2f6; }
     .info-label { color: #94a3b8; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
     .info-value { color: #1e293b; font-weight: 700; font-size: 0.95rem; margin-bottom: 15px; }
+    
     .doc-link {
         display: flex; align-items: center; justify-content: space-between;
         padding: 14px 18px; background: #fff; border-radius: 12px;
@@ -119,9 +115,10 @@
     }
     .doc-link:hover { border-color: var(--p-blue); background: #f0f7ff; }
 
-    /* Custom SweetAlert Style to match Pertamina Blue */
-    .swal2-confirm { background-color: var(--p-blue) !important; border-radius: 10px !important; padding: 10px 25px !important; }
-    .swal2-cancel { border-radius: 10px !important; }
+    .row-highlight {
+        background-color: rgba(0, 84, 155, 0.08) !important;
+        transition: background-color 2s ease;
+    }
 </style>
 
 <div class="dashboard-wrapper">
@@ -130,14 +127,16 @@
             <h3 class="title-bold mb-0">Manajemen Mahasiswa</h3>
             <p class="text-muted small mb-0">Portal Kendali <span class="fw-bold text-danger">Internship Pertamina</span></p>
         </div>
-        <button class="btn btn-pertamina" style="background: #64748b;"><i class="fas fa-file-csv me-1"></i> Export Data</button>
+        <button class="btn btn-pertamina shadow-sm" style="background: #10b981; padding: 8px 16px; font-size: 0.8rem;" onclick="exportExcel()">
+            <i class="fas fa-file-excel me-1"></i> Export Excel
+        </button>
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="stat-card active" data-status="all" id="card-all" onclick="filterByStatus('all', 'card-all')"><div class="icon-box bg-light-blue"><i class="fas fa-user-group"></i></div><div><div class="stat-label">Total Pendaftar</div><div class="stat-value">@Model.DaftarMagang.Count</div></div></div></div>
-        <div class="col-md-3"><div class="stat-card" data-status="Menunggu" id="card-proses" onclick="filterByStatus('Menunggu', 'card-proses')"><div class="icon-box bg-light-orange"><i class="fas fa-hourglass-half"></i></div><div><div class="stat-label">Menunggu</div><div class="stat-value">@Model.StatusDiproses</div></div></div></div>
-        <div class="col-md-3"><div class="stat-card" data-status="Diterima" id="card-terima" onclick="filterByStatus('Diterima', 'card-terima')"><div class="icon-box bg-light-green"><i class="fas fa-check-double"></i></div><div><div class="stat-label">Diterima</div><div class="stat-value">@Model.StatusDiterima</div></div></div></div>
-        <div class="col-md-3"><div class="stat-card" data-status="Ditolak" id="card-tolak" onclick="filterByStatus('Ditolak', 'card-tolak')"><div class="icon-box bg-light-red"><i class="fas fa-user-xmark"></i></div><div><div class="stat-label">Ditolak</div><div class="stat-value">@Model.StatusDitolak</div></div></div></div>
+        <div class="col-md-3"><div class="stat-card active" data-status="all" id="card-all" onclick="filterByStatus('all', 'card-all')"><div class="icon-box bg-light-blue"><i class="fas fa-user-group"></i></div><div><div class="stat-label">Total Pendaftar</div><div class="stat-value" id="val-all">@Model.DaftarMagang.Count</div></div></div></div>
+        <div class="col-md-3"><div class="stat-card" data-status="Menunggu" id="card-proses" onclick="filterByStatus('Menunggu', 'card-proses')"><div class="icon-box bg-light-orange"><i class="fas fa-hourglass-half"></i></div><div><div class="stat-label">Menunggu</div><div class="stat-value" id="val-proses">@Model.StatusDiproses</div></div></div></div>
+        <div class="col-md-3"><div class="stat-card" data-status="Diterima" id="card-terima" onclick="filterByStatus('Diterima', 'card-terima')"><div class="icon-box bg-light-green"><i class="fas fa-check-double"></i></div><div><div class="stat-label">Diterima</div><div class="stat-value" id="val-terima">@Model.StatusDiterima</div></div></div></div>
+        <div class="col-md-3"><div class="stat-card" data-status="Ditolak" id="card-tolak" onclick="filterByStatus('Ditolak', 'card-tolak')"><div class="icon-box bg-light-red"><i class="fas fa-user-xmark"></i></div><div><div class="stat-label">Ditolak</div><div class="stat-value" id="val-tolak">@Model.StatusDitolak</div></div></div></div>
     </div>
 
     <div class="main-table-card">
@@ -157,7 +156,7 @@
                 </thead>
                 <tbody>
                     @foreach (var m in Model.DaftarMagang) {
-                        <tr class="magang-row" data-status="@m.Status">
+                        <tr class="magang-row" data-status="@m.Status" id="row-@m.Id">
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
                                     @{
@@ -187,7 +186,9 @@
         <div class="modal-content">
             <div class="modal-header-premium">
                 <div class="header-flex-container">
-                    <img id="d-foto" src="/img/default-user.png" class="profile-circle-frame">
+                    <a id="d-foto-link" target="_blank">
+                        <img id="d-foto" src="/img/default-user.png" class="profile-circle-frame" title="Klik untuk lihat foto asli">
+                    </a>
                     <div class="header-text-info">
                         <div id="d-status-badge-container"></div>
                         <h2 id="d-nama"></h2>
@@ -202,7 +203,12 @@
                         <div class="info-label"><i class="fas fa-id-card me-2"></i>Kontak & Pribadi</div>
                         <div class="info-card-premium">
                             <div class="info-label">Email</div><div id="d-email" class="info-value"></div>
-                            <div class="info-label">WhatsApp</div><div id="d-hp" class="info-value"></div>
+                            <div class="info-label">WhatsApp</div>
+                            <div class="info-value">
+                                <a id="d-hp-link" target="_blank" style="color: #1e293b; text-decoration: none;">
+                                    <span id="d-hp"></span>
+                                </a>
+                            </div>
                             <div class="info-label">Tempat, Tgl Lahir</div><div class="info-value"><span id="d-tempat"></span>, <span id="d-tgl-lahir"></span></div>
                             <div class="info-label">Instagram</div>
                             <div class="info-value">
@@ -231,42 +237,18 @@
             <div class="action-area">
                 <input type="hidden" id="d-id">
                 <div id="detail-actions" class="d-flex justify-content-between align-items-center w-100">
-                    
                     <div class="dropdown">
                         <button type="button" class="btn btn-outline-modern dropdown-toggle" id="dropdownStatus" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-sliders-h me-2"></i> Kelola Status
                         </button>
                         <ul class="dropdown-menu shadow-lg border-0" aria-labelledby="dropdownStatus">
-                            <li class="px-3 py-2 small text-muted text-uppercase fw-800" style="font-size: 0.6rem; letter-spacing: 1px;">Opsi Perubahan</li>
-                            <li><hr class="dropdown-divider mx-2"></li>
-                            <li>
-                                <a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus('Menunggu')">
-                                    <span class="icon-box bg-light-orange me-2" style="width:28px; height:28px; font-size: 0.7rem;"><i class="fas fa-hourglass-half"></i></span>
-                                    Set ke Menunggu
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus('Diterima')">
-                                    <span class="icon-box bg-light-green me-2" style="width:28px; height:28px; font-size: 0.7rem;"><i class="fas fa-check"></i></span>
-                                    Set ke Diterima
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus('Ditolak')">
-                                    <span class="icon-box bg-light-red me-2" style="width:28px; height:28px; font-size: 0.7rem;"><i class="fas fa-times"></i></span>
-                                    Set ke Ditolak
-                                </a>
-                            </li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus('Diterima')">Set ke Diterima</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus('Ditolak')">Set ke Ditolak</a></li>
                         </ul>
                     </div>
-
                     <div id="quick-actions">
-                        <button id="btn-tolak-quick" onclick="updateStatus('Ditolak')" class="btn btn-danger-light fw-bold me-2">
-                            <i class="fas fa-user-times me-2"></i>Tolak
-                        </button>
-                        <button id="btn-terima-quick" onclick="updateStatus('Diterima')" class="btn btn-primary-modern">
-                            <i class="fas fa-user-check me-2"></i>Terima Mahasiswa
-                        </button>
+                        <button id="btn-tolak-quick" onclick="updateStatus('Ditolak')" class="btn btn-danger-light fw-bold me-2"><i class="fas fa-user-times me-2"></i>Tolak</button>
+                        <button id="btn-terima-quick" onclick="updateStatus('Diterima')" class="btn btn-primary-modern"><i class="fas fa-user-check me-2"></i>Terima Mahasiswa</button>
                     </div>
                 </div>
             </div>
@@ -279,7 +261,75 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // Pencarian Tabel
+    $(document).ready(function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const highlightId = urlParams.get('highlightId');
+
+        if (highlightId) {
+            const targetRow = $(`#row-${highlightId}`);
+            if (targetRow.length) {
+                $('html, body').animate({
+                    scrollTop: targetRow.offset().top - 150
+                }, 800);
+
+                targetRow.addClass('row-highlight');
+                setTimeout(function () {
+                    targetRow.removeClass('row-highlight');
+                }, 3000);
+            }
+        }
+    });
+
+    function exportExcel() {
+        const rawData = @Html.Raw(JsonSerializer.Serialize(Model.DaftarMagang));
+        if (!rawData || rawData.length === 0) {
+            Swal.fire('Data Kosong', 'Tidak ada data untuk diexport', 'warning');
+            return;
+        }
+
+        const baseUrl = window.location.origin;
+
+        const mappedData = rawData.map((m, index) => {
+            const tglLahir = m.TanggalLahir ? new Date(m.TanggalLahir).toLocaleDateString('id-ID') : "-";
+            const mulai = m.MulaiMagang ? new Date(m.MulaiMagang).toLocaleDateString('id-ID') : "-";
+            const selesai = m.SelesaiMagang ? new Date(m.SelesaiMagang).toLocaleDateString('id-ID') : "-";
+            const terdaftar = m.CreatedAt ? new Date(m.CreatedAt).toLocaleString('id-ID') : "-";
+
+            return {
+                "No": index + 1,
+                "Waktu Mendaftar": terdaftar,
+                "Nama Lengkap": m.NamaLengkap,
+                "NIM": m.NIM,
+                "Email": m.EmailPribadi,
+                "No HP/WA": m.NoHp,
+                "Tempat Lahir": m.TempatLahir,
+                "Tanggal Lahir": tglLahir,
+                "Instagram": m.Instagram,
+                "Universitas": m.NamaPerguruanTinggi,
+                "Fakultas": m.Fakultas,
+                "Jurusan": m.Jurusan,
+                "Company": m.Company,
+                "Region": m.Region,
+                "Lokasi Penempatan": m.Lokasi,
+                "Rekomendasi Pegawai": m.RekomendasiPegawai || "-",
+                "Periode Mulai": mulai,
+                "Periode Selesai": selesai,
+                "Status": m.Status,
+                "Link Foto": m.FotoProfil ? baseUrl + "/uploads/foto/" + m.FotoProfil.split('/').pop() : "-",
+                "Link CV": m.FileCv ? baseUrl + "/uploads/cv/" + m.FileCv.split('/').pop() : "-",
+                "Link Surat Pengantar": m.FileSuratPengantar ? baseUrl + "/uploads/surat/" + m.FileSuratPengantar.split('/').pop() : "-",
+                "Link Proposal": m.FileProposal ? baseUrl + "/uploads/proposal/" + m.FileProposal.split('/').pop() : "-"
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(mappedData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Lengkap Mahasiswa");
+        
+        const dateStr = new Date().toISOString().slice(0,10);
+        XLSX.writeFile(workbook, `Rekap_Mahasiswa_Magang_${dateStr}.xlsx`);
+    }
+
     $("#tableSearch").on("keyup", function() {
         const value = $(this).val().toLowerCase();
         $("#magangTable tbody tr").filter(function() {
@@ -287,38 +337,47 @@
         });
     });
 
-    // Filter Stats
     function filterByStatus(status, cardId) {
         $(".stat-card").removeClass("active");
-        $("#" + cardId).addClass("active");
-        const searchText = $("#tableSearch").val().toLowerCase();
+         $("#" + cardId).addClass("active");
         $(".magang-row").each(function() {
-            const matchStatus = (status === 'all' || $(this).data("status") === status);
-            const matchSearch = $(this).text().toLowerCase().includes(searchText);
-            $(this).toggle(matchStatus && matchSearch);
+            const match = (status === 'all' || $(this).attr("data-status") === status);
+            $(this).toggle(match);
         });
     }
 
-    // Modal Details Loader
     function showDetail(data) {
         $("#d-id").val(data.Id || data.id);
         $("#d-nama").text(data.NamaLengkap || data.namaLengkap);
         $("#d-created-at").text(formatDate(data.CreatedAt || data.createdAt));
         
         const st = data.Status || data.status;
-        $("#d-status-badge-container").html(`<span class="status-pill-modal status-${st}">${st}</span>`);
+        updateModalStatusUI(st);
         
         const pf = data.FotoProfil || data.fotoProfil;
-        $("#d-foto").attr("src", pf ? "/uploads/foto/" + pf.split('/').pop() : "/img/default-user.png");
+        const finalFoto = pf ? "/uploads/foto/" + pf.split('/').pop() : "/img/default-user.png";
+        $("#d-foto").attr("src", finalFoto);
+        $("#d-foto-link").attr("href", finalFoto);
 
         $("#d-email").text(data.EmailPribadi || data.emailPribadi);
-        $("#d-hp").text(data.NoHp || "-");
+        
+        const rawHp = data.NoHp || "";
+        let cleanHp = rawHp.replace(/\D/g, '');
+        if (cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.slice(1);
+        
+        $("#d-hp").text(rawHp || "-");
+        if(cleanHp) {
+            $("#d-hp-link").attr("href", `https://wa.me/${cleanHp}`).css("cursor", "pointer");
+        } else {
+            $("#d-hp-link").removeAttr("href").css("cursor", "default");
+        }
+
         $("#d-tempat").text(data.TempatLahir || "-");
         $("#d-tgl-lahir").text(formatDate(data.TanggalLahir));
         
         let rawIg = (data.Instagram || "").replace(/@@/g, '').trim();
         $("#d-ig-text").text(rawIg || "-");
-        rawIg && rawIg !== "-" ? $("#d-ig-link").attr("href", "https://instagram.com/" + rawIg).show() : $("#d-ig-link").hide();
+        $("#d-ig-link").attr("href", rawIg ? `https://instagram.com/${rawIg}` : "#");
         
         $("#d-univ").text(data.NamaPerguruanTinggi || "-");
         $("#d-nim").text(data.NIM || "-");
@@ -332,10 +391,12 @@
         $("#link-surat").attr("href", "/uploads/surat/" + (data.FileSuratPengantar || "").split('/').pop());
         $("#link-proposal").attr("href", "/uploads/proposal/" + (data.FileProposal || "").split('/').pop());
 
-        // Quick Actions Logic
-        st === "Menunggu" ? $("#quick-actions").show() : $("#quick-actions").hide();
-        
         $("#modalDetail").modal('show');
+    }
+
+    function updateModalStatusUI(st) {
+        $("#d-status-badge-container").html(`<span class="status-pill-modal status-${st}">${st}</span>`);
+        st === "Menunggu" ? $("#quick-actions").show() : $("#quick-actions").hide();
     }
 
     function formatDate(d) {
@@ -343,60 +404,51 @@
         return new Date(d).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
     }
 
-    // --- MODERN POPUP (SWEETALERT2) ---
     function updateStatus(s) {
         const id = $("#d-id").val();
-        const nama = $("#d-nama").text();
-        
-        let color = '#f59e0b'; // orange
-        if(s === 'Diterima') color = '#10b981'; // green
-        if(s === 'Ditolak') color = '#dc2626'; // red
+        const oldStatus = $(`#row-${id}`).attr("data-status");
 
         Swal.fire({
-            title: 'Konfirmasi Perubahan',
-            html: `Apakah Anda yakin ingin mengubah status <b>${nama}</b> menjadi <span style="color:${color}; font-weight:bold;">${s}</span>? <br><small class="text-muted">Mahasiswa akan menerima notifikasi otomatis.</small>`,
+            title: 'Konfirmasi',
+            text: `Ubah status menjadi ${s}?`,
             icon: 'question',
             showCancelButton: true,
-            confirmButtonText: 'Ya, Perbarui!',
-            cancelButtonText: 'Batal',
-            reverseButtons: true,
-            customClass: {
-                confirmButton: 'btn btn-primary-modern px-4 py-2 mx-2',
-                cancelButton: 'btn btn-outline-secondary px-4 py-2 mx-2'
-            },
-            buttonsStyling: false
+            confirmButtonText: 'Ya, Simpan'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Loading overlay
-                Swal.fire({
-                    title: 'Memproses...',
-                    text: 'Sedang memperbarui status dan mengirim email.',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
+                // UI UPDATE LGSG (FAST RESPONSE)
+                const row = $(`#row-${id}`);
+                row.attr("data-status", s);
+                row.find(".badge-status").attr("class", `badge-status status-${s}`).text(s);
+                updateModalStatusUI(s);
 
-                const $btns = $(".action-area button");
-                $btns.prop("disabled", true);
-                
+                // Update Stat Card Numbers
+                if (oldStatus !== s) {
+                    updateStatCount(oldStatus, -1);
+                    updateStatCount(s, 1);
+                }
+
+                $("#modalDetail").modal('hide');
+
+                // BACKGROUND SYNC
                 $.post("/Admin/Mahasiswa/UpdateStatus", { id: id, status: s }, function(res) {
-                    if(res.success) {
-                        Swal.fire({
-                            title: 'Berhasil!',
-                            text: 'Status mahasiswa telah diperbarui.',
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire('Gagal!', res.message, 'error');
-                        $btns.prop("disabled", false);
+                    if(!res.success) {
+                         Swal.fire('Gagal Sinkronisasi', 'Data di server gagal diupdate, silakan refresh.', 'error');
                     }
-                }).fail(function() {
-                    Swal.fire('Error!', 'Terjadi kesalahan pada server.', 'error');
-                    $btns.prop("disabled", false);
                 });
             }
         });
+    }
+
+    function updateStatCount(status, change) {
+        let elementId = "";
+        if (status === "Menunggu") elementId = "#val-proses";
+        else if (status === "Diterima") elementId = "#val-terima";
+        else if (status === "Ditolak") elementId = "#val-tolak";
+
+        if (elementId) {
+            let currentVal = parseInt($(elementId).text());
+            $(elementId).text(currentVal + change);
+        }
     }
 </script>

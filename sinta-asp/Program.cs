@@ -1,20 +1,24 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
+using sinta_asp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// SQL SERVER
+// 1. KONEKSI DATABASE (SQL SERVER)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
 
-// --- TAMBAHAN: HTTP CONTEXT ACCESSOR ---
-// Ini yang memperbaiki error "No service for type IHttpContextAccessor"
+// 2. REGISTER EMAIL SERVICE (FIXED)
+// Gunakan AddScoped dengan Interface agar sinkron dengan Controller kamu
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// 3. HTTP CONTEXT ACCESSOR (Untuk keperluan Session/User context)
 builder.Services.AddHttpContextAccessor();
 
-// SESSION
+// 4. SESSION CONFIGURATION
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -23,10 +27,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// 5. MVC CONFIGURATION
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
+// 6. CONFIGURE HTTP PIPELINE
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -37,16 +43,17 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// SESSION WAJIB sebelum Authorization
+// Penting: Session diletakkan sebelum Authorization
 app.UseSession(); 
-
 app.UseAuthorization();
 
-// AREA ROUTE
+// 7. ROUTING MAP
+// Route untuk Areas (Admin, dll)
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}");
 
+// Route Default
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

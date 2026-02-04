@@ -96,7 +96,11 @@
         .switch-mode { margin-top: 20px; font-size: 13px; color: var(--white-soft); }
         .switch-mode a { color: white; text-decoration: none; font-weight: 700; cursor: pointer; border-bottom: 1px solid white; }
 
-        #registerFields { display: none; }
+        .forgot-link { display: block; text-align: right; margin-top: -10px; margin-bottom: 15px; font-size: 12px; }
+        .forgot-link a { color: var(--white-soft); text-decoration: none; transition: 0.3s; }
+        .forgot-link a:hover { color: white; }
+
+        #registerFields, #forgotFields { display: none; }
         .footer-text { text-align: center; color: rgba(255,255,255,0.4); font-size: 10px; margin-top: 30px; text-transform: uppercase; letter-spacing: 1px; }
 
         @@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -140,12 +144,18 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="input-label">Kata Sandi</label>
-                    <div class="input-box">
-                        <i class="fa-solid fa-lock field-icon"></i>
-                        <input type="password" name="Password" id="passwordInput" placeholder="••••••••" required>
-                        <i class="fa-solid fa-eye toggle-password" id="togglePass"></i>
+                <div id="passwordFields">
+                    <div class="form-group">
+                        <label class="input-label">Kata Sandi</label>
+                        <div class="input-box">
+                            <i class="fa-solid fa-lock field-icon"></i>
+                            <input type="password" name="Password" id="passwordInput" placeholder="••••••••" required>
+                            <i class="fa-solid fa-eye toggle-password" id="togglePass"></i>
+                        </div>
+                    </div>
+
+                    <div class="forgot-link" id="forgotLinkWrapper">
+                        <a id="btnForgot" href="javascript:void(0)">Lupa Password?</a>
                     </div>
                 </div>
 
@@ -167,7 +177,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         // --- Background Particle ---
         const canvas = document.getElementById('bg-canvas');
         const ctx = canvas.getContext('2d');
@@ -196,23 +206,57 @@
         anim();
 
         // --- Logic Toggle Mode ---
-        let isLogin = true;
+        let currentMode = 'login'; 
         const toggleMode = document.getElementById('toggleMode');
         const registerFields = document.getElementById('registerFields');
+        const passwordFields = document.getElementById('passwordFields');
+        const forgotLinkWrapper = document.getElementById('forgotLinkWrapper');
         const formTitle = document.getElementById('formTitle');
         const btnText = document.getElementById('btnText');
         const switchText = document.getElementById('switchText');
         const alertBox = document.getElementById('alertMessage');
+        const btnForgot = document.getElementById('btnForgot');
+
+        function updateUI() {
+            alertBox.style.display = 'none';
+            document.getElementById('passwordInput').required = (currentMode !== 'forgot');
+            
+            if (currentMode === 'login') {
+                registerFields.style.display = 'none';
+                passwordFields.style.display = 'block';
+                forgotLinkWrapper.style.display = 'block';
+                formTitle.innerText = 'Selamat Datang';
+                btnText.innerText = 'Masuk Sekarang';
+                switchText.innerText = 'Belum punya akun?';
+                toggleMode.innerText = 'Daftar Sini';
+            } else if (currentMode === 'register') {
+                registerFields.style.display = 'block';
+                passwordFields.style.display = 'block';
+                forgotLinkWrapper.style.display = 'none';
+                formTitle.innerText = 'Buat Akun';
+                btnText.innerText = 'Daftar Sekarang';
+                switchText.innerText = 'Sudah punya akun?';
+                toggleMode.innerText = 'Login Sini';
+            } else if (currentMode === 'forgot') {
+                registerFields.style.display = 'none';
+                passwordFields.style.display = 'none';
+                forgotLinkWrapper.style.display = 'none';
+                formTitle.innerText = 'Reset Password';
+                btnText.innerText = 'Kirim Password Baru';
+                switchText.innerText = 'Ingat password?';
+                toggleMode.innerText = 'Kembali Login';
+            }
+        }
 
         toggleMode.addEventListener('click', () => {
-            isLogin = !isLogin;
-            alertBox.style.display = 'none';
-            registerFields.style.display = isLogin ? 'none' : 'block';
-            formTitle.innerText = isLogin ? 'Selamat Datang' : 'Buat Akun';
-            btnText.innerText = isLogin ? 'Masuk Sekarang' : 'Daftar Sekarang';
-            switchText.innerText = isLogin ? 'Belum punya akun?' : 'Sudah punya akun?';
-            toggleMode.innerText = isLogin ? 'Daftar Sini' : 'Login Sini';
-            document.getElementById('fullNameInput').required = !isLogin;
+            if (currentMode === 'forgot') currentMode = 'login';
+            else currentMode = (currentMode === 'login') ? 'register' : 'login';
+            updateUI();
+        });
+
+        btnForgot.addEventListener('click', () => {
+            currentMode = 'forgot';
+            updateUI();
         });
 
         document.getElementById('togglePass').addEventListener('click', function() {
@@ -222,19 +266,21 @@
             this.className = `fa-solid fa-eye${isPass ? '-slash' : ''} toggle-password`;
         });
 
-        // --- Form Submission Without Pop-up ---
+        // --- Form Submission ---
         document.getElementById('authForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             const btnIcon = document.getElementById('btnIcon');
             
-            // Reset UI
             alertBox.style.display = 'none';
             btn.disabled = true;
             btnText.innerText = 'Memproses...';
             btnIcon.className = 'fa-solid fa-circle-notch fa-spin';
 
-            const url = isLogin ? '/Admin/Login/Index' : '/Admin/Login/Register';
+            let url = '/Admin/Login/Index';
+            if (currentMode === 'register') url = '/Admin/Login/Register';
+            if (currentMode === 'forgot') url = '/Admin/Login/ForgotPassword';
+
             const formData = new FormData(this);
 
             try {
@@ -242,36 +288,35 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Feedback Berhasil
                     alertBox.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
                     alertBox.style.color = '#54f1bd';
                     alertBox.style.border = '1px solid #10b981';
-                    alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (isLogin ? 'Berhasil! Mengalihkan...' : 'Berhasil Terdaftar!');
+                    alertBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${result.message || 'Berhasil!'}`;
                     alertBox.style.display = 'block';
 
                     setTimeout(() => {
-                        if (isLogin) window.location.href = '/Admin/Dashboard';
-                        else location.reload();
-                    }, 800);
+                        if (currentMode === 'login') window.location.href = '/Admin/Dashboard';
+                        else {
+                            currentMode = 'login';
+                            updateUI();
+                            btn.disabled = false;
+                            btnIcon.className = 'fa-solid fa-arrow-right-long';
+                        }
+                    }, 2000);
                 } else {
-                    // Feedback Gagal
                     alertBox.style.backgroundColor = 'rgba(227, 6, 19, 0.2)';
                     alertBox.style.color = '#ff9999';
                     alertBox.style.border = '1px solid #E30613';
                     alertBox.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> ' + result.message;
                     alertBox.style.display = 'block';
-                    
                     btn.disabled = false;
-                    btnText.innerText = isLogin ? 'Masuk Sekarang' : 'Daftar Sekarang';
+                    btnText.innerText = (currentMode === 'login' ? 'Masuk Sekarang' : (currentMode === 'register' ? 'Daftar Sekarang' : 'Kirim Password Baru'));
                     btnIcon.className = 'fa-solid fa-arrow-right-long';
                 }
             } catch (err) {
                 alertBox.style.display = 'block';
-                alertBox.style.color = '#ff9999';
-                alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Koneksi bermasalah.';
+                alertBox.innerHTML = 'Koneksi gagal.';
                 btn.disabled = false;
-                btnText.innerText = 'Coba Lagi';
-                btnIcon.className = 'fa-solid fa-arrow-right-long';
             }
         });
     </script>

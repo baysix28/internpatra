@@ -1,11 +1,10 @@
 @model sinta_asp.Models.Admin
 @{
-    ViewData["Title"] = "Pengaturan Akun - SINTA JBT";
+    ViewData["Title"] = "Pengaturan Akun - SINTA";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
 
     var namaLengkap = Model?.Nama ?? "Administrator";
     var emailUser = Model?.Email ?? "-";
-    var usernameDisplay = !string.IsNullOrEmpty(emailUser) && emailUser.Contains("@") ? emailUser.Split('@')[0] : "admin";
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,11 +21,9 @@
 
     body { background-color: var(--p-bg); font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; }
     
-    /* MELEBARKAN AREA */
-    .settings-wrapper { padding: 1.2rem 1.8rem; max-width: 100%; }
+    .dashboard-wrapper { padding: 1.2rem 1.8rem; margin-top: -20px; }
     .title-bold { font-weight: 800; color: var(--p-blue); letter-spacing: -0.8px; font-size: 1.5rem; }
 
-    /* Card Utama Mengikuti Style Manajemen Mahasiswa */
     .main-settings-card { 
         background: #fff; 
         border-radius: 12px; 
@@ -36,7 +33,6 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    /* Tab Styling - Horizontal & Modern */
     .nav-tabs-pertamina {
         background: #f8fafc;
         padding: 0 1.5rem;
@@ -59,10 +55,7 @@
     }
 
     .nav-tabs-pertamina .nav-link:hover { color: var(--p-blue); }
-
-    .nav-tabs-pertamina .nav-link.active {
-        color: var(--p-blue);
-    }
+    .nav-tabs-pertamina .nav-link.active { color: var(--p-blue); }
 
     .nav-tabs-pertamina .nav-link.active::after {
         content: '';
@@ -75,11 +68,9 @@
         border-radius: 10px 10px 0 0;
     }
 
-    /* Content Area */
     .tab-content { padding: 2.5rem; }
 
-    /* Form UI */
-    .form-group-modern { margin-bottom: 1.5rem; }
+    .form-group-modern { margin-bottom: 1.5rem; position: relative; }
     .stg-label { 
         display: block; 
         font-weight: 800; 
@@ -116,7 +107,17 @@
         cursor: default;
     }
 
-    /* Buttons */
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 38px;
+        cursor: pointer;
+        color: #94a3b8;
+        transition: var(--transition);
+        z-index: 10;
+    }
+    .password-toggle:hover { color: var(--p-blue); }
+
     .btn-save-pertamina {
         background: var(--p-blue);
         color: white;
@@ -134,7 +135,6 @@
         transform: translateY(-2px);
     }
 
-    /* Profile Header Info */
     .profile-header-box {
         display: flex;
         align-items: center;
@@ -152,18 +152,30 @@
     }
 
     .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+    .btn-outline-modern {
+        border: 1.5px solid var(--border);
+        background: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        color: #64748b;
+        font-weight: 700;
+        transition: var(--transition);
+    }
+    .btn-outline-modern:hover { background: #f8fafc; color: var(--p-blue); border-color: var(--p-blue); }
+    
+    .fw-800 { font-weight: 800 !important; }
 </style>
 
-<div class="settings-wrapper">
+<div class="dashboard-wrapper">
     <div class="d-flex justify-content-between align-items-center mb-1">
         <div>
             <h3 class="title-bold mb-0">Pengaturan Akun</h3>
-            <p class="text-muted small mb-0">Kelola informasi kredensial dan keamanan <span class="fw-bold text-danger">Administrator JBT</span></p>
+            <p class="text-muted small mb-0">Kelola informasi kredensial dan keamanan <span class="fw-bold text-danger">Administrator</span></p>
         </div>
     </div>
 
     <div class="main-settings-card">
-        
         <nav class="nav nav-tabs-pertamina" id="settingTabs" role="tablist">
             <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#tab-profile" type="button" role="tab">
                 <i class="fas fa-id-card-alt me-2"></i>Profil Saya
@@ -175,6 +187,7 @@
 
         <div class="tab-content" id="settingTabsContent">
             
+            @* TAB PROFIL *@
             <div class="tab-pane fade show active" id="tab-profile" role="tabpanel">
                 <div class="profile-header-box">
                     <div class="avatar-wrapper">
@@ -187,7 +200,7 @@
                         </div>
                     </div>
                     <div class="ms-auto">
-                        <button id="btnEdit" class="btn btn-outline-modern fw-800" style="font-size: 0.75rem;">
+                        <button id="btnEdit" class="btn btn-outline-modern" style="font-size: 0.75rem;">
                             <i class="fas fa-edit me-2"></i>Edit Informasi
                         </button>
                     </div>
@@ -197,11 +210,11 @@
                     <div class="row">
                         <div class="col-md-6 form-group-modern">
                             <label class="stg-label">Nama Lengkap Admin</label>
-                            <input type="text" name="FullName" class="stg-input edit-field" value="@namaLengkap" readonly>
+                            <input type="text" name="Nama" class="stg-input edit-field" value="@namaLengkap" readonly required>
                         </div>
                         <div class="col-md-6 form-group-modern">
                             <label class="stg-label">Username / Email</label>
-                            <input type="email" name="Email" class="stg-input edit-field" value="@emailUser" readonly>
+                            <input type="email" name="Email" class="stg-input edit-field" value="@emailUser" readonly required>
                         </div>
                     </div>
 
@@ -215,6 +228,7 @@
                 </form>
             </div>
 
+            @* TAB KEAMANAN *@
             <div class="tab-pane fade" id="tab-security" role="tabpanel">
                 <div class="mb-4">
                     <h5 class="fw-800 text-dark mb-1">Ganti Kata Sandi</h5>
@@ -224,15 +238,18 @@
                 <form id="securityForm" style="max-width: 600px;">
                     <div class="form-group-modern">
                         <label class="stg-label">Kata Sandi Saat Ini</label>
-                        <input type="password" class="stg-input" placeholder="Masukkan kata sandi lama">
+                        <input type="password" name="OldPassword" class="stg-input pass-input" placeholder="Masukkan kata sandi lama" required>
+                        <i class="fas fa-eye password-toggle"></i>
                     </div>
                     <div class="form-group-modern">
                         <label class="stg-label">Kata Sandi Baru</label>
-                        <input type="password" class="stg-input" placeholder="Minimal 6 karakter kombinasi">
+                        <input type="password" name="NewPassword" id="NewPassword" class="stg-input pass-input" placeholder="Minimal 6 karakter kombinasi" required>
+                        <i class="fas fa-eye password-toggle"></i>
                     </div>
                     <div class="form-group-modern mb-4">
                         <label class="stg-label">Konfirmasi Kata Sandi Baru</label>
-                        <input type="password" class="stg-input" placeholder="Ulangi kata sandi baru">
+                        <input type="password" name="ConfirmPassword" class="stg-input pass-input" placeholder="Ulangi kata sandi baru" required>
+                        <i class="fas fa-eye password-toggle"></i>
                     </div>
 
                     <button type="submit" class="btn-save-pertamina">Perbarui Kata Sandi</button>
@@ -240,7 +257,9 @@
 
                 <div class="mt-5 p-3 rounded-3 bg-light border-start border-4 border-primary">
                     <div class="small fw-700 text-dark mb-1"><i class="fas fa-info-circle text-primary me-1"></i> Informasi Login</div>
-                    <div class="text-muted" style="font-size: 0.75rem;">Terakhir kali Anda melakukan perubahan data pada sesi ini.</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                        Terakhir kali <b class="fw-800">@namaLengkap</b> melakukan perubahan data pada sesi ini.
+                    </div>
                 </div>
             </div>
 
@@ -254,6 +273,18 @@
 
 <script>
     $(document).ready(function() {
+        // Feature: Show/Hide Password Toggle
+        $('.password-toggle').click(function() {
+            const input = $(this).siblings('.pass-input');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                $(this).removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                $(this).removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+
         // Toggle Edit Mode
         $('#btnEdit').click(function() {
             $(this).fadeOut(200);
@@ -268,22 +299,42 @@
             $('#btnEdit').fadeIn(200);
         });
 
-        // Placeholder untuk handling submit profil
+        // Submit Profil
         $('#profileForm').on('submit', function(e) {
             e.preventDefault();
-            Swal.fire({
-                title: 'Berhasil!',
-                text: 'Profil admin telah diperbarui secara lokal.',
-                icon: 'success',
-                confirmButtonColor: '#00549B'
-            }).then(() => {
-                location.reload();
+            const formData = $(this).serialize();
+
+            $.ajax({
+                url: '/Admin/Settings/UpdateProfile',
+                method: 'POST',
+                data: formData,
+                success: function(res) {
+                    if(res.success) {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: res.message,
+                            icon: 'success',
+                            confirmButtonColor: '#00549B'
+                        }).then(() => { location.reload(); });
+                    } else {
+                        Swal.fire('Gagal!', res.message, 'error');
+                    }
+                }
             });
         });
 
-        // Placeholder untuk handling ganti password
+        // Ganti Password
         $('#securityForm').on('submit', function(e) {
             e.preventDefault();
+            
+            // Validasi sederhana client-side
+            if ($('#NewPassword').val().length < 6) {
+                Swal.fire('Oops!', 'Password baru minimal 6 karakter', 'error');
+                return;
+            }
+
+            const formData = $(this).serialize();
+
             Swal.fire({
                 title: 'Konfirmasi',
                 text: 'Apakah Anda yakin ingin mengganti kata sandi?',
@@ -293,7 +344,20 @@
                 confirmButtonColor: '#00549B'
             }).then((result) => {
                 if(result.isConfirmed) {
-                    Swal.fire('Berhasil!', 'Kata sandi Anda telah diperbarui.', 'success');
+                    $.ajax({
+                        url: '/Admin/Settings/ChangePassword',
+                        method: 'POST',
+                        data: formData,
+                        success: function(res) {
+                            if(res.success) {
+                                Swal.fire('Berhasil!', res.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Gagal!', res.message, 'error');
+                            }
+                        }
+                    });
                 }
             });
         });
