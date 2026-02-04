@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using sinta_asp.Models;
 using sinta_asp.Data;
 using Microsoft.AspNetCore.Authorization;
+using sinta_asp.Services;
 
 namespace sinta_asp.Controllers
 {

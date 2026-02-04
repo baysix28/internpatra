@@ -36,19 +36,13 @@ namespace sinta_asp.Migrations
 
                     b.Property<string>("Nama")
                         .IsRequired()
-<<<<<<< HEAD
-                        .HasColumnType("nvarchar(max)");
-=======
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
->>>>>>> backup_admin
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-<<<<<<< HEAD
-=======
                     b.Property<string>("RegionManaged")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -57,7 +51,6 @@ namespace sinta_asp.Migrations
                     b.Property<string>("SmtpPassword")
                         .HasColumnType("nvarchar(max)");
 
->>>>>>> backup_admin
                     b.HasKey("Id");
 
                     b.ToTable("Admins");
@@ -75,6 +68,7 @@ namespace sinta_asp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasMaxLength(20)
                         .HasColumnType("datetime2");
 
                     b.Property<string>("EmailPribadi")
@@ -132,12 +126,7 @@ namespace sinta_asp.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-<<<<<<< HEAD
                         .HasColumnType("nvarchar(max)");
-=======
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
->>>>>>> backup_admin
 
                     b.Property<DateTime>("TanggalLahir")
                         .HasColumnType("datetime2");
@@ -150,7 +139,6 @@ namespace sinta_asp.Migrations
                     b.ToTable("pendaftaran_magang");
                 });
 
-<<<<<<< HEAD
             modelBuilder.Entity("sinta_asp.Models.Mahasiswa", b =>
                 {
                     b.Property<int>("Id")
@@ -244,8 +232,6 @@ namespace sinta_asp.Migrations
                     b.ToTable("Mahasiswa");
                 });
 
-=======
->>>>>>> backup_admin
             modelBuilder.Entity("sinta_asp.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -257,25 +243,6 @@ namespace sinta_asp.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-<<<<<<< HEAD
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserEmail")
-                        .IsRequired()
-=======
                     b.Property<string>("ExternalId")
                         .HasColumnType("nvarchar(max)");
 
@@ -285,20 +252,27 @@ namespace sinta_asp.Migrations
                     b.Property<string>("Lokasi")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Nama")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Type")
->>>>>>> backup_admin
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserEmail")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-<<<<<<< HEAD
-                    b.ToTable("notifications");
-=======
                     b.ToTable("Notifications");
->>>>>>> backup_admin
                 });
 
             modelBuilder.Entity("sinta_asp.Models.Pendaftaran", b =>

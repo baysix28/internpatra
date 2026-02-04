@@ -43,7 +43,6 @@ namespace sinta_asp.Models
 
         [Required]
         [MaxLength(20)]
-        public string Status { get; set; } = "Menunggu";
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
