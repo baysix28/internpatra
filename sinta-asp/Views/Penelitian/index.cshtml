@@ -1,4 +1,4 @@
-@model List<sinta_asp.Controllers.LowonganKerja>
+@model sinta_asp.Models.LowonganViewModel
 @{
     ViewData["Title"] = "Dashboard Penelitian";
     
@@ -10,8 +10,9 @@
 }
 
 <style>
-    /* MATIKAN SCROLL OTOMATIS BROWSER */
-    html { scroll-behavior: auto !important; }
+
+    /* 1. IMPORT FONT BARU */
+    @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500&display=swap');
     
     /* GLOBAL STYLE */
     .penelitian-wrapper { 
@@ -22,21 +23,172 @@
     /* Reset elemen teks biar gak ngerusak layout Bootstrap */
     .penelitian-wrapper h1, .penelitian-wrapper h2, .penelitian-wrapper p { margin: 0; padding: 0; }
 
-    /* HERO HEADER */
-    .hero-section {
-        background: 
-            linear-gradient(to left, rgba(220, 30, 30, 0.7) 0%, transparent 60%),
-            linear-gradient(rgba(40, 0, 0, 0.85), rgba(20, 0, 0, 0.95)),
-            url('/img/pekerja.jpg');
-        background-size: cover; background-position: center; 
-        background-blend-mode: soft-light, normal, normal;
-        padding: 60px 5%; color: white; height: 350px;
-        display: flex; align-items: center; margin-bottom: 40px;
-        width: 100vw; position: relative; left: 50%; right: 50%;
-        margin-left: -50vw; margin-right: -50vw;    
-    }
-    .hero-content h1 { font-size: 2.5rem; font-weight: 700; line-height: 1.2; margin-bottom: 15px; }
     
+    /* 2. HERO SECTION BARU (Tinggi 60% Layar) */
+        /* HERO HEADER */
+    .hero-section {
+        position: relative;
+        height: 60vh;
+        min-height: 500px;
+        
+        /* HAPUS LINEAR-GRADIENT DISINI, CUKUP GAMBAR SAJA */
+        background-image: url('/img/test.jpg'); /* Pastikan nama file gambar benar */
+        background-size: cover;
+        background-position: center 10%;
+        
+        /* Sisanya biarkan sama */
+        width: 100vw; 
+        left: 50%; right: 50%;
+        margin-left: -50vw; margin-right: -50vw;
+        margin-bottom: 50px;
+        font-family: 'Inter', sans-serif;
+        display: flex; align-items: center; /* Pastikan ini ada biar konten vertikal tengah */
+    }
+
+        /* 3. GRADIENT ELEGAN (Merah Kiri -> Bening Kanan) */
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(139, 0, 0, 0.95) 0%,      /* Kiri: Merah Gelap Pekat */
+                rgba(237, 27, 36, 0.7) 45%,    /* Tengah: Merah Pertamina */
+                rgba(237, 27, 36, 0.0) 100%    /* Kanan: Bening (Gambar Asli) */
+            );
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Teks di tengah vertikal */
+            align-items: flex-start; /* Teks Rata Kiri */
+            color: white;
+            padding-left: 5%; /* Geser dikit dari pinggir kiri */
+        }
+
+        /* 4. TYPOGRAPHY BARU (Poppins & Inter) */
+        .hero-title {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .hero-lead {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            
+            /* Pakai !important agar tidak kalah sama reset margin */
+            margin-bottom: 20px !important; 
+            
+            opacity: 0.95;
+            max-width: 600px;
+        }
+
+     /* 5. TOMBOL PREMIUM (ANIMASI FILL KIRI KE KANAN) */
+    .btn-apply-hero {
+        position: relative; /* Wajib: sebagai jangkar animasi */
+        overflow: hidden;   /* Wajib: biar warna tidak bocor keluar sudut melengkung */
+        z-index: 1;         /* Pastikan teks ada di layer paling atas */
+        
+        background-color: transparent; 
+        border: 2px solid white;
+        
+        color: white;
+        padding: 15px 40px;
+        
+        font-family: 'Poppins', sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 50px !important;
+        text-decoration: none;
+        
+        /* Transisi warna teks biar halus saat background jadi putih */
+        transition: color 0.4s ease; 
+        
+        display: inline-block;
+        margin-top: -10px; /* Jarak dari teks di atasnya */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* INI LAYER PUTIH YANG AKAN BERGERAK */
+    .btn-apply-hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        
+        width: 0%;        /* Mulai dari 0 (kosong) */
+        height: 100%;
+        
+        background-color: white;
+        z-index: -1;      /* Posisinya di belakang teks */
+        
+        /* Animasi gerakan kiri ke kanan (Durasi 0.4 detik) */
+        transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    }
+
+    /* EFEK SAAT MOUSE DI ARAHKAN (HOVER) */
+    .btn-apply-hero:hover {
+        color: #121c2d; /* Ubah warna teks jadi Biru Gelap biar terbaca */
+        /* Kalau mau teks merah Pertamina, ganti jadi color: #ED1B24; */
+        border-color: white;
+    }
+
+    /* Pemicu Animasi: Lebarkan layer putih jadi 100% */
+    .btn-apply-hero:hover::before {
+        width: 100%; 
+    }
+
+    
+    .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        
+        /* GANTI GRADASI MERAH LAMA DENGAN INI (Dark Blue Slate) */
+        /* Kode warna diambil dari sampel gambar referensimu */
+        background: linear-gradient(90deg, 
+            rgba(20, 35, 50, 0.95) 0%,     /* Kiri: Biru Gelap Pekat (Hampir Hitam) */
+            rgba(20, 35, 50, 0.6) 45%,     /* Tengah: Mulai memudar */
+            rgba(20, 35, 50, 0.0) 100%     /* Kanan: Transparan (Gambar terlihat) */
+        );
+        
+        z-index: 1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        text-align: center;
+    }
+
+    /* TYPOGRAPHY BARU */
+    .badge-custom {
+        background-color: #00A950;
+        color: white; padding: 8px 20px; border-radius: 50px;
+        text-transform: uppercase; font-weight: 700; font-size: 0.8rem;
+        letter-spacing: 1px; margin-bottom: 20px; display: inline-block;
+    }
+    
+    .hero-title { font-size: 4rem; font-weight: 700; margin-bottom: 10px; }
+    .hero-lead { font-size: 1.2rem; font-weight: 400; margin-bottom: 40px; }
+
     /* LAYOUT UTAMA */
     .main-container { max-width: 1200px; margin: 0 auto; padding: 0 20px 80px 20px; }
     .job-board-layout { display: grid; grid-template-columns: 280px 1fr; gap: 50px; }
@@ -106,43 +258,49 @@
 
 <div class="penelitian-wrapper">
     <header class="hero-section">
-        <div class="hero-content">
-            <h1>Mewujudkan Kedaulatan Energi hingga Pelosok Negeri</h1>
-            <p>Bergabunglah bersama kami dalam perjalanan membangun kemandirian energi nasional.</p>
+        <div class="hero-overlay"></div>
+
+        <div class="container hero-content">
+            
+            <h1 class="hero-title">READY TO LEVEL UP?</h1>
+            
+            <p class="hero-lead">Salurkan ide brilian dan ciptakan dampak nyata bersama kami.</p>
+            
+            <div>
+                <a href="Daftar" class="btn-apply-hero">
+                    Apply For Opportunities
+                </a>
+            </div>
         </div>
     </header>
-
-    <div class="main-container">
-        <div class="intro-header">
-            <div>
-                <h2 style="font-size:1.5rem; margin-bottom:5px;">Help us shape the future of energy.</h2>
-                <p style="color:#666;">Explore and apply for opportunities that align with your skills.</p>
-            </div>
-            <a asp-action="Daftar" class="btn-apply">Apply for Opportunities &rarr;</a>
-        </div>
-
+    <div class="main-container" id="area-lowongan">
         <div class="job-board-layout">
             
             <aside class="filters">
                 <a href="/Penelitian" style="text-decoration:none; color:#666; font-size:0.9rem; margin-bottom:15px; display:inline-block;">Clear filters</a>
 
-                <form method="get" asp-action="Index">
+                <form onsubmit="return false;" style="width: 100%;">
                     <input type="hidden" name="lastScroll" id="lastScrollInput" value="" />
 
                     <div style="margin-bottom: 25px;">
                         <label>Can't find what you looking for?</label>
                         <div class="search-wrapper">
-                            <input type="text" id="inputCari" class="form-control-custom" placeholder="Search..." 
-                                   value="@selectedSearch" >
-                            <i class="fas fa-search"></i>
+                            <input type="text" 
+                                id="inputCari" 
+                                name="search" 
+                                class="form-control" 
+                                placeholder="Search..." 
+                                autocomplete="off" 
+                                value="@selectedSearch"> <i class="fas fa-search"></i>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 25px;">
                         <label>Filtered by Company</label>
-                        <select name="company" id="companySelect" class="form-control-custom" onchange="submitFilter(this.form)">
-                            <option value="">All Companies</option>
-                            <option value="PT Kilang Pertamina Internasional" selected="@(selectedCompany == "PT Kilang Pertamina Internasional" ? "selected" : null)">
+                        <select name="company" id="companySelect" class="form-control-custom" onchange="onCompanyChange()">
+                            <option value="All" selected="@(selectedCompany == "All" ? "selected" : null)">All Companies</option>
+                            <option value="PT Kilang Pertamina Internasional (KPI)" 
+                                    selected="@(selectedCompany == "PT Kilang Pertamina Internasional (KPI)" ? "selected" : null)">
                                 PT Kilang Pertamina Internasional (KPI)
                             </option>
                             <option value="PT Pertamina Patra Niaga" selected="@(selectedCompany == "PT Pertamina Patra Niaga" ? "selected" : null)">
@@ -153,14 +311,14 @@
 
                     <div style="margin-bottom: 25px;">
                         <label>By Region</label>
-                        <select name="region" id="regionSelect" class="form-control-custom" onchange="submitFilter(this.form)">
+                        <select name="region" id="regionSelect" class="form-control-custom" onchange="refreshData()">
                         </select>
                     </div>
                 </form>
             </aside>
 
-            <main>
-                @if (Model == null || Model.Count == 0)
+            <main id="area-konten">
+                @if (Model.Lowongan == null || Model.Lowongan.Count == 0)
                 {
                     <div style="text-align:center; padding: 60px; color:#999; border: 2px dashed #eee; border-radius:15px; background-color:#fafafa;">
                         <i class="fas fa-search fa-3x" style="margin-bottom:15px; color:#ddd;"></i>
@@ -171,7 +329,7 @@
                 else
                 {
                     <div class="row" id="containerKartu">
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.Lowongan)
                         {
                             <div class="col-md-4 mb-4 item-lowongan" style="margin-bottom: 30px !important;">
                                 <div class="flip-card">
@@ -223,28 +381,81 @@
                         <p>Coba cari pakai kata kunci lain ya.</p>
                     </div>
                 }
+
+                @if (Model.TotalPages > 0)
+                {
+                    <div style="margin-top: 40px; display: flex; justify-content: center;">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                
+                                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" 
+                                    asp-action="Index" 
+                                    asp-route-page="@(Model.CurrentPage - 1)"
+                                    asp-route-search="@ViewData["SelectedSearch"]"
+                                    asp-route-company="@ViewData["SelectedCompany"]"
+                                    asp-route-region="@ViewData["SelectedRegion"]">
+                                        &laquo; Previous
+                                    </a>
+                                </li>
+
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                                        <a class="page-link" 
+                                        asp-action="Index" 
+                                        asp-route-page="@i"
+                                        asp-route-search="@ViewData["SelectedSearch"]"
+                                        asp-route-company="@ViewData["SelectedCompany"]"
+                                        asp-route-region="@ViewData["SelectedRegion"]">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+
+                                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" 
+                                    asp-action="Index" 
+                                    asp-route-page="@(Model.CurrentPage + 1)"
+                                    asp-route-search="@ViewData["SelectedSearch"]"
+                                    asp-route-company="@ViewData["SelectedCompany"]"
+                                    asp-route-region="@ViewData["SelectedRegion"]">
+                                        Next &raquo;
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </nav>
+                    </div>
+                }
+
             </main>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 1. LOGIKA REGION ---
+    // ==========================================
+    // BAGIAN 1: DATA & LOGIKA TAMPILAN
+    // ==========================================
     const dataRegion = {
         "PT Pertamina Patra Niaga": ["Regional Jatimbalinus", "Regional Jawa Bagian Tengah", "Regional Jawa Bagian Barat", "Regional Kalimantan", "Regional Maluku Papua", "Regional Sumbagut"],
-        "PT Kilang Pertamina Internasional": ["Refinery Unit VI Balongan"]
+        "PT Kilang Pertamina Internasional (KPI)": ["Refinery Unit VI Balongan"]
     };
 
     function updateRegionOptions() {
         const companySelect = document.getElementById('companySelect');
         const regionSelect = document.getElementById('regionSelect');
         const selectedCompany = companySelect.value;
-        const currentRegion = '@selectedRegion'; 
+        const currentRegion = regionSelect.value || '@ViewData["SelectedRegion"]' || "All"; 
 
         regionSelect.innerHTML = '';
-        if (selectedCompany !== "PT Kilang Pertamina Internasional") {
+
+        // Logika KPI (Balongan Only) vs Lainnya
+        if (selectedCompany !== "PT Kilang Pertamina Internasional (KPI)") {
             const allOption = document.createElement('option');
-            allOption.value = ""; allOption.text = "All Regions";
+            allOption.value = "All";
+            allOption.text = "All Regions";
             regionSelect.appendChild(allOption);
         }
 
@@ -252,58 +463,121 @@
             dataRegion[selectedCompany].forEach(reg => {
                 const option = document.createElement('option');
                 option.value = reg; option.text = reg;
-                if (reg === currentRegion) option.selected = true;
                 regionSelect.appendChild(option);
             });
         }
+        
+        Array.from(regionSelect.options).forEach(opt => {
+            if (opt.value === currentRegion) regionSelect.value = currentRegion;
+        });
     }
 
-    // --- 2. LIVE SEARCH + PESAN KOSONG ---
+    // ==========================================
+    // BAGIAN 2: LOGIKA AJAX (SMOOTH & FIX REGION)
+    // ==========================================
+
+    // 1. FUNGSI INTI (LOAD DATA)
+    function loadDataTanpaReload(customUrl = null) {
+        const valSearch = document.getElementById('inputCari').value;
+        const valCompany = document.getElementById('companySelect').value;
+        const valRegion = document.getElementById('regionSelect').value;
+
+        let url = customUrl;
+        if (!url) {
+            url = `/Penelitian/Index?search=${encodeURIComponent(valSearch)}&company=${encodeURIComponent(valCompany)}&region=${encodeURIComponent(valRegion)}&page=1`;
+        }
+
+        // Efek Loading: Ganti ikon kaca pembesar jadi spinner
+        const searchIcon = document.querySelector('.fa-search');
+        if (searchIcon) {
+            searchIcon.classList.remove('fa-search');
+            searchIcon.classList.add('fa-circle-notch', 'fa-spin'); 
+        }
+
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const kontenBaru = doc.getElementById('area-konten');
+                const areaLama = document.getElementById('area-konten');
+                
+                if (areaLama && kontenBaru) {
+                    areaLama.innerHTML = kontenBaru.innerHTML;
+                    window.history.pushState({}, '', url);
+                    pasangEventPagination();
+                }
+            })
+            .catch(err => console.error('Error:', err))
+            .finally(() => {
+                // Balikin ikon jadi normal
+                if (searchIcon) {
+                    searchIcon.classList.remove('fa-circle-notch', 'fa-spin');
+                    searchIcon.classList.add('fa-search');
+                }
+            });
+    }
+
+    // 2. TRIGGER DARI HTML (Jembatan Event)
+    
+    // Dipanggil saat Company Ganti
+    window.onCompanyChange = function() { 
+        document.getElementById('regionSelect').value = "All"; 
+        updateRegionOptions(); 
+        loadDataTanpaReload(); 
+    };
+    // Backup nama lama (biar aman)
+    window.gantiCompany = window.onCompanyChange;
+
+    // Dipanggil saat Region Ganti (INI YANG TADI HILANG)
+    window.refreshData = function() {
+        loadDataTanpaReload();
+    };
+
+    // Dipanggil Form Submit (Enter)
+    window.submitFilter = function() { 
+        loadDataTanpaReload(); 
+    };
+
+    // 3. PAGINATION HANDLING
+    function pasangEventPagination() {
+        const links = document.querySelectorAll('.page-link');
+        links.forEach(link => {
+            const newLink = link.cloneNode(true);
+            link.parentNode.replaceChild(newLink, link);
+            newLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                if (href && href !== '#') loadDataTanpaReload(href);
+            });
+        });
+    }
+
+    // ==========================================
+    // BAGIAN 3: SETUP AWAL
+    // ==========================================
     document.addEventListener("DOMContentLoaded", function() {
         updateRegionOptions();
+        pasangEventPagination();
 
         const inputCari = document.getElementById('inputCari');
-        const daftarKartu = document.getElementsByClassName('item-lowongan');
-        const pesanKosong = document.getElementById('pesanKosong'); // Ambil elemen pesan kosong
+        if (inputCari) {
+            let timeout = null;
 
-        if (inputCari && daftarKartu.length > 0) {
+            // Live Search Cepat (300ms)
             inputCari.addEventListener('input', function() {
-                const filter = inputCari.value.toLowerCase(); 
-                let adaYangMuncul = false; // Flag penanda
+                clearTimeout(timeout);
+                timeout = setTimeout(function() {
+                    loadDataTanpaReload(); 
+                }, 300);
+            });
 
-                for (let i = 0; i < daftarKartu.length; i++) {
-                    const kartu = daftarKartu[i];
-                    const teks = kartu.innerText.toLowerCase();
-
-                    if (teks.includes(filter)) {
-                        kartu.style.setProperty("display", "block", "important"); 
-                        kartu.style.marginBottom = "30px";
-                        adaYangMuncul = true; // Hore, ada yang cocok!
-                    } else {
-                        kartu.style.setProperty("display", "none", "important"); 
-                    }
-                }
-
-                // LOGIKA MUNCULIN PESAN KOSONG
-                if (adaYangMuncul) {
-                    pesanKosong.style.display = "none"; // Umpetin pesannya
-                } else {
-                    pesanKosong.style.display = "block"; // Munculin pesannya
+            inputCari.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    loadDataTanpaReload();
                 }
             });
         }
     });
-
-    // --- 3. FILTER SUBMIT ---
-    function submitFilter(form) {
-        document.getElementById('lastScrollInput').value = window.scrollY;
-        form.submit();
-    }
-
-    (function() {
-        var targetScroll = '@lastScroll';
-        if (targetScroll && targetScroll !== "") {
-            window.scrollTo(0, parseInt(targetScroll));
-        }
-    })();
 </script>

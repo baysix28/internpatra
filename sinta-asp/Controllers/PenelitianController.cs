@@ -47,7 +47,7 @@ namespace sinta_asp.Controllers
             new LowonganKerja { 
                 Title = "Elektro (Arus Kuat)", 
                 Region = "Refinery Unit VI Balongan", 
-                Company = "PT Kilang Pertamina Internasional", 
+                Company = "PT Kilang Pertamina Internasional (KPI)", 
                 ImageUrl = "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400",
                 Description = "Fokus pada pemeliharaan dan analisis performa mesin rotasi seperti pompa, kompresor, dan turbin di area kilang."
             },
@@ -99,32 +99,67 @@ namespace sinta_asp.Controllers
         };
 
         // 1. DASHBOARD UTAMA (Index)
-        public IActionResult Index(string company, string search, string region)
+        // --- GANTI METHOD INDEX YANG LAMA DENGAN INI ---
+        // Tambahkan parameter 'page' dengan default 1
+        // Pastikan HANYA ADA SATU method Index seperti ini:
+        public IActionResult Index(string search, string company, string region, int page = 1)
         {
-            var dataTampil = SemuaLowongan;
-
-            if (!string.IsNullOrEmpty(company))
-            {
-                dataTampil = dataTampil.Where(x => x.Company != null && x.Company == company).ToList();
-            }
-
+            // 1. PANGGIL DATA (Menggunakan fungsi yang sudah kamu buat di bawah)
+            var allData = GetDummyData(); 
+            
+            // 2. LOGIKA FILTER (Search & Filter)
             if (!string.IsNullOrEmpty(search))
             {
-                dataTampil = dataTampil.Where(x => x.Title != null && x.Title.ToLower().Contains(search.ToLower())).ToList();
+                search = search.ToLower();
+                // Mencari di Judul atau Nama Perusahaan
+                allData = allData.Where(x => (x.Title != null && x.Title.ToLower().Contains(search)) || 
+                                            (x.Company != null && x.Company.ToLower().Contains(search))).ToList();
             }
 
-            if (!string.IsNullOrEmpty(region))
+            // Filter Company
+            if (!string.IsNullOrEmpty(company) && company != "All")
             {
-                dataTampil = dataTampil.Where(x => x.Region != null && x.Region == region).ToList();
+                allData = allData.Where(x => x.Company != null && x.Company.Contains(company)).ToList();
             }
 
-            ViewData["SelectedCompany"] = company;
+            // Filter Region
+            if (!string.IsNullOrEmpty(region) && region != "All")
+            {
+                allData = allData.Where(x => x.Region == region).ToList();
+            }
+
+            // 3. LOGIKA PAGINATION (Matematika Halaman)
+            int pageSize = 6; // Menampilkan 9 kartu per halaman
+            int totalItems = allData.Count;
+            
+            // Hitung total halaman (dibulatkan ke atas)
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // Mencegah error jika user mengetik halaman minus atau berlebih
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            // POTONG DATA: Lewati halaman sebelumnya, Ambil 9 data
+            var dataHalamanIni = allData
+                                .Skip((page - 1) * pageSize)
+                                .Take(pageSize)
+                                .ToList();
+
+            // 4. MASUKKAN KE VIEWMODEL (Wadah Baru)
+            var model = new sinta_asp.Models.LowonganViewModel
+            {
+                Lowongan = dataHalamanIni,
+                CurrentPage = page,
+                TotalPages = totalPages
+            };
+
+            // Simpan filter agar tidak hilang saat klik halaman berikutnya
             ViewData["SelectedSearch"] = search;
+            ViewData["SelectedCompany"] = company;
             ViewData["SelectedRegion"] = region;
 
-            return View(dataTampil);
+            return View(model);
         }
-
         // 2. TAMPILKAN FORM (GET)
         public IActionResult Daftar()
         {
@@ -139,6 +174,7 @@ namespace sinta_asp.Controllers
             {
                 var currentUserEmail = User.Identity?.Name;
                 // A. Upload File Dulu
+                string fotoPath = await UploadFile(model.Foto3x4, "foto");
                 string cvPath = await UploadFile(model.FileCV, "cv");
                 string proposalPath = await UploadFile(model.FileProposal, "proposal");
                 string suratPath = await UploadFile(model.FileSurat, "surat");
@@ -152,6 +188,7 @@ namespace sinta_asp.Controllers
                     TempatLahir = model.TempatLahir,
                     TglLahir = model.TglLahir,
                     Instagram = model.Instagram,
+                    PathFoto3x4 = fotoPath,
                     
                     Universitas = model.Universitas,
                     Fakultas = model.Fakultas,
@@ -204,6 +241,11 @@ namespace sinta_asp.Controllers
         {
             return View();
         }
+
+        private List<LowonganKerja> GetDummyData()
+       {
+           return SemuaLowongan;
+       }
 
         // --- HELPER FUNCTION: CARA SIMPAN FILE BIAR RAPI ---
         private async Task<string?> UploadFile(Microsoft.AspNetCore.Http.IFormFile file, string jenis)
