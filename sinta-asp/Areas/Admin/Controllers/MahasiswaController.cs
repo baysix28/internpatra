@@ -199,13 +199,10 @@ namespace sinta_asp.Areas.Admin.Controllers
             htmlBody = htmlBody.Replace("{IsiPesan}", isiPesan)
                                .Replace("{Tahun}", DateTime.Now.Year.ToString());
 
-            await _emailService.SendAsAdminAsync(
-                admin.Email, 
-                admin.SmtpPassword, 
+            await _emailService.SendWithCourierAsync(
                 mhs.EmailPribadi, 
                 status == "Diterima" ? "Selamat! Seleksi Magang Diterima" : "Informasi Seleksi Magang",
-                htmlBody,
-                "HC Pertamina - " + admin.RegionManaged
+                htmlBody
             );
         }
 

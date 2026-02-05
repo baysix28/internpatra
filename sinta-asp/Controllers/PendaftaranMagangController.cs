@@ -23,19 +23,11 @@ namespace sinta_asp.Controllers
             _emailService = emailService;
         }
 
-        // ================= FORM UTAMA =================
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
         [Authorize]
-        public IActionResult DataMagang()
-        {
-            return View();
-        }
+        public IActionResult DataMagang() => View();
 
-        // ================= POST SIMPAN =================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Store(
@@ -45,10 +37,13 @@ namespace sinta_asp.Controllers
             IFormFile? FileSuratPengantar,
             IFormFile? FileProposal)
         {
-            // Validasi Server-Side
-            if (!ModelState.IsValid)
-            {
-                return View("Index", model);
+            if (!ModelState.IsValid) return View("Index", model);if (!ModelState.IsValid) 
+{
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine("MODEL ERROR: " + error.ErrorMessage);
+                }
+                return View("Index", model); 
             }
 
             try
@@ -65,10 +60,9 @@ namespace sinta_asp.Controllers
                 model.CreatedAt = DateTime.Now;
                 model.Status = "Menunggu";
 
-                // ===== SIMPAN PENDAFTARAN KE DATABASE =====
+                // ===== SIMPAN KE DATABASE =====
                 _context.PendaftaranMagang.Add(model);
                 
-                // 🔥 TAMBAHKAN LOGIKA NOTIFIKASI DI SINI (Sebelum SaveChanges)
                 var notif = new Notification
                 {
                     Title = "Pendaftaran Berhasil",
@@ -76,16 +70,13 @@ namespace sinta_asp.Controllers
                     Type = "Dokumen",
                     IsRead = false,
                     CreatedAt = DateTime.Now,
-                    UserEmail = currentUserEmail // Menggunakan email user yang sedang login
+                    UserEmail = currentUserEmail
                 };
                 
                 _context.Set<Notification>().Add(notif);
-
-                // Simpan keduanya (Pendaftaran & Notifikasi) sekaligus
                 await _context.SaveChangesAsync();
 
-                // 3. LOGIKA EMAIL KURIR (Sistem) -> ADMIN REGION
-                // Mencari admin berdasarkan region yang dipilih pendaftar
+                // ===== LOGIKA EMAIL 1: KE ADMIN =====
                 var adminUser = await _context.Admins
                     .FirstOrDefaultAsync(a => a.RegionManaged.ToLower().Trim() == model.Region.ToLower().Trim());
 
@@ -93,87 +84,64 @@ namespace sinta_asp.Controllers
                 {
                     try 
                     {
-                        string subjek = "Notifikasi SINTA: Pendaftaran Magang Baru";
-                        
-                        // Format pesan HTML untuk email kurir pusat
-                        string pesan = $@"
-                            <div style='font-family: sans-serif; line-height: 1.6; color: #333;'>
-                                <h2>Halo, {adminUser.Nama}</h2>
-                                <p>Terdapat pendaftar magang baru yang masuk ke sistem SINTA untuk wilayah <b>{model.Region}</b>.</p>
-                                <table style='width: 100%; border-collapse: collapse;'>
-                                    <tr><td style='width: 150px;'><b>Nama</b></td><td>: {model.NamaLengkap}</td></tr>
-                                    <tr><td><b>Universitas</b></td><td>: {model.NamaPerguruanTinggi}</td></tr>
-                                    <tr><td><b>Jurusan</b></td><td>: {model.Jurusan}</td></tr>
-                                    <tr><td><b>Lokasi Tugas</b></td><td>: {model.Lokasi}</td></tr>
-                                    <tr><td><b>Periode</b></td><td>: {model.MulaiMagang:dd MMM yyyy} - {model.SelesaiMagang:dd MMM yyyy}</td></tr>
-                                </table>
-                                <p>Harap segera login ke Dashboard Admin untuk memeriksa dokumen pendaftar.</p>
-                                <br>
-                                <hr>
-                                <p style='font-size: 0.8em; color: #777;'>Email ini dikirim otomatis oleh Sistem SINTA Pertamina.</p>
-                            </div>";
-
-                        // Menggunakan SendWithCourierAsync (Email dari appsettings.json)
-                        await _emailService.SendWithCourierAsync(adminUser.Email, subjek, pesan);
+                        string subjekAdmin = "Notifikasi SINTA: Pendaftaran Magang Baru";
+                        string pesanAdmin = $"<h2>Halo, {adminUser.Nama}</h2><p>Pendaftar baru: {model.NamaLengkap} untuk wilayah {model.Region}.</p>";
+                        await _emailService.SendWithCourierAsync(adminUser.Email, subjekAdmin, pesanAdmin);
                     }
-                    catch (Exception emailEx)
-                    {
-                        // Jika email gagal, pendaftaran tetap sukses tapi log error dicatat
-                        System.Diagnostics.Debug.WriteLine("Gagal kirim notifikasi admin: " + emailEx.Message);
+                    catch (Exception ex) {
+                        Console.WriteLine("DEBUG ERROR ADMIN: " + ex.Message);
                     }
                 }
 
+                // ===== LOGIKA EMAIL 2: KE KAMU (USER) =====
+                try 
+                {
+                    // Membuat format nomor pendaftaran PEN/2026/02/00XX
+                    string noPendaftaran = $"PEN/{DateTime.Now:yyyy}/{DateTime.Now:MM}/000{new Random().Next(1, 99)}"; 
+                    
+                    string subjekUser = "Pendaftaran Magang Berhasil - " + noPendaftaran;
+                    string pesanUser = $@"
+                        <div style='font-family: sans-serif; line-height: 1.6; color: #333;'>
+                            <p>Yth. Sdr/i <b>{model.NamaLengkap}</b>,</p>
+                            <p>Pendaftaran penelitian Anda telah masuk dalam sistem dengan nomor pendaftaran:</p>
+                            <p style='font-size: 18px; color: #003399;'><b>{noPendaftaran}</b></p>
+                            <p>Silakan tunggu email tanggapan dari kami atau periksa status penerimaan penelitian Anda melalui Web Sinta dengan memasukkan nomor pendaftaran tersebut.</p>
+                            <p>
+                                Salam hormat,<br/>
+                                <b>Human Capital</b><br/>
+                                PT Pertamina Patra Niaga Regional Jawa Bagian Tengah
+                            </p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin-top: 20px;'/>
+                            <p style='font-size: 11px; color: gray;'>*Email ini dikirimkan secara otomatis, mohon untuk <b>tidak membalas (do not reply)</b> email ini.</p>
+                        </div>";
+
+                    await _emailService.SendWithCourierAsync(currentUserEmail, subjekUser, pesanUser);
+                }
+                catch (Exception ex) 
+                {
+                    Console.WriteLine("DEBUG ERROR USER: " + ex.Message);
+                }
+                
                 return RedirectToAction("Sukses");
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Terjadi kesalahan sistem saat menyimpan data: " + ex.Message;
+                TempData["Error"] = "Gagal simpan data: " + ex.Message;
                 return View("Index", model);
             }
         }
 
-        // // Contoh saat pendaftaran berhasil
-        // // DI DALAM fungsi pendaftaran, bukan di luar
-        // var notif = new Notification
-        // {
-        //     Title = "Pendaftaran Berhasil",
-        //     Message = "Berkas pendaftaran Anda sedang ditinjau.",
-        //     Type = "Dokumen",
-        //     UserEmail = "user@gmail.com" // Ganti dengan email user yang login
-        // };
-
-        // _context.Set<Notification>().Add(notif);
-        // await _context.SaveChangesAsync();
-
-        // ================= HELPER UPLOAD =================
         private string SimpanFile(IFormFile? file, string folder)
         {
-            if (file == null || file.Length == 0)
-                return string.Empty;
-
-            // Pastikan direktori tujuan ada
+            if (file == null || file.Length == 0) return string.Empty;
             string uploadDir = Path.Combine(_environment.WebRootPath, folder);
-            if (!Directory.Exists(uploadDir))
-            {
-                Directory.CreateDirectory(uploadDir);
-            }
-
-            // Buat nama file unik untuk menghindari penumpukan (overwrite)
+            if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
             string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
             string fullPath = Path.Combine(uploadDir, fileName);
-
-            using (var stream = new FileStream(fullPath, FileMode.Create))
-            {
-                file.CopyTo(stream);
-            }
-
-            // Kembalikan path relatif untuk disimpan di DB
+            using (var stream = new FileStream(fullPath, FileMode.Create)) { file.CopyTo(stream); }
             return $"{folder}/{fileName}";
         }
 
-        public IActionResult Sukses()
-        {
-            return View();
-        }
+        public IActionResult Sukses() => View();
     }
 }

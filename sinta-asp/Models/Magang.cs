@@ -42,7 +42,6 @@ namespace sinta_asp.Models
         public string? FileProposal { get; set; }
 
         [Required]
-        [MaxLength(20)]
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

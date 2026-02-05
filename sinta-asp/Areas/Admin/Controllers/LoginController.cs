@@ -95,7 +95,8 @@ namespace sinta_asp.Areas.Admin.Controllers
             var newAdmin = new AdminModel
             {
                 Nama = FullName,
-                Email = Email
+                Email = Email,
+                RegionManaged = "Pusat"
             };
 
             newAdmin.PasswordHash = _passwordHasher.HashPassword(newAdmin, Password);
