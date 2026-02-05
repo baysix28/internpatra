@@ -38,7 +38,7 @@ namespace sinta_asp.Controllers
             IFormFile? FileProposal)
         {
             if (!ModelState.IsValid) return View("Index", model);if (!ModelState.IsValid) 
-{
+            {
                 foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                 {
                     Console.WriteLine("MODEL ERROR: " + error.ErrorMessage);
@@ -63,17 +63,15 @@ namespace sinta_asp.Controllers
                 // ===== SIMPAN KE DATABASE =====
                 _context.PendaftaranMagang.Add(model);
                 
-                var notif = new Notification
-                {
-                    Title = "Pendaftaran Berhasil",
-                    Message = $"Pendaftaran Magang di unit {model.Company} berhasil dikirim.",
-                    Type = "Dokumen",
+                var notifMagang = new Notification {
+                    UserEmail = currentUserEmail,
+                    Title = "Pendaftaran Magang",
+                    Message = $"Pendaftaran Magang di {model.Company} berhasil dikirim.",
+                    Type = "Magang",
                     IsRead = false,
-                    CreatedAt = DateTime.Now,
-                    UserEmail = currentUserEmail
+                    CreatedAt = DateTime.Now
                 };
-                
-                _context.Set<Notification>().Add(notif);
+                _context.Set<Notification>().Add(notifMagang);
                 await _context.SaveChangesAsync();
 
                 // ===== LOGIKA EMAIL 1: KE ADMIN =====
@@ -121,7 +119,7 @@ namespace sinta_asp.Controllers
                 {
                     Console.WriteLine("DEBUG ERROR USER: " + ex.Message);
                 }
-                
+
                 return RedirectToAction("Sukses");
             }
             catch (Exception ex)
