@@ -1,42 +1,58 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using sinta_asp.Services;
 using sinta_asp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ===============================
-// 1. REGISTER SERVICES (DATABASE)
-// ===============================
+// ==========================================================
+// 1. REGISTER SERVICES
+// ==========================================================
 
-// KITA PAKAI SQL SERVER (PUNYA KAMU)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connectionString));
-
-// Service buat Controller & View
+// MVC & Controllers
 builder.Services.AddControllersWithViews();
 
-// Konfigurasi Session (Penting buat Login)
+// Database (SQL Server)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
+// Authentication & Cookies (PENTING BUAT LOGIN)
+// Diambil dari branch SEMUA agar fitur login jalan
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.AccessDeniedPath = "/Home/AccessDenied";
+    });
+
+// Email Service
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// HttpContext & Session Configuration
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
 
+// ==========================================================
+// 2. BUILD APLIKASI
+// ==========================================================
 var app = builder.Build();
 
-// ===============================
-// 2. MIDDLEWARE
-// ===============================
+// ==========================================================
+// 3. MIDDLEWARE / HTTP PIPELINE
+// ==========================================================
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -45,25 +61,23 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Middleware Keamanan
+// URUTAN INI SANGAT PENTING: Session -> Auth -> Authz
 app.UseSession();
+app.UseAuthentication(); // Wajib ada agar User.Identity terbaca
 app.UseAuthorization();
 
-// ===============================
-// 3. ROUTING KHUSUS & UMUM (JANGAN DIHAPUS)
-// ===============================
+// ==========================================================
+// 4. ROUTING / MAPPING
+// ==========================================================
 
-// 🟢 1. INI ROUTING KHUSUS (ADMIN) YG KAMU MINTA PERTAHANKAN
-// Tanpa ini, halaman Admin gak bakal bisa dibuka
+// 1. Routing Khusus (Areas/Admin) - Dipertahankan dari request branch vava
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}"
-);
+    pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}");
 
-// 🔵 2. INI ROUTING UMUM (HALAMAN DEPAN)
+// 2. Routing Umum (Halaman Depan/Default)
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}"
-);
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

@@ -1,25 +1,27 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace sinta_asp.Models
 {
-    [Table("Admins")]
     public class Admin
     {
-        [Key]
+        [Key] 
         public int Id { get; set; }
 
-        [Required] 
-        public string Email { get; set; } = string.Empty;
+        [Required]
+        [StringLength(100)]
+        public string Nama { get; set; } 
+        
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } 
 
         [Required]
-        public string PasswordHash { get; set; } = string.Empty;
+        public string PasswordHash { get; set; }
 
         [Required]
-        public string Nama { get; set; } = string.Empty;
+        [StringLength(100)]
+        public string RegionManaged { get; set; } 
 
-        public bool IsActive { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string? SmtpPassword { get; set; }
     }
 }
