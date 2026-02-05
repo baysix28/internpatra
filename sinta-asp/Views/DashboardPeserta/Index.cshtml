@@ -220,7 +220,37 @@
             display: block;
             animation: slideDown 0.2s ease-out forwards;
         }
-        
+
+        /* ===============================
+        RIWAYAT TABLE STYLING
+        =============================== */
+        .riwayat-card {
+            font-size: 14px;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+
+        .riwayat-card thead th {
+            font-size: 14px;
+            padding: 16px 18px;
+        }
+
+        .riwayat-card tbody td {
+            font-size: 14px;
+            padding: 14px 18px;
+            vertical-align: middle;
+        }
+
+        .riwayat-card .status-badge {
+            font-size: 12px;
+            padding: 6px 14px;
+        }
+
+        .riwayat-card .btn {
+            font-size: 13px;
+            padding: 7px 16px;
+        }
+
         @@keyframes slideDown {
         from { 
             opacity: 0; 
@@ -421,7 +451,7 @@
                     <i class="fa fa-plus mr-2"></i> Daftar Magang Baru
                 </button>
             </div>
-            <div class="glass-card p-0 overflow-hidden">
+            <div class="glass-card riwayat-card p-0 overflow-hidden">
                 <table class="table mb-0">
                     <thead class="bg-light">
                         <tr>
@@ -430,6 +460,7 @@
                             <th class="border-0">Posisi</th>
                             <th class="border-0">Tanggal</th>
                             <th class="border-0">Status</th>
+                            <th class="border-0">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -447,7 +478,11 @@
                                                             item.Status == "Ditolak" ? "status-danger" : 
                                                             "status-review";
                                         }
-                                        <span class="status-badge @statusClass">@item.Status</span>
+                                        <span class="status-badge @statusClass">@item.Status</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="showReview('Riset', @item.Id)" style="border-radius: 8px;">
+                                            <i class="fa-solid fa-magnifying-glass mr-1"></i> Detail
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -469,7 +504,7 @@
                     <i class="fa fa-plus mr-2"></i> Ajukan Riset Baru
                 </button>
             </div>
-            <div class="glass-card p-0 overflow-hidden">
+            <div class="glass-card riwayat-card p-0 overflow-hidden">
                 <table class="table mb-0">
                     <thead class="bg-light">
                         <tr>
@@ -477,6 +512,7 @@
                             <th class="border-0">Instansi</th>
                             <th class="border-0">Tanggal</th>
                             <th class="border-0">Status</th>
+                            <th class="border-0">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -486,7 +522,15 @@
                                     <td class="px-4 font-weight-bold">@item.JudulPenelitian</td>
                                     <td>@item.Instansi</td>
                                     <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
-                                    <td><span class="status-badge status-review">@item.Status</span></td>
+                                    <td>
+                                        @{
+                                            // Kita tentukan class CSS berdasarkan teks status
+                                            var statusClass = item.Status == "Diterima" ? "status-success" : 
+                                                            item.Status == "Ditolak" ? "status-danger" : 
+                                                            "status-review";
+                                        }
+                                        <span class="status-badge @statusClass">@item.Status</span>
+                                    </td>
                                 </tr>
                             }
                         } else {
