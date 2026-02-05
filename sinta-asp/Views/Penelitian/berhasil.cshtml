@@ -1,71 +1,194 @@
+@model sinta_asp.Models.Pendaftaran
 @{
     ViewData["Title"] = "Pendaftaran Berhasil";
-    Layout = null;
 }
 
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pendaftaran Berhasil</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        body {
-            margin: 0; padding: 0;
-            background: #F7FAFC;
-            font-family: 'Poppins', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            max-width: 400px;
-            width: 100%;
-        }
-        h1 { color: #0055A4; margin-bottom: 10px; font-size: 24px; }
-        p { color: #718096; font-size: 14px; margin-bottom: 30px; }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        /* Warna Official Pertamina */
+        --p-blue: #00529C;  
+        --p-green: #9CCB3B; 
+        --p-red: #ED1C24;   
+        --p-dark: #1e293b;
+    }
+
+    body {
+        /* Background Gradient halus */
+        background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+    }
+
+    /* WRAPPER: Posisi LEBIH KE ATAS (padding-top dikurangi jadi 30px) */
+    .success-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start; 
+        padding-top: 30px; /* <--- Diubah biar makin naik */
+        padding-bottom: 50px;
+        padding-left: 20px; padding-right: 20px;
+    }
+
+    /* CARD DESIGN: 3D Look */
+    .pertamina-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 500px;
+        border-radius: 12px;
+        box-shadow: 0 20px 40px -10px rgba(0, 59, 118, 0.15);
+        position: relative;
+        overflow: hidden;
+        border-top: 6px solid var(--p-red); /* Aksen Merah di atap */
+    }
+
+    /* CARD BODY */
+    .card-content {
+        padding: 15px 30px 40px 30px;
+        text-align: center;
+    }
+
+    /* IKON */
+    /* 1. UBAH BACKGROUND LINGKARAN JADI HIJAU MUDA */
+    .icon-box {
+        width: 70px; height: 70px;
+        /* Ganti background biru sebelumnya dengan Hijau Muda ini */
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); 
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 20px auto;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    /* 2. UBAH WARNA ICON CENTANG JADI HIJAU TUA */
+    .icon-box i {
+        color: #16a34a; /* INI YANG BIKIN CENTANG JADI HIJAU */
+        font-size: 2.2rem;
+    }
+
+    /* TYPOGRAPHY */
+    .title-main {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        color: var(--p-blue);
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+    
+    .subtitle {
+        color: #64748b;
+        font-size: 0.95rem;
+        margin-bottom: 30px;
+        line-height: 1.5;
+    }
+
+    /* UBAH BAGIAN INI: Kotak Registrasi Lebih Kecil */
+    .reg-ticket {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid var(--p-blue); /* Garis biru diperkecil dikit */
+        border-radius: 6px;
         
-        /* STYLE TOMBOL TUNGGAL */
-        .btn {
-            background: #0055A4;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            text-decoration: none;
-            display: block;
-            width: 80%;
-            margin: 0 auto;
-            font-weight: 500;
-            transition: 0.3s;
-            border: none;
-            cursor: pointer;
-        }
-        .btn:hover { background: #00448a; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,85,164,0.2); }
+        /* INI YANG PENTING: Padding dikurangi biar kotaknya kempes/kecil */
+        padding: 10px 15px; 
+        
+        text-align: left;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
 
-    </style>
-</head>
-<body>
+    /* Kecilkan Label "NOMOR REGISTRASI" */
+    .reg-ticket h5 {
+        font-size: 0.65rem; /* Font diperkecil */
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #94a3b8;
+        margin: 0 0 2px 0; /* Jarak ke angka dirapatkan */
+        font-weight: 600;
+    }
+    
+    /* Kecilkan Angka Nomornya */
+    .reg-number {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 1rem; /* Ukuran angka diperkecil (sebelumnya 1.2rem) */
+        font-weight: 700;
+        color: #334155;
+        margin: 0;
+    }
 
-    <div class="card">
-        <div style="font-size: 60px; color: #63B448; margin-bottom: 10px; line-height: 1;">
-            <i class="bi bi-check-circle-fill"></i>
+    /* INFO EMAIL */
+    .email-info {
+        font-size: 0.85rem;
+        color: #64748b;
+        background: #eff6ff;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px dashed #bfdbfe;
+        margin-bottom: 30px;
+    }
+
+    /* TOMBOL LEBIH KECIL & SHADOW TIPIS */
+    .btn-pertamina {
+        background: linear-gradient(90deg, var(--p-blue) 0%, #003B76 100%);
+        color: white;
+        
+        /* 1. UKURAN DIKECILKAN */
+        padding: 8px 20px;  /* Sebelumnya 12px 30px */
+        font-size: 0.85rem; /* Huruf diperkecil sedikit */
+        
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 6px;
+        
+        /* 2. SHADOW DIKURANGI (LEBIH TIPIS) */
+        box-shadow: 0 2px 6px rgba(0, 82, 156, 0.15); /* Sebelumnya tebal */
+        
+        transition: transform 0.2s;
+    }
+    
+    .btn-pertamina:hover {
+        transform: translateY(-1px);
+        color: white;
+        /* Shadow saat hover juga jangan terlalu tebal */
+        box-shadow: 0 4px 10px rgba(0, 82, 156, 0.2); 
+    }
+</style>
+
+<div class="success-wrapper">
+    <div class="pertamina-card">
+        
+        <div class="brand-accent">
+            <div class="shape shape-blue"></div>
+            <div class="shape shape-green"></div>
+            <div class="shape shape-red"></div>
         </div>
-        
-        <h1>Pendaftaran Berhasil!</h1>
-        <p>Data kamu sudah masuk ke sistem SINTA Pertamina. Tim kami akan segera melakukan review.</p>
-        
-        <a asp-controller="Penelitian" asp-action="Index" class="btn">
-            Kembali ke Beranda
-        </a>
-    </div>
 
-</body>
-</html>
+        <div class="card-content">
+            <div class="icon-box">
+                <i class="bi bi-check-lg"></i>
+            </div>
+
+            <h1 class="title-main">Berhasil!</h1>
+            <p class="subtitle">
+                Terima kasih Sdr/i <strong>@Model.Nama</strong>. <br>
+                Berkas pendaftaran Anda telah kami terima.
+            </p>
+
+            <div class="reg-ticket">
+                <h5>Nomor Registrasi</h5>
+                <p class="reg-number">@Model.NomorPendaftaran</p>
+            </div>
+
+            <div class="email-info">
+                Silakan cek email <strong>@Model.Email</strong> untuk informasi lebih lanjut.
+            </div>
+
+            <a asp-controller="Penelitian" asp-action="Index" class="btn-pertamina">
+                Kembali ke Beranda
+            </a>
+        </div>
+    </div>
+</div>

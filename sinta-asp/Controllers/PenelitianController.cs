@@ -7,6 +7,8 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using System.Net;     
+using System.Net.Mail; 
 
 
 namespace sinta_asp.Controllers
@@ -182,21 +184,27 @@ namespace sinta_asp.Controllers
             return View();
         }
 
-        // 3. PROSES SUBMIT FORM (POST) -- INI LOGIC SIMPAN YANG BARU
+        // 3. PROSES SUBMIT FORM (POST) -- UPDATE TERBARU
         [HttpPost]
         public async Task<IActionResult> SubmitPendaftaran(PendaftaranPenelitianModel model)
         {
             if (ModelState.IsValid)
             {
-                // A. Upload File Dulu
+                // A. Upload File
                 string fotoPath = await UploadFile(model.Foto3x4, "foto");
                 string cvPath = await UploadFile(model.FileCV, "cv");
                 string proposalPath = await UploadFile(model.FileProposal, "proposal");
                 string suratPath = await UploadFile(model.FileSurat, "surat");
 
-                // B. Pindahkan Data dari Model Form ke Model Database
+                // --- BARU: Generate Nomor Otomatis ---
+                string nomorGenerated = GenerateNomorPendaftaran();
+
+                // B. Pindahkan Data
                 var pendaftaranBaru = new Pendaftaran
                 {
+                    // --- BARU: Masukkan Nomor ke Database ---
+                    NomorPendaftaran = nomorGenerated, 
+
                     Nama = model.Nama,
                     Email = model.Email,
                     NoHp = model.NoHp,
@@ -220,7 +228,6 @@ namespace sinta_asp.Controllers
                     TargetLokasi = model.TargetLokasi,  
                     TargetJurusan = model.TargetJurusan,
 
-                    // Simpan Lokasi Filenya saja
                     PathCV = cvPath,
                     PathProposal = proposalPath,
                     PathSurat = suratPath,
@@ -231,13 +238,16 @@ namespace sinta_asp.Controllers
 
                 // C. Simpan ke Database
                 _context.Pendaftarans.Add(pendaftaranBaru);
-                await _context.SaveChangesAsync(); // <-- DETIK-DETIK MASUK DATABASE
+                await _context.SaveChangesAsync();
 
-                // D. Selesai, lempar ke halaman Sukses
-                return RedirectToAction("Berhasil");
+                // --- BARU: Kirim Email Notifikasi ---
+                // (Pastikan method KirimEmailNotifikasi sudah di-copy di bawah)
+                KirimEmailNotifikasi(model.Email, nomorGenerated, model.Nama);
+
+                // D. Lempar ke halaman Berhasil sambil bawa datanya (biar bisa munculin nomor)
+                return View("Berhasil", pendaftaranBaru);
             }
 
-            // Kalau error validasi, balikin ke form
             return View("Daftar", model);
         }
 
@@ -273,6 +283,91 @@ namespace sinta_asp.Controllers
 
             // 4. Kembalikan path relatif untuk disimpan di database
             return "/uploads/" + jenis + "/" + uniqueFileName;
+        }
+
+        // --- HELPER 1: GENERATE NOMOR PENDAFTARAN (PEN/2026/I/0001) ---
+        private string GenerateNomorPendaftaran()
+        {
+            DateTime now = DateTime.Now;
+            string tahun = now.Year.ToString();
+            string bulanRomawi = GetBulanRomawi(now.Month);
+            
+            // Prefix untuk pencarian: PEN/2026/I/
+            string prefix = $"PEN/{tahun}/{bulanRomawi}/";
+
+            // Cek database untuk nomor terakhir dengan prefix yg sama
+            var dataTerakhir = _context.Pendaftarans
+                                .Where(x => x.NomorPendaftaran.StartsWith(prefix))
+                                .OrderByDescending(x => x.NomorPendaftaran)
+                                .FirstOrDefault();
+
+            int urutan = 1;
+            if (dataTerakhir != null)
+            {
+                // Jika ada (misal .../0015), ambil angka terakhir
+                string[] parts = dataTerakhir.NomorPendaftaran.Split('/');
+                string angkaTerakhir = parts[parts.Length - 1]; // ambil "0015"
+                
+                if (int.TryParse(angkaTerakhir, out int lastNumber))
+                {
+                    urutan = lastNumber + 1;
+                }
+            }
+
+            // Format jadi 4 digit: 0001
+            return $"{prefix}{urutan.ToString("D4")}";
+        }
+
+        // --- HELPER 2: UBAH ANGKA BULAN JADI ROMAWI ---
+        private string GetBulanRomawi(int bulan)
+        {
+            string[] romawi = { "", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII" };
+            return (bulan >= 1 && bulan <= 12) ? romawi[bulan] : "";
+        }
+
+        // --- HELPER 3: KIRIM EMAIL (SMTP GMAIL) ---
+        private void KirimEmailNotifikasi(string emailTujuan, string noPendaftaran, string nama)
+        {
+            try 
+            {
+                // GANTI DENGAN EMAIL ASLIMU NANTI
+                string emailPengirim = "sintapertamina@gmail.com"; 
+                string passwordApp = "cipjzsmrwrwhvtnv"; // Bukan password login biasa!
+
+                SmtpClient client = new SmtpClient("smtp.gmail.com");
+                client.Port = 587;
+                client.EnableSsl = true;
+                client.Credentials = new NetworkCredential(emailPengirim, passwordApp);
+
+                MailMessage mail = new MailMessage();
+                mail.From = new MailAddress(emailPengirim, "Sistem Internship Pertamina");
+                mail.To.Add(emailTujuan);
+                mail.Subject = "Pendaftaran Magang Berhasil - ";
+                
+                string bodyEmail = $@"
+                    <p>Yth. Sdr/i <b>{nama}</b>,</p>
+                    <p>Pendaftaran penelitian Anda telah masuk dalam sistem dengan nomor pendaftaran:</p>
+                    <p><b>{noPendaftaran}</b></p>
+                    <p>Silakan tunggu email tanggapan dari kami atau periksa status penerimaan penelitian Anda melalui Web Sinta dengan memasukkan nomor pendaftaran tersebut.</p>
+                    <p>
+                        Salam hormat,<br/>
+                        Human Capital<br/>
+                        PT Pertamina Patra Niaga Regional Jawa Bagian Tengah
+                    </p>
+                    <hr/>
+                    <p style='font-size: 11px; color: gray;'>*Email ini dikirimkan secara otomatis, mohon untuk <b>tidak membalas (do not reply)</b> email ini.</p>
+                ";
+                
+                mail.Body = bodyEmail;
+                mail.IsBodyHtml = true;
+
+                client.Send(mail);
+            }
+            catch (Exception ex)
+            {
+                // Kalau email gagal, jangan bikin error aplikasi, cukup catat di console
+                Console.WriteLine("Gagal kirim email: " + ex.Message);
+            }
         }
     }
 }

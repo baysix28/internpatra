@@ -10,38 +10,76 @@
     <link rel="stylesheet" href="~/sinta_asp.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">sinta_asp</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <partial name="_Header" />
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer style="background-color: #002B49; color: #ffffff; padding-top: 40px; padding-bottom: 20px; font-size: 0.9rem;">
         <div class="container">
-            &copy; 2026 - sinta_asp - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="row">
+                
+                <div class="col-md-5 mb-4">
+                    <img src="https://pertaminapatraniaga.com/images/pertamina-white.svg" 
+                         alt="Pertamina Patra Niaga" 
+                         style="height: 60px; width: auto; margin-bottom: 20px;" />
+
+                    <p style="opacity: 0.9; line-height: 1.6;">
+                        Jl. Pemuda No. 114, Sekayu<br>
+                        Semarang Tengah, Kota Semarang, Jawa Tengah 50132
+                    </p>
+
+                    <div style="margin-top: 15px;">
+                        <p class="mb-1">Telepon: 135</p>
+                        <p>Email: pcc135@pertamina.com</p>
+                    </div>
+                </div>
+
+                <div class="col-md-3 mb-4">
+                    <h6 style="font-weight: 700; text-transform: uppercase; margin-bottom: 20px;">Tautan</h6>
+                    <ul class="list-unstyled" style="padding-left: 0;">
+                        <li class="mb-2"><a asp-controller="Home" asp-action="Index" style="color: #fff; text-decoration: none; opacity: 0.8;">Beranda</a></li>
+                        <li class="mb-2"><a href="#" style="color: #fff; text-decoration: none; opacity: 0.8;">Tentang SINTA</a></li>
+                        <li class="mb-2"><a href="#" style="color: #fff; text-decoration: none; opacity: 0.8;">Kebijakan Privasi</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-md-4 mb-4 text-md-end">
+                    <img src="https://pertaminapatraniaga.com/images/call-center-pertamina.webp" 
+                         alt="Pertamina Call Center 135" 
+                         style="height: 80px; width: auto;" />
+                </div>
+
+            </div>
+
+            <div class="row mt-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                <div class="col-md-6 text-center text-md-start">
+                    <small>&copy; 2026 Pertamina Patra Niaga. All Rights Reserved.</small>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
+                    <span style="font-family: 'Brush Script MT', 'Comic Sans MS', cursive; font-size: 1.4rem; font-style: italic;">
+                        Energizing Your Journey
+                    </span>
+                </div>
+            </div>
         </div>
     </footer>
+    <div style="
+        height: 12px;
+        width: 100%;
+        background: linear-gradient(to right, 
+            #00529C 0%,    
+            #00529C 33%,   
+            #9CCB3B 33%,   
+            #9CCB3B 66%,
+            #E31B23 66%,   
+            #E31B23 100%
+        );
+    "></div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

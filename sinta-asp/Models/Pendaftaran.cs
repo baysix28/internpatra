@@ -9,6 +9,7 @@ namespace sinta_asp.Models
     {
         [Key] // Ini Primary Key (Wajib)
         public int Id { get; set; }
+        public string NomorPendaftaran { get; set; }
 
         public string Nama { get; set; }
         public string Email { get; set; }

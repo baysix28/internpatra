@@ -108,6 +108,10 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NomorPendaftaran")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PathCV")
                         .HasColumnType("nvarchar(max)");
 

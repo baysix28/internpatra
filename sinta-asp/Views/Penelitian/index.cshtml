@@ -1,3 +1,8 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+
 @model sinta_asp.Models.LowonganViewModel
 @{
     ViewData["Title"] = "Dashboard Penelitian";
@@ -10,13 +15,20 @@
 }
 
 <style>
+    #inputCari::placeholder {
+        color: #888888 !important; /* Pakai !important biar maksa berubah */
+        opacity: 1;
+    }
+</style>
+
+<style>
 
     /* 1. IMPORT FONT BARU */
-    @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500&display=swap');
+    @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');
     
     /* GLOBAL STYLE - UPDATE FULL WIDTH */
     .penelitian-wrapper { 
-        background-color: #F4F4F4; /* Background Biru Muda */
+        background-color: #e2e8f0; /* Background Biru Muda */
         color: #333; 
         min-height: 100vh;
         font-family: 'Inter', sans-serif;
@@ -55,7 +67,7 @@
         padding: 0;
         
         /* Background Gambar */
-        background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); 
+        background-image: url('https://images.unsplash.com/photo-1588011930968-eadac80e6a5a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fG9pbCUyMHJlZmluZXJ5JTIwd29ya2VyfGVufDB8fDB8fHwy'); 
         background-size: cover;          /* Gambar cover full area */
         background-position: center;     /* Posisi tengah */
         
@@ -87,33 +99,41 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Teks di tengah vertikal */
             align-items: flex-start; /* Teks Rata Kiri */
             color: white;
             padding-left: 5%; /* Geser dikit dari pinggir kiri */
+            justify-content: center; /* Tetap center */
+            padding-bottom: 150px !important;
+            text-align: center;
         }
 
         /* 4. TYPOGRAPHY BARU (Poppins & Inter) */
         .hero-title {
             font-family: 'Poppins', sans-serif;
-            font-weight: 800;
-            font-size: 3.5rem;
+            font-weight: 700;       /* Jangan 800, cukup 700 (Bold) atau 600 (SemiBold) */
+            font-size: 3rem;        /* Kecilkan dikit dari 3.5rem biar gak menuhin layar */
             line-height: 1.1;
-            margin-bottom: 10px;
+            margin-bottom: 15px;    /* Jarak ke sub-judul */
             text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            /* State Awal: Hilang & Di Atas */
-            opacity: 0; 
+            text-transform: uppercase; /* Wajib kapital semua biar gagah */
+            letter-spacing: 1px;    /* Tambah spasi antar huruf dikit */
+            
+            opacity: 0;
             transform: translateY(-40px);
-            /* Animation dihapus dari sini */
         }
 
         .hero-lead {
             font-family: 'Inter', sans-serif;
             font-size: 1.1rem;
             font-weight: 400;
-            margin-bottom: 20px !important;
-            max-width: 600px;
-            /* State Awal */
+            letter-spacing: 0.5px;
+            color: #e0e0e0;
+            
+            /* --- PERBAIKAN DI SINI (KITA RAPATKAN) --- */
+            margin-bottom: 15px !important; /* Jarak ke tombol cuma 15px (Deket banget) */
+            margin-top: 0 !important;
+            /* ---------------------------------------- */
+            
             opacity: 0;
             transform: translateY(-40px);
         }
@@ -128,7 +148,7 @@
         border: 2px solid white;
         
         color: white;
-        padding: 15px 40px;
+        padding: 14px 35px;;
         
         font-family: 'Poppins', sans-serif;
         font-weight: 700;
@@ -141,7 +161,7 @@
         transition: color 0.4s ease; 
         
         display: inline-block;
-        margin-top: -10px; /* Jarak dari teks di atasnya */
+        margin-top: 5px; /* Jarak dari teks di atasnya */
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 
         opacity: 0;                   
@@ -169,52 +189,74 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-    /* INI LAYER PUTIH YANG AKAN BERGERAK */
-    /* PERBAIKAN TOMBOL: Kode bersih tanpa sampah copy-paste */
+   /* TOMBOL HERO PROFESSIONAL (GLASS + ANIMASI FILL) */
+    .btn-apply-hero {
+        position: relative;
+        overflow: hidden; /* Wajib biar animasi putih gak bocor */
+        z-index: 1;
+        
+        /* 1. TYPOGRAPHY BARU */
+        font-family: 'Inter', sans-serif; /* Ganti ke Inter biar clean */
+        font-weight: 700;                 /* SemiBold (Tegas) */
+        font-size: 0.9rem;                /* Ukuran sedikit dikecilkan biar elegan */
+        letter-spacing: 2px;              /* JARAK ANTAR HURUF (Kunci tampilan mewah) */
+        text-transform: uppercase;
+        text-decoration: none;
+        
+        /* 2. WARNA & EFEK KACA */
+        color: #ffffff;
+        border: 2px solid rgba(255, 255, 255, 0.6); /* Border putih agak transparan */
+        background-color: rgba(0, 0, 0, 0.5);       /* Latar hitam transparan TIPIS banget */
+        backdrop-filter: blur(4px);                 /* Efek BLUR di belakang tombol (Biar teks kebaca) */
+        
+        /* 3. DIMENSI */
+        padding: 18px 45px;
+        border-radius: 50px !important;
+        display: inline-block;
+        margin-top: 0px;
+        
+        /* Animasi Transisi */
+        transition: all 0.4s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+
+        /* State Awal Animasi Muncul */
+        opacity: 0;                   
+        transform: translateY(-40px);
+    }
+
+    /* KEADAAN HOVER (SAAT KURSOR MASUK) */
+    .btn-apply-hero:hover {
+        color: #003B76;       /* Teks berubah jadi Biru Gelap biar kontras sama background putih */
+        border-color: #ffffff;
+        box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2); /* Glow putih */
+    }
+
+    /* --- ANIMASI FILL PUTIH DARI KIRI KE KANAN (TETAP ADA) --- */
     .btn-apply-hero::before {
         content: "";
         position: absolute;
-        top: 0;
-        left: 0;
-        
-        width: 0%;        /* Mulai dari 0 */
-        height: 100%;
-        
-        background-color: white; /* Warna Putih */
-        z-index: -1;      /* Wajib di belakang teks */
-        
-        /* Animasi */
-        transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); 
+        top: 0; left: 0; width: 0%; height: 100%;
+        background-color: #ffffff; /* Warna Fill Putih */
+        z-index: -1;
+        transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Gerakan smooth */
     }
 
-    /* EFEK SAAT MOUSE DI ARAHKAN (HOVER) */
-    .btn-apply-hero:hover {
-        color: #121c2d; /* Ubah warna teks jadi Biru Gelap biar terbaca */
-        /* Kalau mau teks merah Pertamina, ganti jadi color: #ED1B24; */
-        border-color: white;
-    }
-
-    /* Pemicu Animasi: Lebarkan layer putih jadi 100% */
+    /* Pemicu Animasi */
     .btn-apply-hero:hover::before {
-        width: 100%; 
+        width: 100%;
     }
 
     
     .hero-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 0; left: 0; width: 100%; height: 100%;
         
-        /* GANTI GRADASI MERAH LAMA DENGAN INI (Dark Blue Slate) */
-        /* Kode warna diambil dari sampel gambar referensimu */
-        background: linear-gradient(90deg, 
-            rgba(20, 35, 50, 0.95) 0%,     /* Kiri: Biru Gelap Pekat (Hampir Hitam) */
-            rgba(20, 35, 50, 0.6) 45%,     /* Tengah: Mulai memudar */
-            rgba(20, 35, 50, 0.0) 100%     /* Kanan: Transparan (Gambar terlihat) */
+        /* GANTI DENGAN GRADASI YANG LEBIH GELAP INI */
+        background: linear-gradient(to right, 
+            rgba(0, 0, 0, 0.85) 0%,      /* Hitam Pekat di Kiri */
+            rgba(0, 0, 0, 0.6) 50%,      /* Agak Gelap di Tengah */
+            rgba(0, 0, 0, 0.4) 100%      /* Sedikit terang di Kanan */
         );
-        
         z-index: 1;
     }
 
@@ -228,6 +270,9 @@
         justify-content: center;
         color: white;
         text-align: center;
+        
+        /* TAMBAHAN BARU: GESER KE ATAS SEDIKIT */
+        padding-bottom: 180px; /* Memberi ruang di bawah, otomatis konten terdorong ke atas */
     }
 
     /* TYPOGRAPHY BARU */
@@ -239,29 +284,44 @@
     }
     
     .hero-title { font-size: 4rem; font-weight: 700; margin-bottom: 10px; }
-    .hero-lead { font-size: 1.2rem; font-weight: 400; margin-bottom: 40px; }
+    .hero-lead { font-size: 1.2rem; font-weight: 400; margin-bottom: 15px; }
 
     /* LAYOUT UTAMA */
-    /* UPDATE: MAIN CONTAINER DENGAN EFEK OVERLAP (MENUMPUK) */
     .main-container {
         max-width: 100%;
-        margin: 0 auto; /* Posisi tengah horizontal */
+        margin: 0 auto;
         
-        /* --- 1. KUNCI EFEK OVERLAP (MANTRA UTAMA) --- */
-        margin-top: -30px !important;  /* Menarik kotak ini NAIK 80px ke atas menutupi Hero */
-        position: relative;            /* Wajib ada biar bisa diatur urutan layernya */
-        z-index: 10;                   /* Pastikan layer ini DI ATAS gambar Hero (yg z-indexnya cuma 2) */
+        /* Layout */
+        margin-top: -60px !important;
+        position: relative;
+        z-index: 10;
         
-        /* --- 2. STYLE ALA KARTU/SHEET (REFERENSI GAMBARMU) --- */
-        background-color: #F4F4F4;     /* Warna dasar harus solid (Biru Muda) biar gambar Hero ketutup */
-        border-radius: 40px 40px 0 0;  /* Membuat sudut Kiri-Atas & Kanan-Atas melengkung */
-        box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.15); /* Bayangan ke arah atas biar terlihat mengambang */
+        /* --- WARNA SOLID PREMIUM (Ice Blue) --- */
+        background: #f1f5f9;  /* Solid, bukan gradasi, bukan pattern. */
+        /* -------------------------------------- */
+
+        /* Bentuk */
+        border-radius: 50px 50px 0 0;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05); /* Shadow halus */
         
-        /* --- 3. KERAPIAN ISI --- */
-        padding: 50px 40px 100px 40px; /* Memberi jarak nafas di dalam kotak (Atas Kanan Bawah Kiri) */
+        padding: 60px 40px 100px 40px;
+        min-height: 80vh;
+        
+        /* --- ANIMASI AWAL (NGUMPET DI BAWAH) --- */
+        opacity: 0;
+        transform: translateY(100px); /* Turun 100px */
+        
+        /* Transisi Halus (1 detik) */
+        transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-    
-    /* OPSIONAL: Agar di layar HP lengkungannya tidak terlalu ekstrem */
+
+    /* --- KELAS UNTUK MUNCUL --- */
+    .main-container.muncul-container {
+        opacity: 1;
+        transform: translateY(0); /* Naik ke posisi normal */
+    }
+
+    /* Responsif HP (Tetap Aman) */
     @@media (max-width: 768px) {
         .main-container {
             margin-top: -50px !important;
@@ -269,7 +329,9 @@
             padding: 30px 20px;
         }
     }
-    .job-board-layout { display: grid; grid-template-columns: 280px 1fr; gap: 50px; }
+
+        .job-board-layout { display: grid; grid-template-columns: 280px 1fr; gap: 50px; }
+
 
     /* COMPONENTS */
     .intro-header { display: flex; justify-content: space-between; margin-bottom: 30px; padding-bottom: 30px; border-bottom: 1px solid #eee; }
@@ -277,51 +339,157 @@
         background-color: #00a048; color: white; padding: 10px 25px;
         border-radius: 50px; text-decoration: none; font-weight: 600; display: inline-block;
     }
+    
+        /* 1. PANEL FILTER UTAMA */
+        /* UPDATE BAGIAN .filters BIAR GAK KEPANJANGAN */
     .filters {
         background-color: #ffffff;
-        border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        padding: 30px;
+        border: 1px solid #f1f5f9;
         
-        /* 1. KUNCI AGAR TINGGI 'DIPASKAN' SESUAI ISI (TIDAK MELAR KE BAWAH) */
-        height: fit-content; 
+        /* --- INI SOLUSINYA --- */
+        height: fit-content !important; /* Tinggi menyesuaikan isi, gak melar */
+        align-self: start !important;   /* Grid jangan menarik dia ke bawah */
+        /* -------------------- */
+
+        /* Biar tetap nempel di atas pas discroll */
+        position: -webkit-sticky;
+        position: sticky; 
+        top: 20px;
+        z-index: 10;
+    }
+
+        /* 2. LABEL JUDUL KECIL */
+        .filters label, 
+        /* Tangkap juga div label manual yang ada di HTML Anda */
+        .filters div[style*="font-size: 0.75rem"] { 
+            font-family: 'Poppins', sans-serif !important; 
+            font-size: 0.75rem !important; 
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #334155 !important; /* Abu tua (Slate) biar tajam */
+            margin-bottom: 10px !important;
+            display: block; 
+        }
         
-        /* 2. MEMPERKECIL UKURAN (BIAR LEBIH RAMPING) */
-        padding: 20px;     /* Kurangi padding (jarak dalam) biar tidak gembung */
-        font-size: 0.9rem; /* Kecilkan sedikit hurufnya */
-    }
-    .filters label { font-size: 0.85rem; color:#1976D2; font-weight: 600; margin-bottom: 8px; display: block; }
-    
-    /* FORM STYLING */
-    .form-control-custom {
-        width: 100%; padding: 12px 15px; font-size: 0.95rem;
-        border: 1px solid #e0e0e0; border-radius: 8px; outline: none; background: white;
-        appearance: none; -webkit-appearance: none; -moz-appearance: none;
-    }
-    select.form-control-custom {
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d81c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-        background-repeat: no-repeat; background-position: right 15px center; 
-        background-size: 16px; padding-right: 40px; cursor: pointer;
-    }
-    input.form-control-custom { background-image: none !important; padding-right: 40px; }
-    .search-wrapper { position: relative; }
-    .search-wrapper i { 
-        position: absolute; right: 15px; top: 50%; 
-        transform: translateY(-50%); color: #d81c22; pointer-events: none; 
-    }
-    @@media (max-width: 768px) { .job-board-layout { grid-template-columns: 1fr; } }
+        /* 3. INPUT & SELECT (BENTUK KAPSUL MODERN) */
+        .form-control-custom, 
+        .form-control,
+        select.form-control-custom,
+        input#inputCari {
+            width: 100%; 
+            padding: 12px 20px;      /* Padding kiri-kanan lega */
+            font-size: 0.9rem;
+            
+            /* KUNCI DESAIN MODERN: */
+            border-radius: 10px !important;  /* Bentuk Kapsul/Pil */
+            background-color: #f8fafc;       /* Abu sangat muda (bukan putih polos) */
+            border: 1px solid #e2e8f0;       /* Border abu tipis */
+            
+            outline: none;
+            color: #333;
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            transition: all 0.3s ease;
+        }
+
+        /* Efek saat diklik (Fokus) */
+        .form-control-custom:focus, 
+        .form-control:focus,
+        input#inputCari:focus {
+            background-color: #ffffff;       /* Jadi putih bersih */
+            border-color: #00529C;           /* Border Biru Pertamina */
+            box-shadow: 0 0 0 4px rgba(0, 82, 156, 0.1); /* Glow biru */
+        }
+
+        /* 4. KHUSUS SELECT (DROPDOWN PANAH) */
+        select.form-control-custom {
+            /* Icon Panah Merah (Bawaan Anda) */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d81c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; 
+            background-position: right 20px center; /* Geser panah agak ke kiri dikit */
+            background-size: 16px; 
+            padding-right: 45px; /* Beri ruang biar teks gak nabrak panah */
+            cursor: pointer;
+        }
+
+        /* 5. KHUSUS INPUT SEARCH */
+        input.form-control-custom, input#inputCari { 
+            background-image: none !important; 
+            padding-right: 45px; 
+        }
+
+        .search-wrapper { position: relative; }
+        
+        /* Icon Kaca Pembesar */
+        .search-wrapper i { 
+            position: absolute; 
+            right: 20px;          /* Geser icon agak ke dalam karena sudutnya bulat */
+            top: 50%; 
+            transform: translateY(-50%); 
+            color: #d81c22;       /* Merah Pertamina */
+            pointer-events: none; 
+            font-size: 0.9rem;
+        }
+
+        /* Responsif di HP */
+        @@media (max-width: 768px) { 
+            .job-board-layout { grid-template-columns: 1fr; } 
+            .filters { position: relative; top: 0; } /* Gak usah sticky di HP */
+        }
 
 
+  
     /* =========================================
-       1. STRUKTUR UTAMA KARTU (TETAP)
+       1. STRUKTUR UTAMA KARTU (SUDAH DIPERBAIKI)
        ========================================= */
-    .flip-card {
-        background-color: transparent;
-        width: 100%;
-        height: 200px; /* UPDATE: Tinggi dikecilkan sedikit karena layout horizontal lebih padat */
-        perspective: 1000px;
-        margin-bottom: 25px;
-        cursor: pointer; /* Biar kelihatan bisa diklik */
+    .flip-card-front {
+        /* 1. Background Gradasi Biru Gelap (Sesuai Gambar Referensi) */
+        background: linear-gradient(135deg, #00529C 0%, #061f3d 100%);
+        
+        /* 2. Warna Teks Utama Putih */
+        color: #ffffff !important;
+        
+        /* Layout */
+        padding: 20px;
+        padding-top: 35px; /* Tambah padding atas biar ga nabrak logo */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start !important;
+        text-align: left !important;
+        
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 20px rgba(0, 59, 118, 0.3);
+        position: relative;
+        overflow: hidden; /* Penting biar sudut tumpul */
     }
+
+    .logo-corner {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: #ffffff; /* Latar putih */
+        padding: 8px 15px 8px 20px;
+        border-bottom-left-radius: 25px; /* Membuat lengkungan cantik */
+        z-index: 10;
+        box-shadow: -2px 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .logo-corner img {
+        height: 25px; /* Ukuran logo, sesuaikan jika terlalu besar/kecil */
+        width: auto;
+        display: block;
+    }
+        
+    /* UPDATE WARNA TEKS BIAR PUTIH */
+    .split-title {
+        color: #ffffff !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }    
 
     .flip-card-inner {
         position: relative;
@@ -336,41 +504,17 @@
         transform: rotateY(180deg);
     }
 
-    .flip-card-front, .flip-card-back {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        overflow: hidden;
+    /* Efek saat mouse diarahkan (Hover) */
+    .flip-card:hover .flip-card-front {
+        color: #00529C;      /* Border jadi Biru Pertamina */
+        transform: translateY(-5px);  /* Naik sedikit */
+        box-shadow: 0 12px 20px rgba(0, 82, 156, 0.1);
     }
 
-    /* =========================================
-       2. TAMPILAN DEPAN BARU (MODEL SPLIT 50:50)
-       ========================================= */
-/* 1. KARTU UTAMA */
-    .flip-card-front {
-        background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
-        color: white;
-        
-        /* Padding luar (jarak dari pinggir kartu ke isi) */
-        padding: 20px; 
-        
-        display: flex;
-        flex-direction: column;
-        
-        /* SEMUA DI KIRI */
-        justify-content: center;
-        align-items: flex-start !important; 
-        text-align: left !important;
-        
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
+    .flip-card-front hr {
+        background-color: rgba(255, 255, 255, 0.3) !important;
     }
+
 
     /* 2. AREA ICON (ATAS) */
     /* UPDATE BAGIAN INI BIAR ICON TENGAH LAGI */
@@ -416,34 +560,32 @@
     }
 
     /* JUDUL */
+    /* 2. JUDUL (Ubah jadi Hitam/Biru Tua) */
     .split-title {
-        font-family: 'Poppins', sans-serif;
-        font-size: 0.9rem; 
-        font-weight: 700;
-        line-height: 1.2;
+        /* Gunakan Inter, jika gagal pakai font bawaan sistem yang bersih (Arial/San Francisco) */
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif !important; 
+        
+        font-size: 1rem;       
+        font-weight: 600;      
+        line-height: 1.4;
         margin-bottom: 8px;
-        color: white;
-        text-align: left; /* Pastikan rata kiri */
+        
+        color: #003B76;        /* Kembali ke warna Biru Gelap Profesional */
+        text-align: left;
         width: 100%;
     }
 
-    /* INFO KECIL (Lokasi & PT) */
+    /* 3. INFO TAMBAHAN (Ubah jadi Abu-abu) */
     .split-info {
-        font-size: 0.75rem;
-        color: #f0f0f0;
+        font-size: 0.8rem;
+        color: #64748b;        /* GANTI JADI ABU-ABU */
         margin-bottom: 4px;
-        
         display: flex;
         align-items: center;
-        
-        /* INI PERBAIKANNYA: JANGAN CENTER! */
         justify-content: flex-start !important; 
-        
         gap: 8px;
         width: 100%;
-        
-        /* HAPUS PADDING BIAR LURUS */
-        padding: 0 !important; 
+        padding: 0 !important;
     }
 
     /* TEKS SINGKAT (Titik-titik...) */
@@ -453,6 +595,14 @@
         text-overflow: ellipsis;
         max-width: 100%;
         display: block; /* Ganti inline-block jadi block biar manut width */
+    }
+
+    .card-icon-area, 
+    .card-detail-area,
+    .split-title, 
+    .split-info {
+        position: relative;
+        z-index: 2; /* Harus lebih tinggi dari z-index watermark (0) */
     }
 
     /* =========================================
@@ -471,6 +621,34 @@
         border: 1px solid #eee;
     }
 
+    /* WATERMARK LOGO BELAKANG */
+    .flip-card-back::after {
+        content: "";
+        position: absolute;
+        
+        /* Posisi: Tengah (Center) */
+        top: 50%; 
+        left: 50%; 
+        transform: translate(-50%, -50%);
+        
+        /* Ukuran Logo (Lebih besar) */
+        width: 60%; 
+        height: 60%;
+        
+        /* GANTI PATH INI sesuai nama file logomu */
+        /* background-image: url('/img/logoo.png'); */
+        
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        
+        /* Transparansi */
+        opacity: 0.50; 
+        
+        z-index: 0;
+        pointer-events: none;
+    }
+
     .back-title {
         color: #00529C;
         font-weight: 700;
@@ -482,12 +660,12 @@
     }
 
     .back-desc {
-        font-size: 0.7rem;
+        font-size: 0.85rem;
         color: #666;
         line-height: 1.5;
         margin-bottom: 15px;
         display: -webkit-box;
-        -webkit-line-clamp: 5; /* Limit teks deskripsi jadi 3 baris aja biar muat */
+        -webkit-line-clamp:10; /* Limit teks deskripsi jadi 3 baris aja biar muat */
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
@@ -498,7 +676,7 @@
         padding: 8px 25px;
         border-radius: 50px;
         text-decoration: none;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 600;
         box-shadow: 0 4px 10px rgba(0, 82, 156, 0.3);
         transition: all 0.3s;
@@ -508,61 +686,134 @@
         color: white;
         transform: translateY(-2px);
     }
-
     /* =========================================
-       PAGINATION SIMPEL (Flat & Clean)
-       ========================================= */
-    .pagination {
-        gap: 5px;                  /* Jarak kecil antar tombol */
-        align-items: center;
-        border: none;
+    PAGINATION SEGMENTED (Menyatu & Rapi)
+    ========================================= */
+
+    .pagination-wrapper-flat {
+        margin-top: 60px;
+        margin-bottom: 40px;
+        display: flex;
+        justify-content: center;
+        width: 100%;
     }
 
-    .page-item {
+    /* Container Utama (Pembungkus Luar) */
+    /* Container Utama (Lebih Ramping) */
+    .pagination-flat {
+        display: inline-flex;
+        list-style: none;
+        padding: 0;
         margin: 0;
+        
+        border: 1px solid #cbd5e1;
+        border-radius: 4px; /* Sudut lebih kecil biar tajam & rapi */
+        background-color: #ffffff;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03); /* Shadow super tipis */
     }
 
-    /* Style Dasar Tombol */
-    .page-item .page-link {
-        border: 1px solid #e0e0e0; /* Garis pinggir tipis abu-abu */
-        border-radius: 6px !important; /* Sudut sedikit melengkung (tidak bulat total) */
-        padding: 8px 16px;         /* Ukuran pas (tidak terlalu besar) */
+    /* Style Tombol (Kecil & Tipis) */
+    .page-link-flat {
+        width: 35px;               /* Dikecilkan dari 45px */
+        height: 32px;              /* Dikecilkan dari 40px (Slim) */
         
-        color: #555;               /* Teks abu gelap */
-        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        background-color: #ffffff;
+        color: #475569;            /* Abu Slate yang lembut */
+        text-decoration: none;
+        
         font-family: 'Inter', sans-serif;
-        background-color: white; 
+        font-size: 0.85rem;        /* Font diperkecil biar proporsional */
+        font-weight: 500;          /* Tidak terlalu tebal */
         
-        /* Hapus semua efek bayangan & animasi */
-        box-shadow: none;
-        transition: background-color 0.2s; /* Transisi warna saja (cepat) */
-    }
-
-    /* Efek Saat Mouse Diarahkan (Hover) */
-    .page-item:not(.disabled) .page-link:hover {
-        background-color: #f0f0f0; /* Ganti warna background jadi abu muda */
-        color: #333;
-        border-color: #d0d0d0;
-        transform: none;           /* MATIKAN gerakan naik */
-    }
-
-    /* Halaman Aktif */
-    .page-item.active .page-link {
-        background-color: #00529C; /* Biru Solid (Tanpa Gradasi) */
-        border-color: #00529C;
-        color: white !important;
+        border: none;
+        border-right: 1px solid #e2e8f0; /* Garis pemisah super tipis */
         
-        /* Pastikan tidak ada efek zoom/besar */
-        transform: none; 
-        box-shadow: none;
+        transition: all 0.2s ease;
     }
 
-    /* Tombol Mati (Disabled) */
-    .page-item.disabled .page-link {
-        background-color: #f9f9f9;
-        color: #ccc;
-        border-color: #eee;
-        cursor: default;
+    /* Hapus garis di tombol terakhir */
+    .page-item:last-child .page-link-flat {
+        border-right: none;
+    }
+
+    /* Hover (Mouse Lewat) */
+    .page-link-flat:hover:not(.active-page) {
+        background-color: #f8fafc;
+        color: #003B76;
+    }
+
+    /* Halaman Aktif (Biru Elegan) */
+    .page-item.active .page-link-flat {
+        background-color: #003B76; /* Biru Tua */
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    /* Ukuran Icon Panah (< >) */
+    .page-link-flat i {
+        font-size: 0.7rem; /* Icon panah diperkecil juga */
+    }
+    /* 2. Kondisi Akhir (Muncul & Naik) */
+    .item-lowongan.muncul-boss {
+        opacity: 1;
+        transform: translateY(0); /* Kembali ke posisi asal */
+    }
+
+    /* Opsional: Efek delay biar munculnya gantian (Staggering) */
+    /* Kartu 2, 3, 4 munculnya telat dikit biar kece */
+    .item-lowongan:nth-child(2) { transition-delay: 0.1s; }
+    .item-lowongan:nth-child(3) { transition-delay: 0.2s; }
+    .item-lowongan:nth-child(4) { transition-delay: 0.3s; }
+
+
+    /* Keadaan Awal: Hilang & Turun Sedikit */
+    .animasi-naik {
+        opacity: 0;
+        transform: translateY(40px); /* Turun 40px */
+        transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Gerakan Smooth */
+    }
+
+    /* Keadaan Akhir: Muncul & Posisi Normal */
+    .animasi-naik.kelihatan {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Opsional: Biar Box Search munculnya agak telat sedikit setelah Judul */
+    .filters.animasi-naik {
+        transition-delay: 0.2s;
+    }
+
+        /* PERBAIKAN TAMPILAN ISI DROPDOWN */
+
+    /* UPDATE CSS INI DI DALAM <STYLE> */
+
+    select.form-control-custom option,
+    select option {
+        background-color: #ffffff !important;
+        color: #334155 !important;
+        
+        /* 1. SAYA KECILKAN PADDINGNYA */
+        /* Tadi 15px 20px (terlalu gembung), sekarang jadi lebih rapat */
+        padding: 6px 10px !important; 
+        
+        /* 2. SAYA KECILKAN FONTNYA */
+        /* Biar muat dan tidak terlalu lebar ke samping */
+        font-size: 0.8rem !important; 
+        
+        font-family: 'Poppins', sans-serif !important;
+        line-height: 1.5 !important; /* Jarak antar baris dirapatkan */
+    }
+
+    select.form-control-custom option:checked,
+    select.form-control-custom option:hover {
+        background-color: #f1f5f9 !important;
+        color: #00529C !important;
     }
 
     
@@ -582,62 +833,109 @@
 
         <div class="container hero-content">
             
-            <h1 class="hero-title">READY TO LEVEL UP?</h1>
+            <h1 class="hero-title">RESEARCH & INNOVATION</h1>
             
-            <p class="hero-lead">Salurkan ide brilian dan ciptakan dampak nyata bersama kami.</p>
+            <p class="hero-lead">Empowering the future of energy through your brilliant ideas.</p>
             
             <div>
                 <a asp-controller="Penelitian" asp-action="Daftar" class="btn-apply-hero">
-                    Apply For Opportunities
+                    EXPLORE OPPORTUNITIES
                 </a>
             </div>
         </div>
     </header>
     <div class="main-container" id="area-lowongan">
     
-            <h2 style="text-align: center; font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 700; color: #0f3460; margin-bottom: 40px;">
-                Temukan Lokasi yang Tepat Untukmu
+            <h2 class="animasi-naik" style="
+                text-align: center; 
+                font-family: 'Poppins', sans-serif;   
+                font-size: 2.2rem;                 
+                font-weight: 700;
+                
+                /* GANTI JADI WARNA INI (Abu Tua kehitaman) */
+                color: #1e293b; 
+                
+                margin-bottom: 10px; /* Jarak ke sub-judul dirapatkan */
+                letter-spacing: -0.5px;
+                line-height: 1.2;
+            ">
+                Eksplorasi Peluang Riset & Inovasi
             </h2>
+
+            <p class="animasi-naik" style="
+                text-align: center;
+                font-family: 'Inter', sans-serif;
+                color: #64748b; /* Abu medium */
+                margin-bottom: 45px;
+                font-size: 1rem;
+            ">
+                Filter berdasarkan perusahaan atau wilayah kerja pilihan Anda
+            </p>
         
         <div class="job-board-layout">
 
             
-            <aside class="filters">
-                <a href="/Penelitian" style="text-decoration:none; color:#666; font-size:0.9rem; margin-bottom:15px; display:inline-block;">Clear filters</a>
+            <aside class="filters animasi-naik">
+                <a href="..." style="
+                    font-size: 0.8rem; 
+                    color: #94a3b8;  
+                    text-decoration: none; 
+                    font-weight: 600; 
+                    display: inline-block; 
+                    margin-bottom: 20px;
+                ">
+                     Clear filters
+                </a>
 
                 <form onsubmit="return false;" style="width: 100%;">
                     <input type="hidden" name="lastScroll" id="lastScrollInput" value="" />
 
                     <div style="margin-bottom: 25px;">
-                        <label>Can't find what you looking for?</label>
+                        <div style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: 'Inter', sans-serif;">
+                            Can't find what you looking for?
+                        </div>
                         <div class="search-wrapper">
-                            <input type="text" 
-                                id="inputCari" 
-                                name="search" 
-                                class="form-control" 
-                                placeholder="Search..." 
-                                autocomplete="off" 
-                                value="@selectedSearch"> <i class="fas fa-search"></i>
+                            <input type="text" id="inputCari" name="search" class="form-control" placeholder="Search..." autocomplete="off" value="@selectedSearch" style="font-size: 0.9rem;"> 
+                            <i class="fas fa-search"></i>
                         </div>
                     </div>
 
                     <div style="margin-bottom: 25px;">
-                        <label>Filtered by Company</label>
-                        <select name="company" id="companySelect" class="form-control-custom" onchange="onCompanyChange()">
-                            <option value="All" selected="@(selectedCompany == "All" ? "selected" : null)">All Companies</option>
-                            <option value="PT Kilang Pertamina Internasional (KPI)" 
-                                    selected="@(selectedCompany == "PT Kilang Pertamina Internasional (KPI)" ? "selected" : null)">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: 'Inter', sans-serif;">
+                            Filtered by Company
+                        </div>
+
+                        @{
+                            // KITA BUAT VARIABEL DULU DI SINI BIAR HTML-NYA BERSIH
+                            // Ini solusi ampuh biar ga error RZ1034
+                            bool isAll = (selectedCompany == "All");
+                            bool isKPI = (selectedCompany == "PT Kilang Pertamina Internasional (KPI)");
+                            bool isPatra = (selectedCompany == "PT Pertamina Patra Niaga");
+                        }
+
+                        <select name="company" id="companySelect" class="form-control-custom" onchange="onCompanyChange()" style="font-size: 0.9rem;">
+                            
+                            <option value="All" selected="@isAll">
+                                All Companies
+                            </option>
+
+                            <option value="PT Kilang Pertamina Internasional (KPI)" selected="@isKPI">
                                 PT Kilang Pertamina Internasional (KPI)
                             </option>
-                            <option value="PT Pertamina Patra Niaga" selected="@(selectedCompany == "PT Pertamina Patra Niaga" ? "selected" : null)">
+
+                            <option value="PT Pertamina Patra Niaga" selected="@isPatra">
                                 PT Pertamina Patra Niaga (C&T)
                             </option>
+
                         </select>
                     </div>
 
                     <div style="margin-bottom: 25px;">
-                        <label>By Region</label>
-                        <select name="region" id="regionSelect" class="form-control-custom" onchange="refreshData()">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: 'Inter', sans-serif;">
+                            By Region
+                        </div>
+
+                        <select name="region" id="regionSelect" class="form-control-custom" onchange="refreshData()" style="font-size: 0.9rem;">
                         </select>
                     </div>
                 </form>
@@ -687,47 +985,59 @@
                                     <div class="flip-card-inner">
                                         
                                         <div class="flip-card-front">
-                                            <div class="card-icon-area">
-                                                <img src="~/img/icons/@iconFileName" class="category-icon" alt="icon" />
+    
+                                            <div class="logo-corner">
+                                                <img src="~/img/logo-pertaminaa.png">
+                                            </div>
+
+                                            <div class="card-icon-area" style="justify-content: flex-start !important;">
+                                                <img src="~/img/icons/@iconFileName" class="category-icon" alt="icon" width="50" />
                                             </div>
 
                                             <div class="card-detail-area">
                                                 <div class="split-title">@item.Title</div>
                                                 
+                                                <hr style="border: 0; height: 1px; background-color: rgba(255,255,255,0.3); margin: 8px 0; width: 100%;">
+
                                                 <div class="split-info">
-                                                    <i class="fas fa-map-marker-alt" style="color:#4ade80;"></i> 
-                                                    <span>@item.Region</span>
+                                                    <span style="color: #ffffff; font-weight: 700; font-size: 0.85rem; font-family: 'Inter', sans-serif;">
+                                                        @item.Region
+                                                    </span>
                                                 </div>
 
                                                 <div class="split-info">
-                                                    <i class="fas fa-briefcase" style="color:#4ade80;"></i>
-                                                    
                                                     @if (item.Company != null && item.Company.Contains("Kilang"))
                                                     {
-                                                        <span style="color:#fff; font-weight: normal; letter-spacing:0.5px;"> PT Kilang Minyak Internasional</span>
+                                                        <span style="color: rgba(255, 255, 255, 0.8); font-weight: 400; font-size: 0.8rem;"> PT Kilang Pertamina Internasional</span>
                                                     }
                                                     else if (item.Company != null && item.Company.Contains("Patra"))
                                                     {
-                                                        <span style="color:#e0e0e0; font-weight: normal;"> PT Pertamina Patra Niaga</span>
+                                                        <span style="color: rgba(255, 255, 255, 0.8); font-weight: 400; font-size: 0.8rem;"> PT Pertamina Patra Niaga</span>
                                                     }
                                                     else
                                                     {
-                                                        <span style="color:#e0e0e0; font-weight: normal;">@item.Company</span>
+                                                        <span style="color: rgba(255, 255, 255, 0.8); font-weight: 400; font-size: 0.8rem;">
+                                                            @item.Company
+                                                        </span>
                                                     }
                                                 </div>
                                             </div>
                                         </div>
-
                                         <div class="flip-card-back">
-                                            <h6 class="back-title">Detail Posisi</h6>
+                                            <h6 class="back-title" style="color: #003B76;">Detail Fungsi</h6>
                                             <p class="back-desc">@item.Description</p>
                                             <a asp-action="Daftar" 
                                             asp-route-preCompany="@item.Company" 
                                             asp-route-preRegion="@item.Region"
                                             asp-route-preTargetLokasi="@item.Title"   
                                             asp-route-preTargetJurusan="@item.Title"
-                                            class="btn-card-clean">
-                                            Daftar Sekarang
+                                            class="btn-card-clean"
+                                            style="
+                                                background-color: #003B76;  !important; 
+                                                color: #ffffff !important; 
+                                                border: 1px solid #003B76 !important;
+                                            ">
+                                            Pilih Fungsi
                                             </a>
                                         </div>
 
@@ -746,25 +1056,26 @@
 
                 @if (Model.TotalPages > 0)
                 {
-                    <div style="margin-top: 40px; display: flex; justify-content: center;">
+                    <div class="pagination-wrapper-flat">
                         <nav aria-label="Page navigation">
-                            <ul class="pagination">
+                            <ul class="pagination-flat">
                                 
                                 <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
-                                    <a class="page-link" 
+                                    <a class="page-link-flat page-link" 
                                     asp-action="Index" 
                                     asp-route-page="@(Model.CurrentPage - 1)"
                                     asp-route-search="@ViewData["SelectedSearch"]"
                                     asp-route-company="@ViewData["SelectedCompany"]"
-                                    asp-route-region="@ViewData["SelectedRegion"]">
-                                        &laquo; Previous
+                                    asp-route-region="@ViewData["SelectedRegion"]"
+                                    aria-label="Previous">
+                                        <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
 
                                 @for (int i = 1; i <= Model.TotalPages; i++)
                                 {
                                     <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
-                                        <a class="page-link" 
+                                        <a class="page-link-flat page-link" 
                                         asp-action="Index" 
                                         asp-route-page="@i"
                                         asp-route-search="@ViewData["SelectedSearch"]"
@@ -776,13 +1087,14 @@
                                 }
 
                                 <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
-                                    <a class="page-link" 
+                                    <a class="page-link-flat page-link" 
                                     asp-action="Index" 
                                     asp-route-page="@(Model.CurrentPage + 1)"
                                     asp-route-search="@ViewData["SelectedSearch"]"
                                     asp-route-company="@ViewData["SelectedCompany"]"
-                                    asp-route-region="@ViewData["SelectedRegion"]">
-                                        Next &raquo;
+                                    asp-route-region="@ViewData["SelectedRegion"]"
+                                    aria-label="Next">
+                                        <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
 
@@ -795,10 +1107,9 @@
         </div>
     </div>
 </div>
-
 <script>
     // ==========================================
-    // BAGIAN 1: DATA & LOGIKA TAMPILAN
+    // BAGIAN 1: DATA & LOGIKA TAMPILAN (LOGIKA ASLI 100%)
     // ==========================================
     const dataRegion = {
         "PT Pertamina Patra Niaga": ["Regional Jatimbalinus", "Regional Jawa Bagian Tengah", "Regional Jawa Bagian Barat", "Regional Kalimantan", "Regional Maluku Papua", "Regional Sumbagut"],
@@ -831,7 +1142,7 @@
         
         // Cek dulu, ini KPI bukan?
         if (selectedCompany === "PT Kilang Pertamina Internasional (KPI)") {
-            regionSelect.selectedIndex = 0; // <--- INI CODE VIP YG HILANG (Paksa pilih opsi pertama/Balongan)
+            regionSelect.selectedIndex = 0; 
         } else {
             // Kalau bukan KPI, baru jalankan logic lama
             Array.from(regionSelect.options).forEach(opt => {
@@ -841,7 +1152,7 @@
     }
 
     // ==========================================
-    // BAGIAN 2: LOGIKA AJAX (SMOOTH & FIX REGION)
+    // BAGIAN 2: LOGIKA AJAX (LOGIKA ASLI + SISIPAN ANIMASI)
     // ==========================================
 
     // 1. FUNGSI INTI (LOAD DATA)
@@ -855,7 +1166,7 @@
             url = `/Penelitian/Index?search=${encodeURIComponent(valSearch)}&company=${encodeURIComponent(valCompany)}&region=${encodeURIComponent(valRegion)}&page=1`;
         }
 
-        // Efek Loading: Ganti ikon kaca pembesar jadi spinner
+        // Efek Loading
         const searchIcon = document.querySelector('.fa-search');
         if (searchIcon) {
             searchIcon.classList.remove('fa-search');
@@ -873,12 +1184,16 @@
                 if (areaLama && kontenBaru) {
                     areaLama.innerHTML = kontenBaru.innerHTML;
                     window.history.pushState({}, '', url);
+                    
                     pasangEventPagination();
+                    
+                    // --- SISIPAN 1: Panggil Animasi Kartu setelah data masuk ---
+                    jalankanAnimasiKartu(); 
+                    // -----------------------------------------------------------
                 }
             })
             .catch(err => console.error('Error:', err))
             .finally(() => {
-                // Balikin ikon jadi normal
                 if (searchIcon) {
                     searchIcon.classList.remove('fa-circle-notch', 'fa-spin');
                     searchIcon.classList.add('fa-search');
@@ -886,23 +1201,18 @@
             });
     }
 
-    // 2. TRIGGER DARI HTML (Jembatan Event)
-    
-    // Dipanggil saat Company Ganti
+    // 2. TRIGGER DARI HTML
     window.onCompanyChange = function() { 
         document.getElementById('regionSelect').value = "All"; 
         updateRegionOptions(); 
         loadDataTanpaReload(); 
     };
-    // Backup nama lama (biar aman)
     window.gantiCompany = window.onCompanyChange;
 
-    // Dipanggil saat Region Ganti (INI YANG TADI HILANG)
     window.refreshData = function() {
         loadDataTanpaReload();
     };
 
-    // Dipanggil Form Submit (Enter)
     window.submitFilter = function() { 
         loadDataTanpaReload(); 
     };
@@ -922,55 +1232,100 @@
     }
 
     // ==========================================
-    // BAGIAN 3: SETUP AWAL
+    // BAGIAN 3: SETUP AWAL & SEMUA ANIMASI
     // ==========================================
     document.addEventListener("DOMContentLoaded", function() {
+        // Init Fungsi Asli
         updateRegionOptions();
         pasangEventPagination();
 
+        // Init Live Search
         const inputCari = document.getElementById('inputCari');
         if (inputCari) {
             let timeout = null;
-
-            // Live Search Cepat (300ms)
             inputCari.addEventListener('input', function() {
                 clearTimeout(timeout);
-                timeout = setTimeout(function() {
-                    loadDataTanpaReload(); 
-                }, 300);
+                timeout = setTimeout(function() { loadDataTanpaReload(); }, 300);
             });
-
             inputCari.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    loadDataTanpaReload();
-                }
+                if (e.key === 'Enter') { e.preventDefault(); loadDataTanpaReload(); }
             });
         }
+        
+        // --- JALANKAN SEMUA ANIMASI ---
+        jalankanAnimasiContainer();    // <--- INI YANG BARU
+        jalankanAnimasiKartu();
+        jalankanAnimasiJudulFilter();
+        jalankanAnimasiHero();
     });
-</script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // 1. Daftar elemen yang mau dipanggil
-        const elemenAnimasi = document.querySelectorAll('.hero-title, .hero-lead, .btn-apply-hero');
+    // =========================================================
+    // FUNGSI ANIMASI BOLAK-BALIK (REPLAY)
+    // =========================================================
 
-        // 2. Satpam pemantau (Observer)
+    // 1. ANIMASI MAIN CONTAINER (BARU)
+    function jalankanAnimasiContainer() {
+        const container = document.querySelector('.main-container');
+        if (!container) return;
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    // Kalau terlihat, TEMPEL class animasi (MUNCUL!)
-                    entry.target.classList.add('animasi-aktif');
+                    // Kelihatan -> Muncul (Naik)
+                    entry.target.classList.add('muncul-container');
                 } else {
-                    // Kalau discroll jauh ke bawah, CABUT class (NGUMPET LAGI)
-                    // Supaya nanti pas scroll ke atas bisa muncul lagi (Replay)
-                    entry.target.classList.remove('animasi-aktif'); 
+                    // Gak Kelihatan (Scroll ke atas banget) -> Hilang
+                    // Biar pas turun lagi, dia animasi lagi
+                    entry.target.classList.remove('muncul-container');
                 }
             });
-        }, { threshold: 0.1 }); // Muncul pas 10% elemen kelihatan
+        }, { threshold: 0.01 }); // 1% kelihatan langsung gas
 
-        // 3. Mulai memantau
+        observer.observe(container);
+    }
+
+    // 2. ANIMASI KARTU LOWONGAN
+    function jalankanAnimasiKartu() {
+        const semuaKartu = document.querySelectorAll('.item-lowongan');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('muncul-boss');
+                } else {
+                    entry.target.classList.remove('muncul-boss');
+                }
+            });
+        }, { threshold: 0.1 }); 
+        semuaKartu.forEach(kartu => observer.observe(kartu));
+    }
+
+    // 3. ANIMASI JUDUL & FILTER
+    function jalankanAnimasiJudulFilter() {
+        const elemen = document.querySelectorAll('.animasi-naik');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('kelihatan');
+                } else {
+                    entry.target.classList.remove('kelihatan');
+                }
+            });
+        }, { threshold: 0.1 });
+        elemen.forEach(el => observer.observe(el));
+    }
+
+    // 4. ANIMASI HERO
+    function jalankanAnimasiHero() {
+        const elemenAnimasi = document.querySelectorAll('.hero-title, .hero-lead, .btn-apply-hero');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animasi-aktif');
+                } else {
+                    entry.target.classList.remove('animasi-aktif');
+                }
+            });
+        }, { threshold: 0.1 });
         elemenAnimasi.forEach(el => observer.observe(el));
-    });
+    }
 </script>
-
