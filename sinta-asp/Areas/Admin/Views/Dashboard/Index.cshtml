@@ -1,0 +1,476 @@
+﻿@model sinta_asp.Areas.Admin.Models.DashboardModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Dashboard Performance";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    
+    var isRefinery = Model.AdminName != null && Model.AdminName.Contains("RU VI");
+    var sebaranTitle = isRefinery ? "Sebaran Jurusan" : "Sebaran Unit Kerja";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    :root { 
+        --p-blue: #00549B; --p-red: #EF4444; --p-green: #10B981; --p-orange: #F59E0B; --p-bg: #F8FAFC;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body { background-color: var(--p-bg); font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; }
+    .dashboard-wrapper { padding: 1.2rem 1.8rem; margin-top: -20px; }
+    .title-bold { font-weight: 800; color: var(--p-blue); letter-spacing: -0.8px; font-size: 1.5rem; }
+
+    .main-table-card { 
+        background: #fff; border-radius: 16px; border: 1px solid #E2E8F0; 
+        padding: 1.2rem; height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        position: relative;
+    }
+
+    .status-monitoring-card { z-index: 10; }
+
+    .status-legend-minimal {
+        display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 15px;
+    }
+    .legend-simple { 
+        display: flex; align-items: center; font-size: 0.7rem; font-weight: 700; color: #64748b; 
+        background: #f8fafc; padding: 5px 8px; border-radius: 8px; border: 1px solid #f1f5f9;
+        flex: 0 0 calc(50% - 8px); justify-content: center;
+    }
+    .legend-simple.full-width { flex: 0 0 60%; margin-top: 2px; }
+    .dot { width: 10px; height: 10px; border-radius: 4px; margin-right: 6px; }
+    
+    .chart-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    
+    .toggle-group { background: #f1f5f9; padding: 4px; border-radius: 10px; display: inline-flex; }
+    .toggle-group .btn-t { 
+        border: none; background: none; padding: 4px 10px; font-size: 0.65rem; font-weight: 700; color: #64748b; border-radius: 8px;
+        cursor: pointer; transition: var(--transition);
+    }
+    .toggle-group .btn-t.active { background: #fff; color: var(--p-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+    .btn-pertamina { 
+        background: var(--p-blue); color: white; border: none; font-weight: 700; 
+        border-radius: 8px; padding: 8px 16px; font-size: 0.75rem; transition: var(--transition);
+        text-decoration: none; display: inline-flex; align-items: center; cursor: pointer;
+    }
+
+    .sticky-chart-container {
+        position: relative;
+        height: 380px; 
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .scroll-box-sebaran { 
+        overflow-y: auto; 
+        flex: 1;
+        padding-right: 5px;
+    }
+    .scroll-box-sebaran::-webkit-scrollbar { width: 4px; }
+    .scroll-box-sebaran::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+    .student-list-item { transition: background 0.2s; cursor: pointer; border-radius: 8px !important; }
+    .student-list-item:hover { background-color: #f1f5f9 !important; }
+
+    .modal-content { border-radius: 28px; border: none; overflow: hidden; }
+    .modal-header-premium { background: linear-gradient(135deg, #00549B 0%, #003d70 100%); padding: 1.5rem 2.5rem; color: white; }
+    .header-flex-container { display: flex; align-items: center; gap: 25px; }
+    
+    /* Frame Foto Bulat */
+    .profile-circle-frame { 
+        width: 120px; height: 120px; border-radius: 50% !important; object-fit: cover; 
+        border: 4px solid rgba(255,255,255,0.2); background: white; cursor: zoom-in;
+        transition: transform 0.2s;
+    }
+    .profile-circle-frame:hover { transform: scale(1.02); }
+
+    .header-text-info h2 { font-weight: 800; font-size: 1.6rem; margin: 0; }
+    .status-pill-modal { display: inline-block; padding: 4px 15px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+    
+    .bg-light-green { background: #10B981; color: white; }
+    .bg-light-orange { background: #F59E0B; color: white; }
+    .bg-light-red { background: #EF4444; color: white; }
+
+    .detail-body { padding: 25px 40px; background: #fff; }
+    .info-card-premium { background: #f8fafc; border-radius: 16px; padding: 15px; border: 1px solid #eef2f6; height: 100%; }
+    .info-label { color: #94a3b8; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
+    .info-value { color: #1e293b; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; }
+    
+    .info-value a { color: #1e293b !important; text-decoration: none; }
+    .info-value a:hover { text-decoration: underline; }
+
+    .doc-link { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; border-radius: 12px; text-decoration: none !important; color: #1e293b; font-weight: 700; border: 1px solid #e2e8f0; margin-bottom: 10px; font-size: 0.85rem; }
+    
+    #modalContent { max-height: 280px; overflow-y: auto; scrollbar-width: thin; }
+
+    @@media print {
+        .btn-pertamina, .toggle-group, .badge, .btn-close { display: none !important; }
+        .main-table-card { border: none !important; box-shadow: none !important; }
+    }
+</style>
+
+<div class="dashboard-wrapper">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="title-bold mb-0">Dashboard Performance</h3>
+            <p class="text-muted small mb-0">Portal Kendali <span class="fw-bold text-danger">Internship Pertamina</span></p>
+        </div>
+        <button class="btn-pertamina" style="background: #64748b;" onclick="window.print()">
+            <i class="fas fa-file-pdf me-1"></i> Download PDF
+        </button>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-8">
+            <div class="main-table-card">
+                <div class="chart-header-flex">
+                    <div class="fw-800 text-dark"><i class="fas fa-chart-line me-2 text-primary"></i>Tren Pendaftaran</div>
+                    <div class="toggle-group">
+                        <button class="btn-t active" onclick="updateTrend('weekly', this)">Mingguan</button>
+                        <button class="btn-t" onclick="updateTrend('monthly', this)">Bulanan</button>
+                        <button class="btn-t" onclick="updateTrend('yearly', this)">Tahunan</button>
+                    </div>
+                </div>
+                <div style="height: 250px;"><canvas id="trenLineChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="main-table-card status-monitoring-card">
+                <div class="fw-800 text-dark mb-3"><i class="fas fa-satellite-dish me-2 text-success"></i>Status Monitoring</div>
+                <div style="height: 170px; position: relative; display: flex; justify-content: center; align-items: center; padding: 10px;">
+                    <canvas id="statusDoughnutChart"></canvas>
+                    <div style="position: absolute; text-align: center; pointer-events: none;">
+                        <div id="centerTotal" style="font-size: 1.2rem; font-weight: 800; color: #1e293b; line-height: 1;">0</div>
+                        <div style="font-size: 0.6rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-top: 2px;">Total</div>
+                    </div>
+                </div>
+                <div class="status-legend-minimal">
+                    <div class="legend-simple"><div class="dot" style="background: var(--p-orange);"></div> Menunggu</div>
+                    <div class="legend-simple"><div class="dot" style="background: var(--p-green);"></div> Diterima</div>
+                    <div class="legend-simple full-width"><div class="dot" style="background: var(--p-red);"></div> Ditolak</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <div class="main-table-card">
+                <div class="chart-header-flex">
+                    <div class="fw-800 text-dark"><i class="fas fa-map-marker-alt me-2 text-danger"></i>@sebaranTitle</div>
+                    <span class="badge bg-light text-danger border px-3 fw-700" style="font-size: 0.65rem;">Klik bar untuk detail</span>
+                </div>
+                <div class="sticky-chart-container">
+                    <div class="scroll-box-sebaran">
+                        <div id="dynamicWrapper" style="width: 100%;"><canvas id="lokasiStackedChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12">
+            <div class="main-table-card">
+                <div class="chart-header-flex">
+                    <div class="fw-800 text-dark"><i class="fas fa-graduation-cap me-2 text-warning"></i>Leaderboard Institusi</div>
+                    <span class="badge bg-light text-primary border px-3 fw-700" style="font-size: 0.65rem;">Klik bar untuk detail</span>
+                </div>
+                <div style="height: 280px;"><canvas id="kampusBarChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* MODALS *@
+<div class="modal fade" id="bubbleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-800 text-primary" id="modalTitle">Detail Mahasiswa</h6>
+            </div>
+            <div class="modal-body" id="modalContent"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDetail" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header-premium">
+                <div class="header-flex-container">
+                    <img id="d-foto" src="/img/default-user.png" class="profile-circle-frame" title="Klik untuk lihat foto asli" onclick="window.open(this.src, '_blank')">
+                    <div class="header-text-info">
+                        <div id="d-status-badge-container"></div>
+                        <h2 id="d-nama"></h2>
+                        <span class="opacity-75 small"><i class="fas fa-clock me-1"></i> Terdaftar: <span id="d-created-at"></span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-id-card me-2"></i>Kontak & Pribadi</div>
+                        <div class="info-card-premium">
+                            <div class="info-label">Email</div><div id="d-email" class="info-value"></div>
+                            <div class="info-label">WhatsApp</div><div class="info-value"><a id="d-hp-link" target="_blank"></a></div>
+                            <div class="info-label">Instagram</div><div class="info-value"><a id="d-ig-link" target="_blank"></a></div>
+                            <div class="info-label">Tempat, Tgl Lahir</div><div class="info-value"><span id="d-tempat"></span>, <span id="d-tgl-lahir"></span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-graduation-cap me-2"></i>Akademik & Penempatan</div>
+                        <div class="info-card-premium">
+                            <div class="info-label">Kampus (NIM)</div><div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
+                            <div class="info-label">Fakultas / Jurusan</div><div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
+                            <div class="info-label">Unit Penempatan</div><div class="info-value text-primary fw-bold"><span id="d-company"></span> - <span id="d-lokasi"></span></div>
+                            <div class="info-label">Periode Magang</div><div class="info-value"><span id="d-mulai"></span> s/d <span id="d-selesai"></span></div>
+                            <div class="info-label">Rekomendasi</div><div id="d-rekomendasi" class="info-value"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-file-alt me-2"></i>Berkas Digital</div>
+                        <a id="link-cv" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a id="link-surat" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a id="link-proposal" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-lines text-warning me-2"></i> Proposal Magang</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const monthFullNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+    const rawData = {
+        total: @Model.TotalInternAktif,
+        status: [@Model.StatusDiproses, @Model.StatusDiterima, @Model.StatusDitolak],
+        trend: {
+            weekly: { originalLabels: @Html.Raw(Json.Serialize(Model.WeeklyLabels)), values: @Html.Raw(Json.Serialize(Model.WeeklyCounts)) },
+            monthly: { labels: @Html.Raw(Json.Serialize(Model.MonthlyLabels)), values: @Html.Raw(Json.Serialize(Model.MonthlyCounts)) },
+            yearly: { labels: @Html.Raw(Json.Serialize(Model.YearlyLabels)), values: @Html.Raw(Json.Serialize(Model.YearlyCounts)) }
+        },
+        lokasi: { labels: @Html.Raw(Json.Serialize(Model.LokasiStatLabels)), diterima: @Html.Raw(Json.Serialize(Model.LokasiDiterima)), menunggu: @Html.Raw(Json.Serialize(Model.LokasiMenunggu)), ditolak: @Html.Raw(Json.Serialize(Model.LokasiDitolak)) },
+        kampus: { labels: @Html.Raw(Json.Serialize(Model.KampusLabels)), values: @Html.Raw(Json.Serialize(Model.KampusCounts)) }
+    };
+
+    function getDayNameOnly(label) {
+        const d = new Date(`${label} ${new Date().getFullYear()}`);
+        return isNaN(d) ? label : dayNames[d.getDay()];
+    }
+
+    function getFullDateFormatted(label) {
+        const d = new Date(`${label} ${new Date().getFullYear()}`);
+        if (isNaN(d)) return label;
+        return `${dayNames[d.getDay()]}, ${d.getDate()} ${monthFullNames[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    let trendChart = new Chart(document.getElementById('trenLineChart'), {
+        type: 'line',
+        data: {
+            labels: rawData.trend.weekly.originalLabels.map(l => getDayNameOnly(l)), 
+            datasets: [{
+                label: 'Pendaftar',
+                data: rawData.trend.weekly.values,
+                borderColor: '#00549c', backgroundColor: 'rgba(0, 84, 156, 0.05)',
+                borderWidth: 3, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#fff'
+            }]
+        },
+        options: { 
+            responsive: true, maintainAspectRatio: false, 
+            scales: {
+                y: { ticks: { stepSize: 1, precision: 0 } }
+            },
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) { return context.raw + ' orang'; }, 
+                        title: function(context) {
+                            const currentBtn = document.querySelector('.btn-t.active').innerText;
+                            if(currentBtn === 'Mingguan') {
+                                return getFullDateFormatted(rawData.trend.weekly.originalLabels[context[0].dataIndex]);
+                            }
+                            return context[0].label;
+                        }
+                    }
+                }
+            } 
+        }
+    });
+
+    new Chart(document.getElementById('statusDoughnutChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Menunggu', 'Diterima', 'Ditolak'],
+            datasets: [{
+                data: rawData.status,
+                backgroundColor: ['#F59E0B', '#10B981', '#EF4444'],
+                hoverOffset: 12, borderRadius: 10, borderWidth: 0, spacing: 6
+            }]
+        },
+        options: { 
+            cutout: '80%', 
+            maintainAspectRatio: false, 
+            layout: { padding: 10 },
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) { return context.label + ': ' + context.raw + ' orang'; }
+                    }
+                }
+            } 
+        }
+    });
+
+    document.getElementById('dynamicWrapper').style.height = (rawData.lokasi.labels.length * 35) + "px";
+    new Chart(document.getElementById('lokasiStackedChart'), {
+        type: 'bar',
+        data: {
+            labels: rawData.lokasi.labels,
+            datasets: [
+                { label: 'Diterima', data: rawData.lokasi.diterima, backgroundColor: '#10B981', barThickness: 12, borderRadius: 4 },
+                { label: 'Menunggu', data: rawData.lokasi.menunggu, backgroundColor: '#F59E0B', barThickness: 12, borderRadius: 4 },
+                { label: 'Ditolak', data: rawData.lokasi.ditolak, backgroundColor: '#EF4444', barThickness: 12, borderRadius: 4 }
+            ]
+        },
+        options: { 
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) { return context.dataset.label + ': ' + context.raw + ' orang'; }
+                    }
+                }
+            },
+            scales: { 
+                x: { stacked: true, position: 'bottom', ticks: { stepSize: 1, precision: 0 } }, 
+                y: { stacked: true, ticks: { mirror: false } } 
+            },
+            onClick: (e, activeEls) => { 
+                if (activeEls.length > 0) {
+                    const idx = activeEls[0].index;
+                    const dsIdx = activeEls[0].datasetIndex;
+                    const unit = rawData.lokasi.labels[idx];
+                    const status = dsIdx === 0 ? "Diterima" : (dsIdx === 1 ? "Menunggu" : "Ditolak");
+                    showList(unit + " (" + status + ")", `/Admin/Dashboard/GetMahasiswaByKampus?unit=${encodeURIComponent(unit)}&status=${encodeURIComponent(status)}`);
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('kampusBarChart'), {
+        type: 'bar',
+        data: {
+            labels: rawData.kampus.labels,
+            datasets: [{ data: rawData.kampus.values, backgroundColor: '#00549c', borderRadius: 8, barThickness: 18 }]
+        },
+        options: { 
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) { return context.raw + ' orang'; }
+                    }
+                }
+            },
+            scales: { x: { ticks: { stepSize: 1, precision: 0 } } },
+            onClick: (e, activeEls) => { if (activeEls.length > 0) showList(rawData.kampus.labels[activeEls[0].index], `/Admin/Dashboard/GetMahasiswaByKampus?kampus=${encodeURIComponent(rawData.kampus.labels[activeEls[0].index])}`); }
+        }
+    });
+
+    function updateTrend(type, btn) {
+        document.querySelectorAll('.toggle-group .btn-t').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if(type === 'weekly') {
+            trendChart.data.labels = rawData.trend.weekly.originalLabels.map(l => getDayNameOnly(l));
+        } else {
+            trendChart.data.labels = rawData.trend[type].labels;
+        }
+        trendChart.data.datasets[0].data = rawData.trend[type].values;
+        trendChart.update();
+    }
+
+    let bubbleModalInstance;
+    async function showList(title, url) {
+        bubbleModalInstance = new bootstrap.Modal(document.getElementById('bubbleModal'), { backdrop: true });
+        const content = document.getElementById('modalContent');
+        document.getElementById('modalTitle').innerText = title;
+        content.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" style="width: 1rem; height: 1rem;"></div></div>';
+        bubbleModalInstance.show();
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            let html = '<div class="list-group list-group-flush">';
+            if (data.length === 0) html += '<p class="text-center text-muted p-3 small">Tidak ada data.</p>';
+            else data.forEach(m => {
+                const sData = JSON.stringify(m).replace(/'/g, "\\'");
+                html += `<div class="list-group-item student-list-item d-flex justify-content-between align-items-center border-0 px-2 mb-2" onclick='openPremiumDetail(${sData})'>
+                            <div><div class="fw-bold" style="font-size:0.8rem">${m.nama}</div><div class="text-muted" style="font-size:0.65rem">${m.jurusan || '-'}</div></div>
+                            <span class="badge ${m.status === 'Diterima' ? 'bg-success' : (m.status === 'Ditolak' ? 'bg-danger' : 'bg-warning')}" style="font-size:0.5rem">${m.status}</span>
+                         </div>`;
+            });
+            content.innerHTML = html + '</div>';
+        } catch (err) { content.innerHTML = '<p class="text-center text-danger p-3 small">Gagal memuat.</p>'; }
+    }
+
+    function openPremiumDetail(m) {
+        if(bubbleModalInstance) bubbleModalInstance.hide();
+        document.getElementById('d-nama').innerText = m.nama;
+        document.getElementById('d-email').innerText = m.email || '-';
+        
+        const hpElem = document.getElementById('d-hp-link');
+        if(m.hp) {
+            let cleanHp = m.hp.replace(/[^0-9]/g, '');
+            if(cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.slice(1);
+            hpElem.innerText = m.hp; hpElem.href = `https://wa.me/${cleanHp}`;
+        } else { hpElem.innerText = '-'; hpElem.removeAttribute('href'); }
+
+        const igElem = document.getElementById('d-ig-link');
+        if(m.ig) {
+            let cleanIg = m.ig.replace('@@', '').trim();
+            igElem.innerText = cleanIg; igElem.href = `https://instagram.com/${cleanIg}`;
+        } else { igElem.innerText = '-'; igElem.removeAttribute('href'); }
+
+        document.getElementById('d-univ').innerText = m.univ || '-';
+        document.getElementById('d-nim').innerText = m.nim || '-';
+        document.getElementById('d-jurusan').innerText = m.jurusan || '-';
+        document.getElementById('d-fakultas').innerText = m.fakultas || '-';
+        document.getElementById('d-company').innerText = m.company || '-';
+        document.getElementById('d-lokasi').innerText = m.lokasi || '-';
+        document.getElementById('d-tempat').innerText = m.tempatLahir || '-';
+        document.getElementById('d-tgl-lahir').innerText = m.tanggalLahir || '-';
+        document.getElementById('d-created-at').innerText = m.createdAt || '-';
+        document.getElementById('d-mulai').innerText = m.tglMulai || '-';
+        document.getElementById('d-selesai').innerText = m.tglSelesai || '-';
+        document.getElementById('d-rekomendasi').innerText = m.rekomendasi || 'Tidak Ada';
+        document.getElementById('d-foto').src = m.fotoProfil;
+        document.getElementById('link-cv').href = m.cvMahasiswa;
+        document.getElementById('link-surat').href = m.suratPengantar;
+        document.getElementById('link-proposal').href = m.proposalMagang;
+
+        const sClass = m.status === 'Diterima' ? 'bg-light-green' : (m.status === 'Ditolak' ? 'bg-light-red' : 'bg-light-orange');
+        document.getElementById('d-status-badge-container').innerHTML = `<span class="status-pill-modal ${sClass}">${m.status}</span>`;
+        
+        new bootstrap.Modal(document.getElementById('modalDetail'), { backdrop: true }).show();
+    }
+
+    let startT = null;
+    function step(ts) {
+        if (!startT) startT = ts;
+        const progress = Math.min((ts - startT) / 1000, 1);
+        const total = rawData.status[0] + rawData.status[1] + rawData.status[2];
+        const el = document.getElementById("centerTotal");
+        if(el) el.innerText = Math.floor(progress * total);
+        if (progress < 1) window.requestAnimationFrame(step);
+    }
+    window.requestAnimationFrame(step);
+</script>

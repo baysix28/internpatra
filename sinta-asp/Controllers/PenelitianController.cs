@@ -7,14 +7,11 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
-using System.Net;     
+using System.Net;      
 using System.Net.Mail; 
-
 
 namespace sinta_asp.Controllers
 {
-    
-
     public class PenelitianController : Controller
     {
         private readonly AppDbContext _context; // Akses ke Database
@@ -28,8 +25,6 @@ namespace sinta_asp.Controllers
         }
 
         // 2. UPDATE DATA DUMMY (Isi Deskripsinya)
-        // Ubah tipe return-nya jadi List<Lowongan>
-        // GANTI FUNGSI GETDUMMYDATA DI BAWAH DENGAN INI
         private List<Lowongan> GetDummyData() 
         {
             return new List<Lowongan>
@@ -105,33 +100,25 @@ namespace sinta_asp.Controllers
         }
 
         // 1. DASHBOARD UTAMA (Index)
-        // --- GANTI METHOD INDEX YANG LAMA DENGAN INI ---
-        // Tambahkan parameter 'page' dengan default 1
-        // Pastikan HANYA ADA SATU method Index seperti ini:
         public IActionResult Index(string search, string company, string region, int page = 1)
         {
             // 1. AUTO-SEED: Cek apakah Database kosong?
             if (!_context.Lowongan.Any()) 
             {
-                // Kalau kosong, ambil data dummy yang di bawah
                 var dataDummy = GetDummyData();
-                
-                // Masukkan ke Database SQL Server
                 _context.Lowongan.AddRange(dataDummy);
-                _context.SaveChanges(); // Simpan permanen
+                _context.SaveChanges(); 
             }
 
-            // 2. SUMBER DATA: Sekarang ambil dari Database (Bukan Dummy lagi)
-            // Kita pakai .ToList() biar kode filter di bawahnya tidak perlu diubah sama sekali
+            // 2. SUMBER DATA
             var allData = _context.Lowongan.ToList();
             
-            // 2. LOGIKA FILTER (Search & Filter)
+            // 2. LOGIKA FILTER
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
-                // Mencari di Judul atau Nama Perusahaan
                 allData = allData.Where(x => (x.Title != null && x.Title.ToLower().Contains(search)) || 
-                                            (x.Company != null && x.Company.ToLower().Contains(search))).ToList();
+                                             (x.Company != null && x.Company.ToLower().Contains(search))).ToList();
             }
 
             // Filter Company
@@ -146,24 +133,20 @@ namespace sinta_asp.Controllers
                 allData = allData.Where(x => x.Region == region).ToList();
             }
 
-            // 3. LOGIKA PAGINATION (Matematika Halaman)
-            int pageSize = 8; // Menampilkan 9 kartu per halaman
+            // 3. LOGIKA PAGINATION
+            int pageSize = 8; 
             int totalItems = allData.Count;
-            
-            // Hitung total halaman (dibulatkan ke atas)
             int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
-            // Mencegah error jika user mengetik halaman minus atau berlebih
             if (page < 1) page = 1;
             if (page > totalPages && totalPages > 0) page = totalPages;
 
-            // POTONG DATA: Lewati halaman sebelumnya, Ambil 9 data
             var dataHalamanIni = allData
                                 .Skip((page - 1) * pageSize)
                                 .Take(pageSize)
                                 .ToList();
 
-            // 4. MASUKKAN KE VIEWMODEL (Wadah Baru)
+            // 4. MASUKKAN KE VIEWMODEL
             var model = new sinta_asp.Models.LowonganViewModel
             {
                 Lowongan = dataHalamanIni,
@@ -171,42 +154,46 @@ namespace sinta_asp.Controllers
                 TotalPages = totalPages
             };
 
-            // Simpan filter agar tidak hilang saat klik halaman berikutnya
             ViewData["SelectedSearch"] = search;
             ViewData["SelectedCompany"] = company;
             ViewData["SelectedRegion"] = region;
 
             return View(model);
         }
+
         // 2. TAMPILKAN FORM (GET)
         public IActionResult Daftar()
         {
             return View();
         }
 
-        // 3. PROSES SUBMIT FORM (POST) -- UPDATE TERBARU
+        // 3. PROSES SUBMIT FORM (POST) -- SUDAH DIGABUNGKAN
         [HttpPost]
         public async Task<IActionResult> SubmitPendaftaran(PendaftaranPenelitianModel model)
         {
             if (ModelState.IsValid)
             {
-                // A. Upload File
+                // 1. Ambil User Login (PENTING: Biar emailnya sesuai akun)
+                var currentUserEmail = User.Identity?.Name;
+
+                // 2. Upload File
                 string fotoPath = await UploadFile(model.Foto3x4, "foto");
                 string cvPath = await UploadFile(model.FileCV, "cv");
                 string proposalPath = await UploadFile(model.FileProposal, "proposal");
                 string suratPath = await UploadFile(model.FileSurat, "surat");
 
-                // --- BARU: Generate Nomor Otomatis ---
+                // 3. Generate Nomor Otomatis
                 string nomorGenerated = GenerateNomorPendaftaran();
 
-                // B. Pindahkan Data
+                // 4. Pindahkan Data
                 var pendaftaranBaru = new Pendaftaran
                 {
-                    // --- BARU: Masukkan Nomor ke Database ---
                     NomorPendaftaran = nomorGenerated, 
-
                     Nama = model.Nama,
-                    Email = model.Email,
+                    
+                    // Gunakan email user yang login, kalau null pakai dari form (fallback)
+                    Email = currentUserEmail ?? model.Email, 
+                    
                     NoHp = model.NoHp,
                     TempatLahir = model.TempatLahir,
                     TglLahir = model.TglLahir,
@@ -236,15 +223,30 @@ namespace sinta_asp.Controllers
                     Status = "Menunggu Review"
                 };
 
-                // C. Simpan ke Database
+                // 5. Simpan Data Pendaftaran ke Database
                 _context.Pendaftarans.Add(pendaftaranBaru);
+
+                // 6. SIMPAN NOTIFIKASI (Fitur dari vava)
+                // Kita bungkus try-catch biar kalau tabel Notification belum ada, pendaftaran tetap jalan
+                try {
+                    _context.Set<Notification>().Add(new Notification {
+                        UserEmail = currentUserEmail ?? model.Email,
+                        Title = "Pendaftaran Riset",
+                        Message = $"Riset '{model.JudulPenelitian}' berhasil didaftarkan.",
+                        Type = "Penelitian",
+                        CreatedAt = DateTime.Now
+                    });
+                } catch {
+                    // Abaikan error notifikasi jika tabel belum siap
+                }
+
+                // 7. Save Changes (Simpan ke SQL)
                 await _context.SaveChangesAsync();
 
-                // --- BARU: Kirim Email Notifikasi ---
-                // (Pastikan method KirimEmailNotifikasi sudah di-copy di bawah)
+                // 8. Kirim Email Notifikasi (Fitur dari vava3/SEMUA)
                 KirimEmailNotifikasi(model.Email, nomorGenerated, model.Nama);
 
-                // D. Lempar ke halaman Berhasil sambil bawa datanya (biar bisa munculin nomor)
+                // 9. Lempar ke halaman Berhasil
                 return View("Berhasil", pendaftaranBaru);
             }
 
@@ -257,31 +259,24 @@ namespace sinta_asp.Controllers
             return View();
         }
 
-
         // --- HELPER FUNCTION: CARA SIMPAN FILE BIAR RAPI ---
         private async Task<string?> UploadFile(Microsoft.AspNetCore.Http.IFormFile file, string jenis)
         {
             if (file == null || file.Length == 0) return null;
 
-            // 1. Tentukan folder simpan: wwwroot/uploads/cv (misalnya)
             string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", jenis);
             
-            // Buat folder kalau belum ada
             if (!Directory.Exists(uploadsFolder))
                 Directory.CreateDirectory(uploadsFolder);
 
-            // 2. Bikin nama file unik (biar gak bentrok kalau ada nama file sama)
-            // Contoh: cv_jokowi_8374823.pdf
             string uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
             string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-            // 3. Salin file ke folder tujuan
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await file.CopyToAsync(fileStream);
             }
 
-            // 4. Kembalikan path relatif untuk disimpan di database
             return "/uploads/" + jenis + "/" + uniqueFileName;
         }
 
@@ -292,10 +287,8 @@ namespace sinta_asp.Controllers
             string tahun = now.Year.ToString();
             string bulanRomawi = GetBulanRomawi(now.Month);
             
-            // Prefix untuk pencarian: PEN/2026/I/
             string prefix = $"PEN/{tahun}/{bulanRomawi}/";
 
-            // Cek database untuk nomor terakhir dengan prefix yg sama
             var dataTerakhir = _context.Pendaftarans
                                 .Where(x => x.NomorPendaftaran.StartsWith(prefix))
                                 .OrderByDescending(x => x.NomorPendaftaran)
@@ -304,9 +297,8 @@ namespace sinta_asp.Controllers
             int urutan = 1;
             if (dataTerakhir != null)
             {
-                // Jika ada (misal .../0015), ambil angka terakhir
                 string[] parts = dataTerakhir.NomorPendaftaran.Split('/');
-                string angkaTerakhir = parts[parts.Length - 1]; // ambil "0015"
+                string angkaTerakhir = parts[parts.Length - 1]; 
                 
                 if (int.TryParse(angkaTerakhir, out int lastNumber))
                 {
@@ -314,7 +306,6 @@ namespace sinta_asp.Controllers
                 }
             }
 
-            // Format jadi 4 digit: 0001
             return $"{prefix}{urutan.ToString("D4")}";
         }
 
@@ -330,9 +321,8 @@ namespace sinta_asp.Controllers
         {
             try 
             {
-                // GANTI DENGAN EMAIL ASLIMU NANTI
                 string emailPengirim = "sintapertamina@gmail.com"; 
-                string passwordApp = "cipjzsmrwrwhvtnv"; // Bukan password login biasa!
+                string passwordApp = "cipjzsmrwrwhvtnv"; 
 
                 SmtpClient client = new SmtpClient("smtp.gmail.com");
                 client.Port = 587;
@@ -365,7 +355,6 @@ namespace sinta_asp.Controllers
             }
             catch (Exception ex)
             {
-                // Kalau email gagal, jangan bikin error aplikasi, cukup catat di console
                 Console.WriteLine("Gagal kirim email: " + ex.Message);
             }
         }
