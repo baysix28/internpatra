@@ -22,6 +22,7 @@ namespace sinta_asp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            // 1. ENTITY ADMIN (Dari branch vava)
             modelBuilder.Entity("sinta_asp.Models.Admin", b =>
                 {
                     b.Property<int>("Id")
@@ -56,6 +57,43 @@ namespace sinta_asp.Migrations
                     b.ToTable("Admins");
                 });
 
+            // 2. ENTITY LOWONGAN (Dari branch vava3)
+            modelBuilder.Entity("sinta_asp.Models.Lowongan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Company")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Region")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lowongan");
+                });
+
+            // 3. ENTITY MAGANG (Dari branch vava)
             modelBuilder.Entity("sinta_asp.Models.Magang", b =>
                 {
                     b.Property<int>("Id")
@@ -139,6 +177,7 @@ namespace sinta_asp.Migrations
                     b.ToTable("pendaftaran_magang");
                 });
 
+            // 4. ENTITY MAHASISWA (Dari branch vava)
             modelBuilder.Entity("sinta_asp.Models.Mahasiswa", b =>
                 {
                     b.Property<int>("Id")
@@ -232,6 +271,7 @@ namespace sinta_asp.Migrations
                     b.ToTable("Mahasiswa");
                 });
 
+            // 5. ENTITY NOTIFICATIONS (Dari branch vava)
             modelBuilder.Entity("sinta_asp.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -275,6 +315,7 @@ namespace sinta_asp.Migrations
                     b.ToTable("Notifications");
                 });
 
+            // 6. ENTITY PENDAFTARAN (Ada di kedua branch)
             modelBuilder.Entity("sinta_asp.Models.Pendaftaran", b =>
                 {
                     b.Property<int>("Id")
@@ -322,6 +363,10 @@ namespace sinta_asp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NoHp")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NomorPendaftaran")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -374,6 +419,7 @@ namespace sinta_asp.Migrations
                     b.ToTable("Pendaftarans");
                 });
 
+            // 7. ENTITY USER (Dari branch vava)
             modelBuilder.Entity("sinta_asp.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -406,6 +452,7 @@ namespace sinta_asp.Migrations
                     b.ToTable("Users");
                 });
 
+            // 8. ENTITY USERPROFILE (Dari branch vava)
             modelBuilder.Entity("sinta_asp.Models.UserProfile", b =>
                 {
                     b.Property<int>("Id")

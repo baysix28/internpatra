@@ -10,13 +10,16 @@ namespace sinta_asp.Data
         {
         }
 
-        // ===== USER / ADMIN =====
+        // ===== USER / ADMIN (Dari branch vava) =====
         public DbSet<Admin> Admins { get; set; }
-
-        // ===== USER =====
         public DbSet<User> Users { get; set; }
+        public DbSet<UserProfile> UserProfile { get; set; }
 
+        // ===== MAHASISWA =====
         public DbSet<Mahasiswa> Mahasiswa { get; set; }
+
+        // ===== FITUR LOWONGAN (Dari branch vava3) =====
+        public DbSet<Lowongan> Lowongan { get; set; }
 
         // ===== PENDAFTARAN PENELITIAN =====
         public DbSet<Pendaftaran> Pendaftarans { get; set; }
@@ -24,16 +27,12 @@ namespace sinta_asp.Data
         // ===== MAGANG =====
         public DbSet<Magang> PendaftaranMagang { get; set; }
 
-        public DbSet<UserProfile> UserProfile { get; set; }
-
-        // ===== NOTIFIKASI =====
-        // Tambahkan ini agar Controller bisa mengakses tabel Notifications
+        // ===== NOTIFIKASI (Penting untuk lonceng) =====
         public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
         }
     }
 }
