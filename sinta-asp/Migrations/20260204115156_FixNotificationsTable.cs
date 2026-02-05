@@ -10,7 +10,7 @@ namespace sinta_asp.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            /*migrationBuilder.CreateTable(
             name: "Notifications",
             columns: table => new
             {
@@ -29,7 +29,7 @@ namespace sinta_asp.Migrations
             constraints: table =>
             {
                 table.PrimaryKey("PK_Notifications", x => x.Id);
-            });
+            }); */
         }
 
         /// <inheritdoc />
