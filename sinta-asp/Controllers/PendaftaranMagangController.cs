@@ -31,7 +31,7 @@ namespace sinta_asp.Controllers
             string email = User.Identity!.Name!;
 
             var existing = _context.PendaftaranMagang
-                .FirstOrDefault(x => x.EmailPribadi == email);
+                .FirstOrDefault(x => x.EmailPribadi == email && x.Status == "Draft");
 
             if (existing != null)
             {
@@ -54,14 +54,13 @@ namespace sinta_asp.Controllers
                 return NotFound();
             }
 
-            // Properti di bawah ini sudah disesuaikan dengan Model Magang kamu
             return Json(new {
                 nama = m.NamaLengkap,
                 email = m.EmailPribadi,
                 wa = m.NoHp,
                 instagram = m.Instagram,
-                univ = m.NamaPerguruanTinggi, // Sesuaikan ke univ
-                nim = m.NIM,                   // Sesuaikan ke NIM (huruf besar semua)
+                univ = m.NamaPerguruanTinggi,
+                nim = m.NIM,
                 jurusan = m.Jurusan,
                 fakultas = m.Fakultas,
                 company = m.Company,
@@ -69,9 +68,9 @@ namespace sinta_asp.Controllers
                 tempatLahir = m.TempatLahir,
                 tglLahir = m.TanggalLahir.ToString("dd MMMM yyyy"),
                 createdAtFormatted = m.CreatedAt.ToString("dd MMMM yyyy"),
-                tglMulai = m.MulaiMagang.ToString("dd MMM yyyy"),   // Sesuaikan ke MulaiMagang
-                tglSelesai = m.SelesaiMagang.ToString("dd MMM yyyy"), // Sesuaikan ke SelesaiMagang
-                rekomendasi = m.RekomendasiPegawai ?? "Tidak Ada",   // Sesuaikan ke RekomendasiPegawai
+                tglMulai = m.MulaiMagang.ToString("dd MMM yyyy"),
+                tglSelesai = m.SelesaiMagang.ToString("dd MMM yyyy"),
+                rekomendasi = m.RekomendasiPegawai ?? "Tidak Ada",
                 fotoProfil = string.IsNullOrEmpty(m.FotoProfil) ? "/img/default-user.png" : "/" + m.FotoProfil,
                 pathCV = "/" + m.FileCv,
                 pathSurat = "/" + m.FileSuratPengantar,
@@ -89,11 +88,13 @@ namespace sinta_asp.Controllers
             IFormFile? FileSuratPengantar,
             IFormFile? FileProposal)
         {
-            // 1. PERBAIKAN VALIDASI: Cek ModelState hanya sekali dan kembalikan JSON
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid) return View("Index", model);if (!ModelState.IsValid) 
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return Json(new { success = false, message = "Data belum lengkap atau tidak valid.", errors = errors });
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine("MODEL ERROR: " + error.ErrorMessage);
+                }
+                return View("Index", model); 
             }
 
             try
@@ -110,33 +111,27 @@ namespace sinta_asp.Controllers
                 model.CreatedAt = DateTime.Now;
                 model.Status = "Menunggu";
 
-               // ===== SIMPAN / UPDATE KE DATABASE (ANTI DOBEL) =====
-                var existing = await _context.PendaftaranMagang
-                    .FirstOrDefaultAsync(x => x.EmailPribadi == currentUserEmail);
+                // Hapus draft lama milik user ini
+                var oldDraft = await _context.PendaftaranMagang
+                    .FirstOrDefaultAsync(x => x.EmailPribadi == currentUserEmail && x.Status == "Draft");
 
-                if (existing != null)
+                if (oldDraft != null)
                 {
-                    // UPDATE data lama (draft milik akun ini)
-                    model.Id = existing.Id;
-                    _context.Entry(existing).CurrentValues.SetValues(model);
-                }
-                else
-                {
-                    // INSERT data baru
-                    _context.PendaftaranMagang.Add(model);
+                    _context.PendaftaranMagang.Remove(oldDraft);
                 }
 
-                // TAMBAHKAN NOTIFIKASI
+                // ===== SIMPAN KE DATABASE =====
+                _context.PendaftaranMagang.Add(model);
+                
                 var notifMagang = new Notification {
                     UserEmail = currentUserEmail,
-                    Title = "Pendaftaran Berhasil",
-                    Message = $"Pendaftaran Magang di {model.Company} telah diterima dan sedang direview.",
+                    Title = "Pendaftaran Magang",
+                    Message = $"Pendaftaran Magang di {model.Company} berhasil dikirim.",
                     Type = "Magang",
                     IsRead = false,
                     CreatedAt = DateTime.Now
                 };
                 _context.Set<Notification>().Add(notifMagang);
-                
                 await _context.SaveChangesAsync();
 
                 // ===== LOGIKA EMAIL 1: KE ADMIN =====
@@ -185,24 +180,63 @@ namespace sinta_asp.Controllers
                     Console.WriteLine("DEBUG ERROR USER: " + ex.Message);
                 }
 
-                return Json(new { success = true, redirectUrl = Url.Action("Sukses") });          
+                return RedirectToAction("Sukses", "PendaftaranMagang");
             }
             catch (Exception ex)
             {
-                // 3. TANGANI EXCEPTION DAN KEMBALIKAN JSON
-                return Json(new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + ex.Message });
+                TempData["Error"] = "Gagal simpan data: " + ex.Message;
+                return View("Index", model);
             }
         }
 
         private string SimpanFile(IFormFile? file, string folder)
         {
             if (file == null || file.Length == 0) return string.Empty;
-            string uploadDir = Path.Combine(_environment.WebRootPath, folder);
-            if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
-            string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
-            string fullPath = Path.Combine(uploadDir, fileName);
-            using (var stream = new FileStream(fullPath, FileMode.Create)) { file.CopyTo(stream); }
-            return $"{folder}/{fileName}";
+            
+            try
+            {
+                string uploadDir = Path.Combine(_environment.WebRootPath, folder);
+                if (!Directory.Exists(uploadDir)) 
+                {
+                    Directory.CreateDirectory(uploadDir);
+                }
+                
+                string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
+                string fullPath = Path.Combine(uploadDir, fileName);
+                
+                using (var stream = new FileStream(fullPath, FileMode.Create)) 
+                { 
+                    file.CopyTo(stream); 
+                }
+                
+                Console.WriteLine($"File berhasil disimpan: {folder}/{fileName}");
+                return $"{folder}/{fileName}";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error simpan file: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
+        private void HapusFile(string filePath)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    string fullPath = Path.Combine(_environment.WebRootPath, filePath);
+                    if (System.IO.File.Exists(fullPath))
+                    {
+                        System.IO.File.Delete(fullPath);
+                        Console.WriteLine($"File lama dihapus: {filePath}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error hapus file: {ex.Message}");
+            }
         }
 
         public IActionResult Sukses() => View();

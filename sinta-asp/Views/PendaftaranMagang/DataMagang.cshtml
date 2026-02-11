@@ -434,33 +434,6 @@
     </div>
 </div>
 
-<!-- Modal Konfirmasi -->
-<div class="modal-overlay" id="modalKonfirmasi">
-    <div class="modal-box">
-        <div class="modal-icon">
-            <i class="fas fa-question-circle"></i>
-        </div>
-        <div class="modal-title">Konfirmasi Pengiriman Data</div>
-        <div class="modal-text">
-            Apakah Anda yakin data yang Anda isi sudah benar dan siap untuk dikirim?
-            Pastikan semua informasi sudah sesuai sebelum melanjutkan.
-        </div>
-        <div class="modal-buttons">
-            <button type="button"
-                    class="modal-btn modal-btn-cancel"
-                    onclick="tutupModal()">
-                Tidak
-            </button>
-
-            <button type="button"
-                    class="modal-btn modal-btn-confirm"
-                    onclick="konfirmasiKirim()">
-                Ya, Kirim Data
-            </button>
-        </div>
-    </div>
-</div>
-
 <div class="container my-3" style="max-width: 700px;">
     <div class="d-flex justify-content-between mb-3">
         <a href="javascript:history.back()" class="btn-sinta-back">
@@ -665,6 +638,33 @@
                 </div>
             </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi -->
+<div class="modal-overlay" id="modalKonfirmasi">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <i class="fas fa-question-circle"></i>
+        </div>
+        <div class="modal-title">Konfirmasi Pengiriman Data</div>
+        <div class="modal-text">
+            Apakah Anda yakin data yang Anda isi sudah benar dan siap untuk dikirim?
+            Pastikan semua informasi sudah sesuai sebelum melanjutkan.
+        </div>
+        <div class="modal-buttons">
+            <button type="button"
+                    class="modal-btn modal-btn-cancel"
+                    onclick="tutupModal()">
+                Tidak
+            </button>
+
+            <button type="button"
+                    class="modal-btn modal-btn-confirm"
+                    onclick="konfirmasiKirim()">
+                Ya, Kirim Data
+            </button>
         </div>
     </div>
 </div>
@@ -1250,46 +1250,9 @@
     }
 
     function konfirmasiKirim() {
-        const form = document.getElementById('formMagang');
-        const formData = new FormData(form);
-
+        console.log("FORM DIKIRIM");
         tutupModal();
-
-        Swal.fire({
-            title: 'Sedang Mengirim...',
-            text: 'Data dan file Anda sedang diproses.',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
-
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest' // Memberitahu server ini adalah request AJAX
-            }
-        })
-        .then(response => response.json()) // Mengambil respon JSON dari Controller
-        .then(data => {
-            if (data.success) {
-                clearDraft(); // Hapus draft karena sudah sukses
-                
-                // Redirect ke halaman sukses yang dikirim dari Controller
-                window.location.href = data.redirectUrl; 
-            } else {
-                // Jika validasi gagal (ModelState.IsValid == false)
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal Mengirim',
-                    text: data.message,
-                    footer: data.errors ? 'Detail: ' + data.errors.join(', ') : ''
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire('Error', 'Terjadi kesalahan sistem atau koneksi terputus.', 'error');
-        });
+        document.getElementById('formMagang').submit();
     }
 
     // Jalankan ini di halaman DataMagang.cshtml setiap kali input diisi
