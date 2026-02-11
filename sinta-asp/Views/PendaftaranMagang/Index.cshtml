@@ -6,6 +6,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="~/js/Tooltip.js"></script>
+
 
 <style>
     :root {
@@ -380,6 +382,7 @@
         const search = searchInput.value.toLowerCase();
 
         container.innerHTML = '';
+
         if (!company || !region || !lokasi) {
             emptyState.style.display = 'block';
             return;
@@ -390,61 +393,65 @@
 
         positions.forEach(pos => {
             if (pos.toLowerCase().includes(search)) {
-                const deskripsi = `Mendukung operasional di unit ${lokasi} untuk memastikan efisiensi kerja dan pengembangan sistem sesuai standar Pertamina.`;
-                
+
+                let deskripsi = "";
+
+                // 🔵 KPI
+                if (company === "KPI") {
+                    deskripsi = deskripsiPosisi[pos] ||
+                        "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
+                }
+
+                // 🔴 PPN
+                if (company === "PPN") {
+                    deskripsi = generateDeskripsiPPN(lokasi);
+                }
+
                 const card = `
                     <div class="flip-card animate__animated animate__fadeInUp">
                         <div class="flip-card-inner">
+
                             <div class="flip-card-front shadow-sm">
-                                <div class="wadah-ikon-sm"><i class="${getIcon(pos)}"></i></div>
+                                <div class="wadah-ikon-sm">
+                                    <i class="${getIcon(pos)}"></i>
+                                </div>
+
                                 <div class="judul-posisi">${pos}</div>
+
                                 <small class="text-muted d-block mb-3">
                                     <i class="fas fa-map-marker-alt me-1 text-danger"></i>${lokasi}
                                 </small>
-                                @* <!-- ALUR PENDAFTARAN -->
-                                    <div class="alur-pendaftaran mb-2">
-                                        <div class="step"><i class="fas fa-user-plus"></i><span>Daftar</span></div>
-                                        <div class="step"><i class="fas fa-file-alt"></i><span>Upload</span></div>
-                                        <div class="step"><i class="fas fa-search"></i><span>Seleksi</span></div>
-                                        <div class="step"><i class="fas fa-check-circle"></i><span>Diterima</span></div>
-                                    </div> *@
 
-                                    <!-- SYARAT DOKUMEN -->
-                                    <div class="syarat-dokumen mb-2">
-                                        <small class="fw-bold text-muted d-block mb-1">Dokumen:</small>
-                                        <small class="text-muted">CV, Proposal, Surat Kampus</small>
-                                    </div>
+                                <div class="syarat-dokumen mb-2">
+                                    <small class="fw-bold text-muted d-block mb-1">Dokumen:</small>
+                                    <small class="text-muted">CV, Proposal, Surat Kampus</small>
+                                </div>
 
                                 <div class="mt-auto pt-2 border-top">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="fw-bold text-muted" style="font-size: 11px;">KUOTA</span>
                                         <span class="fw-bold text-primary" style="font-size: 11px;">TERSEDIA</span>
                                     </div>
-                                    @* <small class="text-muted d-block mt-2" style="font-size: 9px;">Hover untuk detail fungsi</small> *@
                                 </div>
                             </div>
+
                             <div class="flip-card-back shadow-lg">
-                                <h6 class="fw-bold mb-3" style="font-size: 14px;">Fungsi Bidang</h6>
-                                <p style="font-size: 11px; line-height: 1.5; opacity: 0.9;">${deskripsi}</p>
-                                @* <div class="mt-auto">
-                                    <button 
-                                        class="btn btn-light btn-sm w-100 fw-bold py-2"
-                                        onclick="pilihPosisi(
-                                            '${company}',
-                                            '${region}',
-                                            '${lokasi}',
-                                            '${pos.replace(/'/g, "\\'")}'
-                                        )">
-                                        PILIH POSISI
-                                        </button>
-                                </div> *@
+                                <h6 class="fw-bold mb-3" style="font-size: 14px;">
+                                    Fungsi Bidang
+                                </h6>
+                                <p style="font-size: 11px; line-height: 1.5; opacity: 0.9;">
+                                    ${deskripsi}
+                                </p>
                             </div>
+
                         </div>
                     </div>`;
+
                 container.insertAdjacentHTML('beforeend', card);
             }
         });
     }
+
 
     function getIcon(pos) {
         pos = pos.toLowerCase();

@@ -3,6 +3,8 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="~/js/Tooltip.js"></script>
+
 
 @{
     ViewData["Title"] = "Data Diri - Program Magang Pertamina";
@@ -1044,130 +1046,6 @@
                 cekDataLengkap();
             });
         }
-    });
-
-    // Data deskripsi - TAMBAHKAN SEMUA POSISI YANG ADA
-    const deskripsiPosisi = {
-        // data KPI
-        "Akuntansi / Ekonomi & Bisnis": "Analisis keuangan, akuntansi manajemen, dan studi kelayakan ekonomi proyek.",
-        "Elektro (Arus Kuat)": "Desain dan pemeliharaan sistem distribusi listrik, pembangkit, dan jaringan tegangan tinggi.",
-        "Elektro (Arus Lemah)": "Sistem kontrol, instrumentasi, otomasi, dan jaringan komunikasi industri.",
-        "Emergency & Insurance": "Manajemen risiko, asuransi, dan penanganan keadaan darurat operasional.",
-        "Health": "Kesehatan kerja, pemeriksaan medis, dan program kesehatan karyawan.",
-        "Hukum": "Penelaahan kontrak, compliance regulasi, dan pendampingan hukum operasional.",
-        "Ilmu Komunikasi / FISIP / Administrasi Publik": "Komunikasi korporat, public relations, dan administrasi publik.",
-        "Internal Audit": "Audit operasional dan finansial untuk memastikan kepatuhan terhadap regulasi perusahaan.",
-        "Kelautan / Perkapalan": "Operasi dan pemeliharaan fasilitas pelabuhan serta transportasi maritim.",
-        "Kimia Murni / MIPA": "Analisis laboratorium, kontrol kualitas bahan baku, dan penelitian kimia terapan.",
-        "Konversi Energi / Migas / Kimia Air Bersih / Blanding / Loading": "Optimasi proses produksi, blending produk, dan operasi loading terminal.",
-        "Logistik / Pergudangan / Procurement": "Manajemen rantai pasok, pergudangan, dan pengadaan barang/jasa.",
-        "Manajemen / SDM / Psikologi": "Pengembangan SDM, rekrutmen, dan program pengembangan organisasi.",
-        "Metalurgi / Material / Dirgantara": "Pengujian material, analisis kegagalan, dan seleksi material teknik.",
-        "Safety (K3) / SMK3": "Implementasi sistem manajemen keselamatan kerja, inspeksi peralatan, dan prosedur darurat.",
-        "Teknik Fisika": "Instrumentasi, kontrol proses, dan pemantauan kondisi peralatan.",
-        "Teknik Industri": "Optimasi proses, studi kelayakan, dan perancangan sistem kerja.",
-        "Teknik Informatika": "Maintenance sistem informasi, pengembangan aplikasi internal, dan dukungan infrastruktur IT.",
-        "Teknik Kimia": "Terlibat dalam optimasi proses pengolahan minyak mentah, pemantauan katalis, dan efisiensi energi produksi.",
-        "Teknik Lingkungan": "Pengelolaan limbah, pemantauan kualitas lingkungan, dan program keberlanjutan.",
-        "Teknik Mesin": "Perawatan dan perbaikan peralatan mekanik, analisis kegagalan, dan improvement reliability.",
-        "Teknik Mesin (Rotating)": "Fokus pada pemeliharaan dan analisis performa mesin rotasi seperti pompa, kompresor, dan turbin di area kilang.",
-        "Teknik Sipil": "Perawatan infrastruktur, konstruksi, dan manajemen proyek fasilitas."
-
-        @* // data PPN
-        "Fuel Terminal": "Fokus pada operasional penerimaan, penimbunan, dan penyaluran BBM serta pemeliharaan sarana fasilitas distribusi.",
-        "Integrated Terminal": "Operasional terpadu yang mengelola BBM dan LPG mulai dari bongkar muat kapal (tanker) hingga distribusi ke mobil tangki.",
-        "DPPU": "Depot Pengisian Pesawat Udara: Fokus pada manajemen kualitas dan pengisian bahan bakar pesawat (Avtur) sesuai standar internasional.",
-        "AFT": "Aviation Fuel Terminal: Teknis operasional pengisian bahan bakar pesawat dan pemeliharaan kendaraan pengisi (refueller).",
-        "Aviation FT": "Sama dengan DPPU/AFT, fokus pada layanan bahan bakar untuk sektor penerbangan.",
-        "Corporate Sales": "Melayani penjualan produk BBM, Pelumas, dan Gas secara langsung ke sektor industri, pertambangan, dan korporasi.",
-        "Retail Sales": "Manajemen pemasaran produk retail (Pertalite, Pertamax, dsb), pengawasan SPBU, dan pengembangan bisnis kemitraan.",
-        "Retail": "Fokus pada strategi pemasaran di tingkat wilayah dan dukungan operasional jaringan SPBU.",
-        "Supply & Distribution": "Rantai pasok energi nasional, mengatur arus logistik BBM/LPG agar distribusi tetap aman dan tepat waktu.",
-        "S&D": "Supply & Distribution: Perencanaan dan pengawasan distribusi energi di wilayah regional.",
-        "Asset Operation": "Pengelolaan aset fisik perusahaan, pemeliharaan bangunan, dan optimalisasi sarana pendukung kerja.",
-        "Comm, Rel, & CSR": "Komunikasi korporat, publikasi, hubungan masyarakat, serta program Tanggung Jawab Sosial dan Lingkungan (TJSL).",
-        "HSSE": "Health, Safety, Security, & Environment: Menjamin keselamatan kerja, keamanan objek vital, dan kelestarian lingkungan operasional.",
-        "Human Capital": "Manajemen SDM, mulai dari administrasi pekerja, rekrutmen, hingga pengembangan budaya organisasi.",
-        "Finance": "Pengelolaan arus kas, perpajakan, verifikasi penagihan, dan pelaporan keuangan berkala.",
-        "Procurement": "Proses pengadaan barang dan jasa perusahaan secara transparan dan sesuai regulasi yang berlaku.",
-        "Legal Counsel": "Pemberian saran hukum, penyusunan kontrak kerjasama, dan penanganan aspek kepatuhan hukum perusahaan.",
-        "SSC ICT": "Dukungan teknologi informasi, jaringan internet, maintenance hardware, dan pengembangan sistem aplikasi internal.",
-        "Internal Audit": "Evaluasi dan pengawasan internal untuk memastikan operasional berjalan sesuai aturan (Good Corporate Governance).",
-        "Medical": "Pelayanan kesehatan kerja, pemeriksaan medis rutin pekerja, dan pengawasan sanitasi lingkungan.",
-        "Marine": "Operasional kapal, manajemen pelabuhan (jetty), dan pengawasan proses bongkar muat komoditas cair.",
-        "Bitumen Plant": "Fokus khusus pada pengolahan, penyimpanan, dan distribusi aspal (bitumen).",
-        }; *@
-    };
-    
-    $("#formMagang").submit(function (e) {
-        e.preventDefault();
-
-        var formData = new FormData(this);
-
-        $.ajax({
-            url: '@Url.Action("Store", "PendaftaranMagang")',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                if (res.success) {
-                    window.location.href = res.redirectUrl;
-                } else {
-                    alert(res.message);
-                    console.log(res.errors);
-                }
-            },
-            error: function () {
-                alert("Server error");
-            }
-        });
-    });
-
-    $(document).ready(function() {
-    // Inisialisasi Select2 pada dropdown lokasi
-        $('#lokasi').select2({
-            placeholder: "Pilih Lokasi",
-            width: '100%'
-        });
-
-        const tooltipHover = document.getElementById('tooltipHover');
-        const tTitle = document.getElementById('tooltipHoverTitle');
-        const tDesc = document.getElementById('tooltipHoverDesc');
-
-        // MENDETEKSI HOVER PADA LIST (SESUAI ARAHAN KURSOR)
-        $(document).on('mouseenter', '.select2-results__option', function() {
-            const posisiText = $(this).text().trim();
-            
-            // Cek apakah teks ada di data deskripsiPosisi
-            if (deskripsiPosisi[posisiText]) {
-                tTitle.innerText = posisiText;
-                tDesc.innerText = deskripsiPosisi[posisiText];
-                
-                // Ambil posisi elemen yang di-hover
-                const rect = this.getBoundingClientRect();
-                
-                // Munculkan tooltip di sebelah kanan baris yang ditunjuk
-                tooltipHover.style.top = rect.top + 'px';
-                tooltipHover.style.left = (rect.right + 20) + 'px';
-                tooltipHover.classList.add('show');
-            }
-        });
-
-        // SEMBUNYIKAN SAAT KELUAR DARI BARIS TERSEBUT
-        $(document).on('mouseleave', '.select2-results__option', function() {
-            tooltipHover.classList.remove('show');
-        });
-
-        // SEMBUNYIKAN JIKA DROPDOWN TERTUTUP
-        $('#lokasi').on('select2:closing', function() {
-            tooltipHover.classList.remove('show');
-        });
-
-        $('#lokasi').on('select2:select', function (e) {
-            saveDraft();
-            cekDataLengkap();
-        });
     });
     
     function showStep(n) {
