@@ -190,7 +190,7 @@
             </div>
             <div class="col-md-4">
                 <small class="text-muted d-block mb-1 fw-bold">SISTEM KERJA</small>
-                <span class="fw-bold text-primary">HYBRID (ONSITE/REMOTE)</span>
+                <span class="fw-bold text-primary">ONSITE</span>
             </div>
         </div>
     </div>
@@ -420,13 +420,13 @@
                                         <span class="fw-bold text-muted" style="font-size: 11px;">KUOTA</span>
                                         <span class="fw-bold text-primary" style="font-size: 11px;">TERSEDIA</span>
                                     </div>
-                                    <small class="text-muted d-block mt-2" style="font-size: 9px;">Hover untuk detail fungsi</small>
+                                    @* <small class="text-muted d-block mt-2" style="font-size: 9px;">Hover untuk detail fungsi</small> *@
                                 </div>
                             </div>
                             <div class="flip-card-back shadow-lg">
                                 <h6 class="fw-bold mb-3" style="font-size: 14px;">Fungsi Bidang</h6>
                                 <p style="font-size: 11px; line-height: 1.5; opacity: 0.9;">${deskripsi}</p>
-                                <div class="mt-auto">
+                                @* <div class="mt-auto">
                                     <button 
                                         class="btn btn-light btn-sm w-100 fw-bold py-2"
                                         onclick="pilihPosisi(
@@ -437,7 +437,7 @@
                                         )">
                                         PILIH POSISI
                                         </button>
-                                </div>
+                                </div> *@
                             </div>
                         </div>
                     </div>`;
@@ -514,7 +514,7 @@
         });
     }
 
-    // 2. Perbaiki fungsi pilihPosisi agar cek login dulu
+    @* // 2. Perbaiki fungsi pilihPosisi agar cek login dulu
     function pilihPosisi(company, region, lokasi, posisi) {
         if (currentUser === "Guest") {
             showLoginWarning(); // Munculkan Alert jika belum login
@@ -527,7 +527,7 @@
 
             window.location.href = '/PendaftaranMagang/DataMagang';
         }
-    }
+    } *@
 
     // 3. Tambahkan juga proteksi pada tombol "Mulai Pendaftaran" di Hero Section
     function handleMulaiDaftar() {

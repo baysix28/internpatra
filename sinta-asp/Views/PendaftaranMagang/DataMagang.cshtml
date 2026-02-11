@@ -1,3 +1,5 @@
+@model sinta_asp.Models.Magang
+
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -469,11 +471,8 @@
     <div class="card">
         <div class="card-body p-4">
 
-            <form id="formMagang"
-                  asp-controller="PendaftaranMagang"
-                  asp-action="Store"
-                  method="post"
-                  enctype="multipart/form-data">
+            <form id="formMagang" asp-action="Store" asp-controller="PendaftaranMagang" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
 
             <!-- ================= STEP 1 ================= -->
             <div id="content-1" class="step-content active">
@@ -503,11 +502,9 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Email Pribadi <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control wajib" id="email" name="EmailPribadi" 
-                            placeholder="contoh: nama@gmail.com"
-                            oninput="validateEmail(this)">
-                        <div id="email-error" class="error-message">Format email tidak valid!</div>
+                        <label>Email</label>
+                        <input type="email" class="form-control" value="@Model.EmailPribadi" readonly />
+                        <input type="hidden" name="EmailPribadi" value="@Model.EmailPribadi" />
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -845,7 +842,17 @@
     });
 
     document.addEventListener('DOMContentLoaded', function () {
-@* 
+        // Di dalam DOMContentLoaded:
+        loadDraft(); // Jalankan fungsi load data saat halaman siap
+
+        // Pasang event listener ke semua input agar otomatis save saat diisi
+        const allInputs = document.querySelectorAll('input, select, textarea');
+        allInputs.forEach(input => {
+            input.addEventListener('input', saveDraft);
+            input.addEventListener('change', saveDraft);
+        });
+
+        @* 
         /* ===============================
         1️⃣ AUTO ISI DARI PILIH POSISI
         =============================== */
@@ -1092,6 +1099,31 @@
         }; *@
     };
     
+    $("#formMagang").submit(function (e) {
+        e.preventDefault();
+
+        var formData = new FormData(this);
+
+        $.ajax({
+            url: '@Url.Action("Store", "PendaftaranMagang")',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success) {
+                    window.location.href = res.redirectUrl;
+                } else {
+                    alert(res.message);
+                    console.log(res.errors);
+                }
+            },
+            error: function () {
+                alert("Server error");
+            }
+        });
+    });
+
     $(document).ready(function() {
     // Inisialisasi Select2 pada dropdown lokasi
         $('#lokasi').select2({
@@ -1130,6 +1162,11 @@
         // SEMBUNYIKAN JIKA DROPDOWN TERTUTUP
         $('#lokasi').on('select2:closing', function() {
             tooltipHover.classList.remove('show');
+        });
+
+        $('#lokasi').on('select2:select', function (e) {
+            saveDraft();
+            cekDataLengkap();
         });
     });
     
@@ -1213,8 +1250,46 @@
     }
 
     function konfirmasiKirim() {
-    tutupModal();
-    document.getElementById('formMagang').submit();
+        const form = document.getElementById('formMagang');
+        const formData = new FormData(form);
+
+        tutupModal();
+
+        Swal.fire({
+            title: 'Sedang Mengirim...',
+            text: 'Data dan file Anda sedang diproses.',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest' // Memberitahu server ini adalah request AJAX
+            }
+        })
+        .then(response => response.json()) // Mengambil respon JSON dari Controller
+        .then(data => {
+            if (data.success) {
+                clearDraft(); // Hapus draft karena sudah sukses
+                
+                // Redirect ke halaman sukses yang dikirim dari Controller
+                window.location.href = data.redirectUrl; 
+            } else {
+                // Jika validasi gagal (ModelState.IsValid == false)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mengirim',
+                    text: data.message,
+                    footer: data.errors ? 'Detail: ' + data.errors.join(', ') : ''
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'Terjadi kesalahan sistem atau koneksi terputus.', 'error');
+        });
     }
 
     // Jalankan ini di halaman DataMagang.cshtml setiap kali input diisi
@@ -1258,6 +1333,74 @@
             }
         });
     });
+
+    // --- SISTEM DRAFT GOOGLE FORM STYLE ---
+
+    // 1. Fungsi untuk menyimpan semua input ke localStorage
+    function saveDraft() {
+        const formData = {};
+        const inputs = document.querySelectorAll('input, select, textarea');
+        
+        inputs.forEach(input => {
+            if (input.id) {
+                if (input.type === 'file') {
+                    // Kita tidak bisa simpan filenya, tapi kita simpan statusnya
+                    // agar sistem tahu user sudah pernah upload
+                    formData[input.id + "_status"] = input.files.length > 0 ? "uploaded" : "empty";
+                } else {
+                    formData[input.id] = input.value;
+                }
+            }
+        });
+
+        localStorage.setItem('form_magang_draft', JSON.stringify(formData));
+    }
+
+    // 2. Fungsi untuk memuat data saat halaman dibuka kembali
+    function loadDraft() {
+        const savedData = localStorage.getItem('form_magang_draft');
+        if (!savedData) return;
+
+        const formData = JSON.parse(savedData);
+
+        // 1. Isi Company dulu
+        if (formData['company']) {
+            const comp = document.getElementById('company');
+            comp.value = formData['company'];
+            comp.dispatchEvent(new Event('change'));
+
+            // 2. Tunggu sebentar sampai Region terisi, lalu isi Region
+            setTimeout(() => {
+                if (formData['region']) {
+                    const reg = document.getElementById('region');
+                    reg.value = formData['region'];
+                    reg.dispatchEvent(new Event('change'));
+
+                    // 3. Tunggu lagi sampai Lokasi terisi, lalu isi Lokasi
+                    setTimeout(() => {
+                        if (formData['lokasi']) {
+                            const lok = document.getElementById('lokasi');
+                            $(lok).val(formData['lokasi']).trigger('change'); // Pakai trigger Select2
+                        }
+                        cekDataLengkap();
+                    }, 300);
+                }
+            }, 300);
+        }
+        
+        // 4. Isi field lainnya (Nama, Email, HP, dsb)
+        Object.keys(formData).forEach(id => {
+            if (id !== 'company' && id !== 'region' && id !== 'lokasi') {
+                const el = document.getElementById(id);
+                if (el) el.value = formData[id];
+            }
+        });
+    }
+
+    // 3. Fungsi menghapus draft setelah sukses submit
+    function clearDraft() {
+        localStorage.removeItem('form_magang_draft');
+    }
 
     window.onload = cekDataLengkap;
 </script>

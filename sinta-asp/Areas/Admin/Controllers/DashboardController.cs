@@ -182,34 +182,25 @@ namespace sinta_asp.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetNotifications()
-        {
-            var adminNama = HttpContext.Session.GetString("AdminNama");
-            if (string.IsNullOrEmpty(adminNama)) return Unauthorized();
+        public IActionResult GetNotifications()
+            {
+                var userEmail = User.Identity?.Name; // Ambil email user login
 
-            var adminInfo = await _context.Admins.FirstOrDefaultAsync(a => a.Nama == adminNama);
-            if (adminInfo == null) return Unauthorized();
+                var notifications = _context.Set<Notification>() 
+                    .Where(n => n.UserEmail == userEmail) // FILTER PENTING!
+                    .OrderByDescending(n => n.CreatedAt)
+                    .Select(n => new {
+                        title = n.Title,
+                        message = n.Message,
+                        // Logika icon: jika Type 'Status' kasih warna hijau/merah
+                        iconClass = n.Type == "Magang" ? "fa-file-alt" : "fa-bell",
+                        iconColor = n.Type == "Magang" ? "text-primary" : "text-success",
+                        timeAgo = CalculateTimeAgo(n.CreatedAt),
+                        isRead = n.IsRead
+                    }).ToList();
 
-            var limitTanggal = DateTime.Now.AddDays(-7);
-            var hariIni = DateTime.Today;
-
-            var dataNotif = await _context.PendaftaranMagang
-                .Where(x => x.Region == adminInfo.RegionManaged && 
-                           (x.CreatedAt >= limitTanggal || x.SelesaiMagang.Date == hariIni))
-                .OrderByDescending(x => x.CreatedAt)
-                .Select(x => new {
-                    id = x.Id,
-                    nama = x.NamaLengkap,
-                    jurusan = x.Jurusan,
-                    lokasi = x.Lokasi,
-                    type = (x.SelesaiMagang.Date == hariIni) ? "done" : "new",
-                    rawDate = x.CreatedAt,
-                    isRead = false // Default false agar Layout bisa menghitung badge
-                })
-                .ToListAsync();
-
-            return Json(dataNotif);
-        }
+                return Json(notifications);
+            }
 
         [HttpPost]
         public async Task<IActionResult> MarkAsRead(int id)
@@ -217,6 +208,16 @@ namespace sinta_asp.Areas.Admin.Controllers
             // Karena tidak ada tabel notifikasi fisik, kita kirim sukses saja 
             // Agar UI bisa mengupdate tampilan secara instan.
             return Json(new { success = true });
+        }
+
+        private string CalculateTimeAgo(DateTime dt)
+        {
+            var span = DateTime.Now - dt;
+            if (span.TotalMinutes < 1) return "Baru saja";
+            if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} menit lalu";
+            if (span.TotalHours < 24) return $"{(int)span.TotalHours} jam lalu";
+            if (span.TotalDays < 7) return $"{(int)span.TotalDays} hari lalu";
+            return dt.ToString("dd MMM yyyy");
         }
     }
 }

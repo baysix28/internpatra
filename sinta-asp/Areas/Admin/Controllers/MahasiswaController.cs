@@ -6,6 +6,7 @@ using sinta_asp.Areas.Admin.Models;
 using sinta_asp.Services;
 using System.Globalization;
 using ClosedXML.Excel;
+using System.Reflection;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
@@ -135,7 +136,9 @@ namespace sinta_asp.Areas.Admin.Controllers
                 // Tambahkan notifikasi update status
                 _context.Notifications.Add(new Notification
                 {
-                    Nama = data.NamaLengkap,
+                    Nama = data.EmailPribadi,
+                    Title = "Pembaruan Status Magang",
+                    Message = $"Pendaftaran Anda di {data.Company} telah diupdate menjadi: {status}",
                     Lokasi = data.Region,
                     Type = "status_update",
                     IsRead = false,

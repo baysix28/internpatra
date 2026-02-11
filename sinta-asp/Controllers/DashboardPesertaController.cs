@@ -60,16 +60,6 @@ namespace sinta_asp.Controllers
             return Json(notifications);
         }
 
-        // Tambahkan fungsi ini di dalam class yang sama
-        private string CalculateTimeAgo(DateTime dateTime)
-        {
-            var timeSpan = DateTime.Now - dateTime;
-            if (timeSpan <= TimeSpan.FromSeconds(60)) return "Baru saja";
-            if (timeSpan <= TimeSpan.FromMinutes(60)) return $"{timeSpan.Minutes} menit yang lalu";
-            if (timeSpan <= TimeSpan.FromHours(24)) return $"{timeSpan.Hours} jam yang lalu";
-            return dateTime.ToString("dd MMM yyyy");
-        }
-
         [HttpPost]
         public async Task<IActionResult> UpdateProfil(string nama, string noHp, string univ)
         {
@@ -212,6 +202,15 @@ namespace sinta_asp.Controllers
                 await _context.SaveChangesAsync();
             }
             return Json(new { success = true });
+        }
+
+        private string CalculateTimeAgo(DateTime dt)
+        {
+            var span = DateTime.Now - dt;
+            if (span.TotalMinutes < 1) return "Baru saja";
+            if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} menit lalu";
+            if (span.TotalHours < 24) return $"{(int)span.TotalHours} jam lalu";
+            return dt.ToString("dd MMM yyyy");
         }
 
         public IActionResult Berhasil() => View();

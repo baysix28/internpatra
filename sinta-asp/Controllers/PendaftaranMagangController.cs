@@ -26,7 +26,59 @@ namespace sinta_asp.Controllers
         public IActionResult Index() => View();
 
         [Authorize]
-        public IActionResult DataMagang() => View();
+        public IActionResult DataMagang()
+        {
+            string email = User.Identity!.Name!;
+
+            var existing = _context.PendaftaranMagang
+                .FirstOrDefault(x => x.EmailPribadi == email);
+
+            if (existing != null)
+            {
+                return View(existing); // draft milik akun ini
+            }
+
+            return View(new Magang
+            {
+                EmailPribadi = email
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDetailMagang(int id)
+        {
+            var m = await _context.PendaftaranMagang.FindAsync(id);
+
+            if (m == null)
+            {
+                return NotFound();
+            }
+
+            // Properti di bawah ini sudah disesuaikan dengan Model Magang kamu
+            return Json(new {
+                nama = m.NamaLengkap,
+                email = m.EmailPribadi,
+                wa = m.NoHp,
+                instagram = m.Instagram,
+                univ = m.NamaPerguruanTinggi, // Sesuaikan ke univ
+                nim = m.NIM,                   // Sesuaikan ke NIM (huruf besar semua)
+                jurusan = m.Jurusan,
+                fakultas = m.Fakultas,
+                company = m.Company,
+                lokasi = m.Region,
+                tempatLahir = m.TempatLahir,
+                tglLahir = m.TanggalLahir.ToString("dd MMMM yyyy"),
+                createdAtFormatted = m.CreatedAt.ToString("dd MMMM yyyy"),
+                tglMulai = m.MulaiMagang.ToString("dd MMM yyyy"),   // Sesuaikan ke MulaiMagang
+                tglSelesai = m.SelesaiMagang.ToString("dd MMM yyyy"), // Sesuaikan ke SelesaiMagang
+                rekomendasi = m.RekomendasiPegawai ?? "Tidak Ada",   // Sesuaikan ke RekomendasiPegawai
+                fotoProfil = string.IsNullOrEmpty(m.FotoProfil) ? "/img/default-user.png" : "/" + m.FotoProfil,
+                pathCV = "/" + m.FileCv,
+                pathSurat = "/" + m.FileSuratPengantar,
+                pathProposal = "/" + m.FileProposal,
+                status = m.Status
+            });
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -37,13 +89,11 @@ namespace sinta_asp.Controllers
             IFormFile? FileSuratPengantar,
             IFormFile? FileProposal)
         {
-            if (!ModelState.IsValid) return View("Index", model);if (!ModelState.IsValid) 
+            // 1. PERBAIKAN VALIDASI: Cek ModelState hanya sekali dan kembalikan JSON
+            if (!ModelState.IsValid) 
             {
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine("MODEL ERROR: " + error.ErrorMessage);
-                }
-                return View("Index", model); 
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return Json(new { success = false, message = "Data belum lengkap atau tidak valid.", errors = errors });
             }
 
             try
@@ -60,18 +110,33 @@ namespace sinta_asp.Controllers
                 model.CreatedAt = DateTime.Now;
                 model.Status = "Menunggu";
 
-                // ===== SIMPAN KE DATABASE =====
-                _context.PendaftaranMagang.Add(model);
-                
+               // ===== SIMPAN / UPDATE KE DATABASE (ANTI DOBEL) =====
+                var existing = await _context.PendaftaranMagang
+                    .FirstOrDefaultAsync(x => x.EmailPribadi == currentUserEmail);
+
+                if (existing != null)
+                {
+                    // UPDATE data lama (draft milik akun ini)
+                    model.Id = existing.Id;
+                    _context.Entry(existing).CurrentValues.SetValues(model);
+                }
+                else
+                {
+                    // INSERT data baru
+                    _context.PendaftaranMagang.Add(model);
+                }
+
+                // TAMBAHKAN NOTIFIKASI
                 var notifMagang = new Notification {
                     UserEmail = currentUserEmail,
-                    Title = "Pendaftaran Magang",
-                    Message = $"Pendaftaran Magang di {model.Company} berhasil dikirim.",
+                    Title = "Pendaftaran Berhasil",
+                    Message = $"Pendaftaran Magang di {model.Company} telah diterima dan sedang direview.",
                     Type = "Magang",
                     IsRead = false,
                     CreatedAt = DateTime.Now
                 };
                 _context.Set<Notification>().Add(notifMagang);
+                
                 await _context.SaveChangesAsync();
 
                 // ===== LOGIKA EMAIL 1: KE ADMIN =====
@@ -120,12 +185,12 @@ namespace sinta_asp.Controllers
                     Console.WriteLine("DEBUG ERROR USER: " + ex.Message);
                 }
 
-                return RedirectToAction("Sukses");
+                return Json(new { success = true, redirectUrl = Url.Action("Sukses") });          
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Gagal simpan data: " + ex.Message;
-                return View("Index", model);
+                // 3. TANGANI EXCEPTION DAN KEMBALIKAN JSON
+                return Json(new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + ex.Message });
             }
         }
 
