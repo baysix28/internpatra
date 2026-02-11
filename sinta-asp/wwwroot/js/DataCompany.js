@@ -172,3 +172,121 @@ document.getElementById('region')?.addEventListener('change', function () {
         lokasiSelect.appendChild(option);
     });
 });
+
+const dataMagang = { "KPI": dataKPI, "PPN": dataPPN };
+
+const companySelect = document.getElementById('filterCompany');
+const regionSelect = document.getElementById('filterRegion');
+const lokasiSelect = document.getElementById('filterLokasi');
+const container = document.getElementById('containerLowongan');
+const emptyState = document.getElementById('emptyState');
+const searchInput = document.getElementById('searchPosisi');
+
+function renderCards() {
+    const company = companySelect.value;
+    const region = regionSelect.value;
+    const lokasi = lokasiSelect.value;
+    const search = searchInput.value.toLowerCase();
+
+    container.innerHTML = '';
+
+    if (!company || !region || !lokasi) {
+        emptyState.style.display = 'block';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+    const positions = dataMagang[company][region];
+    positions.forEach(pos => {
+        if (pos.toLowerCase().includes(search)) {
+            let deskripsi = "";
+
+            // KPI
+            if (company === "KPI") {
+                deskripsi = deskripsiPosisi[pos] ||
+                    "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
+            }
+
+            // PPN
+            if (company === "PPN") {
+                deskripsi = generateDeskripsiPPN(pos);
+            }
+
+            const card = `
+                <div class="flip-card animate__animated animate__fadeInUp">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front shadow-sm">
+                            <div class="wadah-ikon-sm">
+                                <i class="${getIcon(pos)}"></i>
+                            </div>
+                            <div class="judul-posisi">${pos}</div>
+                            <small class="text-muted d-block mb-3">
+                                <i class="fas fa-map-marker-alt me-1 text-danger"></i>${lokasi}
+                            </small>
+
+                            <div class="syarat-dokumen mb-2">
+                                <small class="fw-bold text-muted d-block mb-1">Dokumen:</small>
+                                <small class="text-muted">CV, Proposal, Surat Kampus</small>
+                            </div>
+
+                            <div class="mt-auto pt-2 border-top">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-muted" style="font-size: 11px;">KUOTA</span>
+                                    <span class="fw-bold text-primary" style="font-size: 11px;">TERSEDIA</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flip-card-back shadow-lg">
+                            <h6 class="fw-bold mb-3" style="font-size: 14px;">
+                                Fungsi Bidang
+                            </h6>
+                            <p style="font-size: 11px; line-height: 1.5; opacity: 0.9;">
+                                ${deskripsi}
+                            </p>
+                        </div>
+
+                    </div>
+                </div>`;
+
+            container.insertAdjacentHTML('beforeend', card);
+        }
+    });
+}
+
+
+function getIcon(pos) {
+    pos = pos.toLowerCase();
+    if (pos.includes('elektro')) return 'fas fa-bolt';
+    if (pos.includes('informatika') || pos.includes('ict')) return 'fas fa-code';
+    if (pos.includes('hukum')) return 'fas fa-gavel';
+    if (pos.includes('akuntansi') || pos.includes('finance')) return 'fas fa-file-invoice-dollar';
+    if (pos.includes('kimia')) return 'fas fa-flask';
+    return 'fas fa-briefcase';
+}
+
+companySelect.addEventListener('change', function() {
+    regionSelect.innerHTML = '<option value="">Pilih Region</option>';
+    lokasiSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+    lokasiSelect.disabled = true;
+    if (this.value) {
+        regionSelect.disabled = false;
+        Object.keys(dataMagang[this.value]).forEach(r => {
+            regionSelect.innerHTML += `<option value="${r}">${r}</option>`;
+        });
+    } else {
+        regionSelect.disabled = true;
+    }
+    renderCards();
+});
+
+regionSelect.addEventListener('change', function() {
+    lokasiSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+    if (this.value) {
+        lokasiSelect.disabled = false;
+        lokasiSelect.innerHTML += `<option value="${this.value}">${this.value}</option>`;
+    } else {
+        lokasiSelect.disabled = true;
+    }
+    renderCards();
+ });

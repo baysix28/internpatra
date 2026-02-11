@@ -396,16 +396,17 @@
 
                 let deskripsi = "";
 
-                // 🔵 KPI
+                // KPI
                 if (company === "KPI") {
                     deskripsi = deskripsiPosisi[pos] ||
                         "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
                 }
 
-                // 🔴 PPN
+                // PPN
                 if (company === "PPN") {
-                    deskripsi = generateDeskripsiPPN(lokasi);
+                    deskripsi = generateDeskripsiPPN(pos);
                 }
+
 
                 const card = `
                     <div class="flip-card animate__animated animate__fadeInUp">
