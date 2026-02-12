@@ -854,41 +854,8 @@
             input.addEventListener('change', saveDraft);
         });
 
-        @* 
         /* ===============================
-        1️⃣ AUTO ISI DARI PILIH POSISI
-        =============================== */
-        const company = localStorage.getItem('magang_company');
-        const region  = localStorage.getItem('magang_region');
-        const lokasi  = localStorage.getItem('magang_lokasi');
-
-        if (company && region && lokasi) {
-            const companySelect = document.getElementById('company');
-            const regionSelect  = document.getElementById('region');
-            const lokasiSelect  = document.getElementById('lokasi');
-
-            if (companySelect && regionSelect && lokasiSelect) {
-                companySelect.value = company;
-                companySelect.dispatchEvent(new Event('change'));
-
-                setTimeout(() => {
-                    regionSelect.value = region;
-                    regionSelect.dispatchEvent(new Event('change'));
-
-                    setTimeout(() => {
-                        lokasiSelect.value = lokasi;
-
-                        // Kunci biar gak bisa diubah
-                        companySelect.disabled = true;
-                        regionSelect.disabled = true;
-                        lokasiSelect.disabled = true;
-                    }, 200);
-                }, 200);
-            }
-        } *@
-
-        /* ===============================
-        2️⃣ ENTER KEY NAVIGATION (KODE KAMU)
+        ENTER KEY NAVIGATION (KODE KAMU)
         =============================== */
         const form = document.getElementById('formMagang');
         if (!form) return;
