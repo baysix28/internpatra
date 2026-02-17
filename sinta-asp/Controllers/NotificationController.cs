@@ -48,11 +48,10 @@ namespace sinta_asp.Controllers
             notif.IsRead = true;
             _context.SaveChanges();
 
-            // kalau ada lokasi → redirect
-            if (!string.IsNullOrEmpty(notif.Lokasi))
-                return Redirect(notif.Lokasi);
+            // redirect ke url notif
+            if (!string.IsNullOrEmpty(notif.Url))
+                return Redirect(notif.Url);
 
-            // fallback aman
             return RedirectToAction("Index", "DashboardPeserta");
         }
 

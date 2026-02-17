@@ -912,6 +912,14 @@
         loadNotifications();
         loadUnreadCount();
 
+        const params = new URLSearchParams(window.location.search);
+        const tabFromNotif = params.get('tab');
+
+        if (tabFromNotif) {
+            showPage(tabFromNotif);
+            localStorage.setItem('lastOpenedPage', tabFromNotif);
+        }
+
         const lastPage = localStorage.getItem('lastOpenedPage') || 'dashboard';
         showPage(lastPage);
 

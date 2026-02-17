@@ -126,7 +126,7 @@ namespace sinta_asp.Controllers
                     UserEmail = model.EmailPribadi,
                     Title = "Pendaftaran Magang",
                     Message = $"Pendaftaran magang di {model.Company} berhasil dikirim.",
-                    Lokasi = "/DashboardPeserta#riwayat",
+                    Url = "/DashboardPeserta#riwayat",
                     Type = "new",   // tipe pendaftaran baru
                     IsRead = false,
                     CreatedAt = DateTime.Now,
