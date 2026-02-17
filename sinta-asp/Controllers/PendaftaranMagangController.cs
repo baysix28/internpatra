@@ -115,16 +115,24 @@ namespace sinta_asp.Controllers
 
                 // ===== SIMPAN KE DATABASE =====
                 _context.PendaftaranMagang.Add(model);
-                
-                var notifMagang = new Notification {
-                    UserEmail = currentUserEmail,
+
+                await _context.SaveChangesAsync(); 
+                // penting: supaya model.Id sudah terbentuk
+
+                // ===== NOTIFIKASI KE USER =====
+                _context.Notifications.Add(new Notification
+                {
+                    Nama = model.NamaLengkap,
+                    UserEmail = model.EmailPribadi,
                     Title = "Pendaftaran Magang",
-                    Message = $"Pendaftaran Magang di {model.Company} berhasil dikirim.",
-                    Type = "Magang",
+                    Message = $"Pendaftaran magang di {model.Company} berhasil dikirim.",
+                    Lokasi = "/DashboardPeserta#riwayat",
+                    Type = "new",   // tipe pendaftaran baru
                     IsRead = false,
-                    CreatedAt = DateTime.Now
-                };
-                _context.Set<Notification>().Add(notifMagang);
+                    CreatedAt = DateTime.Now,
+                    ExternalId = model.Id.ToString()
+                });
+
                 await _context.SaveChangesAsync();
 
                 // ===== LOGIKA EMAIL 1: KE ADMIN =====

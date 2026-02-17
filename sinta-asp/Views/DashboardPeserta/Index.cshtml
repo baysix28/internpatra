@@ -104,6 +104,31 @@
         /* Warna Ditolak (Merah) */
         .status-badge.status-danger { background: #f8d7da; color: #721c24; }
 
+        .badge-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ec1c24;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 50%;
+            padding: 2px 6px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .noti-unread {
+            background: #eef6ff;
+            border-left: 4px solid #00549B;
+        }
+
+        .noti-read {
+            background: #f8fafc;
+            opacity: 0.7;
+        }
+
+
         .status-badge { padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
         .status-approved { background: #dcfce7; color: #166534; }
         .status-review { background: #fef9c3; color: #854d0e; }
@@ -233,6 +258,31 @@
             box-shadow: 0 0 0 3px rgba(0, 84, 155, 0.1);
         }
 
+        .notif-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .notif-item:hover {
+            background: #f5f7fa;
+        }
+
+        .notif-unread {
+            background: #eef4ff;
+        }
+
+        .notif-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .notif-msg {
+            font-size: 13px;
+            color: #666;
+        }
+
         /* Notifikasi ala Tokopedia */
         .notification-btn { position: relative; cursor: pointer; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; transition: 0.2s; }
         .notification-btn:hover { background: #f8fafc; }
@@ -304,9 +354,10 @@
         <img src="~/images/logo-sinta.png" style="height:40px;" class="mr-4">
         
         <div class="dropdown mr-3">
-            <div class="notification-btn" id="notiDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <div class="notification-btn position-relative" id="notiDropdown" data-toggle="dropdown">
                 <i class="fa-solid fa-bell text-muted"></i>
-                @* <div class="notification-badge-dot"></div> *@
+                <span id="notifBadge" class="badge badge-danger position-absolute" 
+                    style="top:-5px; right:-5px; font-size:10px;"></span>
             </div>
             
             <div class="dropdown-menu dropdown-menu-right shadow border-0 p-0" style="width: 360px;">
@@ -316,38 +367,7 @@
                 
                 <div class="tab-content" style="max-height: 400px; overflow-y: auto;">
                     <div class="tab-pane fade show active" id="pendaftaran">
-                        <div class="list-group list-group-flush">
-                            
-                            @* <div class="list-group-item p-3 border-bottom" style="background-color: #f0f9ff;">
-                                <div class="d-flex align-items-start">
-                                    <div class="mr-3 mt-1">
-                                        <i class="fa-solid fa-envelope-open-text text-primary" style="font-size: 20px;"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1 small font-weight-bold">Konfirmasi Email Dikirim</h6>
-                                        <p class="mb-1 text-muted" style="font-size: 12px; line-height: 1.4;">
-                                            Pendaftaran <strong>Magang Industri</strong> berhasil. Silakan cek email <span class="text-primary">@userEmail</span> untuk langkah verifikasi selanjutnya.
-                                        </p>
-                                        <small class="text-muted" style="font-size: 10px;">Baru saja</small>
-                                    </div>
-                                </div>
-                            </div> *@
-
-                            @* <div class="list-group-item p-3 border-bottom">
-                                <div class="d-flex align-items-start">
-                                    <div class="mr-3 mt-1">
-                                        <i class="fa-solid fa-file-circle-check text-warning" style="font-size: 20px;"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1 small font-weight-bold">Dokumen Sedang Ditinjau</h6>
-                                        <p class="mb-1 text-muted" style="font-size: 12px; line-height: 1.4;">
-                                            Berkas pendaftaran Anda di unit <strong>IT Semarang</strong> sedang diperiksa oleh tim HC.
-                                        </p>
-                                        <small class="text-muted" style="font-size: 10px;">2 jam yang lalu</small>
-                                    </div>
-                                </div>
-                            </div> *@
-
+                        <div class="list-group list-group-flush" id="notifList">
                         </div>
                     </div>
                     
@@ -357,7 +377,9 @@
                 </div>
 
                 <div class="p-2 border-top text-center bg-light">
-                    <a href="#" class="small font-weight-bold text-success" style="text-decoration:none;">Tandai semua dibaca</a>
+                    <a href="#" id="markAllReadBtn" class="small font-weight-bold text-success" style="text-decoration:none;">
+                        Tandai semua dibaca
+                    </a>
                 </div>
             </div>
         </div>
@@ -828,30 +850,50 @@
     }
 
     function loadNotifications() {
-        $.get('/DashboardPeserta/GetNotifications', function(data) {
+        $.get('/Notification/GetUserNotifications', function (data) {
+
             let html = '';
-            if(data.length === 0) {
-                html = '<div class="text-center p-4">Tidak ada notifikasi</div>';
-            } else {
-                data.forEach(n => {
-                    html += `
-                    <div class="list-group-item list-group-item-action border-0 mb-2 shadow-sm rounded ${n.isRead ? '' : 'bg-light'}">
-                        <div class="d-flex align-items-center">
-                            <div class="mr-3">
-                                <i class="fas ${n.iconClass} ${n.iconColor} fa-2x"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1 font-weight-bold">${n.title}</h6>
-                                <p class="small text-muted mb-1">${n.message}</p>
-                                <small class="text-primary">${n.timeAgo}</small>
-                            </div>
-                        </div>
-                    </div>`;
-                });
+
+            if (data.length === 0) {
+                html = `<div class="p-3 text-center text-muted">Tidak ada notifikasi</div>`;
             }
-            $('#notification-container').html(html); // Ganti dengan ID kontainer notifikasi di HTML-mu
+
+            data.forEach(n => {
+
+                let cls = n.isRead ? '' : 'notif-unread';
+
+                html += `
+                    <a href="/Notification/GoTo/${n.id}" class="notif-item ${cls} d-block">
+                        <div class="notif-title">${n.title}</div>
+                        <div class="notif-msg">${n.message}</div>
+                    </a>
+                `;
+            });
+
+            $('#notifList').html(html);
         });
     }
+
+    loadNotifications();
+
+    $('#markAllReadBtn').click(function (e) {
+        e.preventDefault();
+
+        $.post('/Notification/MarkAllRead', function () {
+            loadNotifications();
+        });
+    });
+
+    function loadUnreadCount() {
+        $.get('/Notification/UnreadCount', function (count) {
+            if (count > 0)
+                $('#notifBadge').text(count).show();
+            else
+                $('#notifBadge').hide();
+        });
+    }
+
+    loadUnreadCount();
 
     function togglePassword(inputId) {
         const input = document.getElementById(inputId);
@@ -868,6 +910,8 @@
 
     $(document).ready(function() {
         loadNotifications();
+        loadUnreadCount();
+
         const lastPage = localStorage.getItem('lastOpenedPage') || 'dashboard';
         showPage(lastPage);
 

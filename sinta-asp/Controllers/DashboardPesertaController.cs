@@ -23,7 +23,6 @@ namespace sinta_asp.Controllers
         {
             var userEmail = User.Identity?.Name;
 
-            // Ambil data dari UserProfile (termasuk FotoProfil)
             var profil = await _context.UserProfile
                 .FirstOrDefaultAsync(u => u.Email == userEmail);
 
@@ -33,31 +32,8 @@ namespace sinta_asp.Controllers
                 .ToListAsync();
 
             ViewBag.RiwayatMagang = riwayatMagang;
-            
-            // Ambil data Mahasiswa untuk nama profil
-            var mhs = await _context.Mahasiswa.FirstOrDefaultAsync(m => m.Email == userEmail);
-            ViewBag.NamaPeserta = mhs?.NamaLengkap ?? "Peserta SINTA";
 
-            // Kirim model profil ke View agar @Model.FotoProfil tidak error
-            return View(profil); 
-        }
-
-        [HttpGet]
-        public IActionResult GetNotifications()
-        {
-            // Gunakan Set<Notification> untuk menghindari ambiguity
-            var notifications = _context.Set<Notification>() 
-                .OrderByDescending(n => n.CreatedAt)
-                .Select(n => new NotificationViewModel {
-                    Title = n.Title,
-                    Message = n.Message,
-                    IconClass = n.Type == "Email" ? "fa-envelope-open-text" : "fa-file-circle-check",
-                    IconColor = n.Type == "Email" ? "text-primary" : "text-warning",
-                    TimeAgo = CalculateTimeAgo(n.CreatedAt),
-                    IsRead = n.IsRead
-                }).ToList();
-
-            return Json(notifications);
+            return View(profil);
         }
 
         [HttpPost]
@@ -212,7 +188,5 @@ namespace sinta_asp.Controllers
             if (span.TotalHours < 24) return $"{(int)span.TotalHours} jam lalu";
             return dt.ToString("dd MMM yyyy");
         }
-
-        public IActionResult Berhasil() => View();
     }
 }
