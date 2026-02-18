@@ -13,11 +13,18 @@ namespace sinta_asp.Data
         // ===== USER / ADMIN =====
         public DbSet<Admin> Admins { get; set; }
 
-        // ===== PENDAFTARAN =====
+        // ===== USER =====
+        public DbSet<User> Users { get; set; }
+
+        public DbSet<Mahasiswa> Mahasiswa { get; set; }
+
+        // ===== PENDAFTARAN PENELITIAN =====
         public DbSet<Pendaftaran> Pendaftarans { get; set; }
 
         // ===== MAGANG =====
         public DbSet<Magang> PendaftaranMagang { get; set; }
+
+        public DbSet<UserProfile> UserProfile { get; set; }
 
         // ===== NOTIFIKASI =====
         // Tambahkan ini agar Controller bisa mengakses tabel Notifications

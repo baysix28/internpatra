@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Models;
 using sinta_asp.Data;
+using Microsoft.AspNetCore.Authorization;
 using sinta_asp.Services;
 
 namespace sinta_asp.Controllers
@@ -22,13 +23,62 @@ namespace sinta_asp.Controllers
             _emailService = emailService;
         }
 
-        // ================= FORM UTAMA =================
-        public IActionResult Index()
+        public IActionResult Index() => View();
+
+        [Authorize]
+        public IActionResult DataMagang()
         {
-            return View();
+            string email = User.Identity!.Name!;
+
+            var existing = _context.PendaftaranMagang
+                .FirstOrDefault(x => x.EmailPribadi == email && x.Status == "Draft");
+
+            if (existing != null)
+            {
+                return View(existing); // draft milik akun ini
+            }
+
+            return View(new Magang
+            {
+                EmailPribadi = email
+            });
         }
 
-        // ================= PROSES SIMPAN DATA & NOTIFIKASI =================
+        [HttpGet]
+        public async Task<IActionResult> GetDetailMagang(int id)
+        {
+            var m = await _context.PendaftaranMagang.FindAsync(id);
+
+            if (m == null)
+            {
+                return NotFound();
+            }
+
+            return Json(new {
+                nama = m.NamaLengkap,
+                email = m.EmailPribadi,
+                wa = m.NoHp,
+                instagram = m.Instagram,
+                univ = m.NamaPerguruanTinggi,
+                nim = m.NIM,
+                jurusan = m.Jurusan,
+                fakultas = m.Fakultas,
+                company = m.Company,
+                lokasi = m.Region,
+                tempatLahir = m.TempatLahir,
+                tglLahir = m.TanggalLahir.ToString("dd MMMM yyyy"),
+                createdAtFormatted = m.CreatedAt.ToString("dd MMMM yyyy"),
+                tglMulai = m.MulaiMagang.ToString("dd MMM yyyy"),
+                tglSelesai = m.SelesaiMagang.ToString("dd MMM yyyy"),
+                rekomendasi = m.RekomendasiPegawai ?? "Tidak Ada",
+                fotoProfil = string.IsNullOrEmpty(m.FotoProfil) ? "/img/default-user.png" : "/" + m.FotoProfil,
+                pathCV = "/" + m.FileCv,
+                pathSurat = "/" + m.FileSuratPengantar,
+                pathProposal = "/" + m.FileProposal,
+                status = m.Status
+            });
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Store(
@@ -38,16 +88,14 @@ namespace sinta_asp.Controllers
             IFormFile? FileSuratPengantar,
             IFormFile? FileProposal)
         {
-            // Validasi Server-Side
-            if (!ModelState.IsValid)
-            {
-                return View("Index", model);
-            }
+            ModelState.Clear();
 
             try
             {
-                // 1. PROSES UPLOAD FILE
-                // Menyimpan file ke wwwroot/uploads/...
+                string currentUserEmail = User.Identity?.Name ?? "guest@gmail.com";
+                model.EmailPribadi = currentUserEmail;
+
+                // ===== UPLOAD FILE =====
                 model.FotoProfil = SimpanFile(Foto, "uploads/foto");
                 model.FileCv = SimpanFile(FileCV, "uploads/cv");
                 model.FileSuratPengantar = SimpanFile(FileSuratPengantar, "uploads/surat");
@@ -56,12 +104,38 @@ namespace sinta_asp.Controllers
                 model.CreatedAt = DateTime.Now;
                 model.Status = "Menunggu";
 
-                // 2. SIMPAN KE DATABASE
+                // Hapus draft lama milik user ini
+                var oldDraft = await _context.PendaftaranMagang
+                    .FirstOrDefaultAsync(x => x.EmailPribadi == currentUserEmail && x.Status == "Draft");
+
+                if (oldDraft != null)
+                {
+                    _context.PendaftaranMagang.Remove(oldDraft);
+                }
+
+                // ===== SIMPAN KE DATABASE =====
                 _context.PendaftaranMagang.Add(model);
+
+                await _context.SaveChangesAsync(); 
+                // penting: supaya model.Id sudah terbentuk
+
+                // ===== NOTIFIKASI KE USER =====
+                _context.Notifications.Add(new Notification
+                {
+                    Nama = model.NamaLengkap,
+                    UserEmail = model.EmailPribadi,
+                    Title = "Pendaftaran Magang",
+                    Message = $"Pendaftaran magang di {model.Company} berhasil dikirim.",
+                    Url = "/DashboardPeserta#riwayat",
+                    Type = "new",   // tipe pendaftaran baru
+                    IsRead = false,
+                    CreatedAt = DateTime.Now,
+                    ExternalId = model.Id.ToString()
+                });
+
                 await _context.SaveChangesAsync();
 
-                // 3. LOGIKA EMAIL KURIR (Sistem) -> ADMIN REGION
-                // Mencari admin berdasarkan region yang dipilih pendaftar
+                // ===== LOGIKA EMAIL 1: KE ADMIN =====
                 var adminUser = await _context.Admins
                     .FirstOrDefaultAsync(a => a.RegionManaged.ToLower().Trim() == model.Region.ToLower().Trim());
 
@@ -69,74 +143,103 @@ namespace sinta_asp.Controllers
                 {
                     try 
                     {
-                        string subjek = "Notifikasi SINTA: Pendaftaran Magang Baru";
-                        
-                        // Format pesan HTML untuk email kurir pusat
-                        string pesan = $@"
-                            <div style='font-family: sans-serif; line-height: 1.6; color: #333;'>
-                                <h2>Halo, {adminUser.Nama}</h2>
-                                <p>Terdapat pendaftar magang baru yang masuk ke sistem SINTA untuk wilayah <b>{model.Region}</b>.</p>
-                                <table style='width: 100%; border-collapse: collapse;'>
-                                    <tr><td style='width: 150px;'><b>Nama</b></td><td>: {model.NamaLengkap}</td></tr>
-                                    <tr><td><b>Universitas</b></td><td>: {model.NamaPerguruanTinggi}</td></tr>
-                                    <tr><td><b>Jurusan</b></td><td>: {model.Jurusan}</td></tr>
-                                    <tr><td><b>Lokasi Tugas</b></td><td>: {model.Lokasi}</td></tr>
-                                    <tr><td><b>Periode</b></td><td>: {model.MulaiMagang:dd MMM yyyy} - {model.SelesaiMagang:dd MMM yyyy}</td></tr>
-                                </table>
-                                <p>Harap segera login ke Dashboard Admin untuk memeriksa dokumen pendaftar.</p>
-                                <br>
-                                <hr>
-                                <p style='font-size: 0.8em; color: #777;'>Email ini dikirim otomatis oleh Sistem SINTA Pertamina.</p>
-                            </div>";
-
-                        // Menggunakan SendWithCourierAsync (Email dari appsettings.json)
-                        await _emailService.SendWithCourierAsync(adminUser.Email, subjek, pesan);
+                        string subjekAdmin = "Notifikasi SINTA: Pendaftaran Magang Baru";
+                        string pesanAdmin = $"<h2>Halo, {adminUser.Nama}</h2><p>Pendaftar baru: {model.NamaLengkap} untuk wilayah {model.Region}.</p>";
+                        await _emailService.SendWithCourierAsync(adminUser.Email, subjekAdmin, pesanAdmin);
                     }
-                    catch (Exception emailEx)
-                    {
-                        // Jika email gagal, pendaftaran tetap sukses tapi log error dicatat
-                        System.Diagnostics.Debug.WriteLine("Gagal kirim notifikasi admin: " + emailEx.Message);
+                    catch (Exception ex) {
+                        Console.WriteLine("DEBUG ERROR ADMIN: " + ex.Message);
                     }
                 }
 
-                return RedirectToAction("Sukses");
+                // ===== LOGIKA EMAIL 2: KE KAMU (USER) =====
+                try 
+                {
+                    // Membuat format nomor pendaftaran PEN/2026/02/00XX
+                    string noPendaftaran = $"PEN/{DateTime.Now:yyyy}/{DateTime.Now:MM}/000{new Random().Next(1, 99)}"; 
+                    
+                    string subjekUser = "Pendaftaran Magang Berhasil - " + noPendaftaran;
+                    string pesanUser = $@"
+                        <div style='font-family: sans-serif; line-height: 1.6; color: #333;'>
+                            <p>Yth. Sdr/i <b>{model.NamaLengkap}</b>,</p>
+                            <p>Pendaftaran penelitian Anda telah masuk dalam sistem dengan nomor pendaftaran:</p>
+                            <p style='font-size: 18px; color: #003399;'><b>{noPendaftaran}</b></p>
+                            <p>Silakan tunggu email tanggapan dari kami atau periksa status penerimaan penelitian Anda melalui Web Sinta dengan memasukkan nomor pendaftaran tersebut.</p>
+                            <p>
+                                Salam hormat,<br/>
+                                <b>Human Capital</b><br/>
+                                PT Pertamina Patra Niaga Regional Jawa Bagian Tengah
+                            </p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin-top: 20px;'/>
+                            <p style='font-size: 11px; color: gray;'>*Email ini dikirimkan secara otomatis, mohon untuk <b>tidak membalas (do not reply)</b> email ini.</p>
+                        </div>";
+
+                    await _emailService.SendWithCourierAsync(currentUserEmail, subjekUser, pesanUser);
+                }
+                catch (Exception ex) 
+                {
+                    Console.WriteLine("DEBUG ERROR USER: " + ex.Message);
+                }
+
+                return RedirectToAction("Sukses", "PendaftaranMagang");
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Terjadi kesalahan sistem saat menyimpan data: " + ex.Message;
+                TempData["Error"] = "Gagal simpan data: " + ex.Message;
                 return View("Index", model);
             }
         }
 
-        // ================= HELPER: PENYIMPANAN FILE =================
         private string SimpanFile(IFormFile? file, string folder)
         {
-            if (file == null || file.Length == 0)
+            if (file == null || file.Length == 0) return string.Empty;
+            
+            try
+            {
+                string uploadDir = Path.Combine(_environment.WebRootPath, folder);
+                if (!Directory.Exists(uploadDir)) 
+                {
+                    Directory.CreateDirectory(uploadDir);
+                }
+                
+                string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
+                string fullPath = Path.Combine(uploadDir, fileName);
+                
+                using (var stream = new FileStream(fullPath, FileMode.Create)) 
+                { 
+                    file.CopyTo(stream); 
+                }
+                
+                Console.WriteLine($"File berhasil disimpan: {folder}/{fileName}");
+                return $"{folder}/{fileName}";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error simpan file: {ex.Message}");
                 return string.Empty;
-
-            // Pastikan direktori tujuan ada
-            string uploadDir = Path.Combine(_environment.WebRootPath, folder);
-            if (!Directory.Exists(uploadDir))
-            {
-                Directory.CreateDirectory(uploadDir);
             }
-
-            // Buat nama file unik untuk menghindari penumpukan (overwrite)
-            string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
-            string fullPath = Path.Combine(uploadDir, fileName);
-
-            using (var stream = new FileStream(fullPath, FileMode.Create))
-            {
-                file.CopyTo(stream);
-            }
-
-            // Kembalikan path relatif untuk disimpan di DB
-            return $"{folder}/{fileName}";
         }
 
-        public IActionResult Sukses()
+        private void HapusFile(string filePath)
         {
-            return View();
+            try
+            {
+                if (!string.IsNullOrEmpty(filePath))
+                {
+                    string fullPath = Path.Combine(_environment.WebRootPath, filePath);
+                    if (System.IO.File.Exists(fullPath))
+                    {
+                        System.IO.File.Delete(fullPath);
+                        Console.WriteLine($"File lama dihapus: {filePath}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error hapus file: {ex.Message}");
+            }
         }
+
+        public IActionResult Sukses() => View();
     }
 }

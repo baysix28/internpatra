@@ -5,7 +5,8 @@ namespace sinta_asp.Services
     public interface IEmailService
     {
         // Untuk mengirim email dari sistem pusat ke admin (seperti pendaftaran baru)
-        Task SendWithCourierAsync(string to, string subject, string body);
+        // DITAMBAHKAN: parameter ke-4 (displayName) sebagai optional agar tidak error CS1501
+        Task SendWithCourierAsync(string to, string subject, string body, string displayName = null);
 
         // Untuk mengirim email dari admin region ke peserta magang (update status)
         Task SendAsAdminAsync(string fromEmail, string smtpPassword, string to, string subject, string body, string displayName);

@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
+using System.Net;
 
 namespace sinta_asp.Controllers
 {
@@ -136,6 +137,7 @@ namespace sinta_asp.Controllers
         {
             if (ModelState.IsValid)
             {
+                var currentUserEmail = User.Identity?.Name;
                 // A. Upload File Dulu
                 string cvPath = await UploadFile(model.FileCV, "cv");
                 string proposalPath = await UploadFile(model.FileProposal, "proposal");
@@ -145,7 +147,7 @@ namespace sinta_asp.Controllers
                 var pendaftaranBaru = new Pendaftaran
                 {
                     Nama = model.Nama,
-                    Email = model.Email,
+                    Email = currentUserEmail,
                     NoHp = model.NoHp,
                     TempatLahir = model.TempatLahir,
                     TglLahir = model.TglLahir,
@@ -177,6 +179,16 @@ namespace sinta_asp.Controllers
 
                 // C. Simpan ke Database
                 _context.Pendaftarans.Add(pendaftaranBaru);
+
+                // --- SIMPAN NOTIFIKASI PENELITIAN ---
+                _context.Set<Notification>().Add(new Notification {
+                    UserEmail = currentUserEmail,
+                    Title = "Pendaftaran Riset",
+                    Message = $"Riset '{model.JudulPenelitian}' berhasil didaftarkan.",
+                    Type = "Penelitian",
+                    CreatedAt = DateTime.Now
+                });
+                
                 await _context.SaveChangesAsync(); // <-- DETIK-DETIK MASUK DATABASE
 
                 // D. Selesai, lempar ke halaman Sukses

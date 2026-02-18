@@ -7,6 +7,7 @@ using sinta_asp.Services;
 using System.Globalization;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Http;
+using System.Reflection;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
@@ -176,7 +177,9 @@ namespace sinta_asp.Areas.Admin.Controllers
 
                 _context.Notifications.Add(new Notification
                 {
-                    Nama = data.NamaLengkap,
+                    Nama = data.EmailPribadi,
+                    Title = "Pembaruan Status Magang",
+                    Message = $"Pendaftaran Anda di {data.Company} telah diupdate menjadi: {status}",
                     Lokasi = data.Region,
                     Type = "status_update",
                     IsRead = false,
@@ -237,9 +240,8 @@ namespace sinta_asp.Areas.Admin.Controllers
             htmlBody = htmlBody.Replace("{IsiPesan}", isiPesan)
                                .Replace("{Tahun}", DateTime.Now.Year.ToString());
 
-            await _emailService.SendAsAdminAsync(
-                admin.Email, 
-                admin.SmtpPassword, 
+            // Menggunakan pengirim nama HC Pertamina sesuai Region
+            await _emailService.SendWithCourierAsync(
                 mhs.EmailPribadi, 
                 status == "Diterima" ? "Selamat! Seleksi Magang Diterima" : "Informasi Seleksi Magang",
                 htmlBody,

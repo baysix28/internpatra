@@ -81,6 +81,45 @@ namespace sinta_asp.Areas.Admin.Controllers
             return Json(new { success = true });
         }
 
+        // ===============================
+        // POST: /Admin/Login/Register (PENDAFTARAN)
+        // ===============================
+        [HttpPost]
+        public async Task<IActionResult> Register(string FullName, string Email, string Password)
+        {
+            if (string.IsNullOrEmpty(FullName) || string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
+            {
+                return Json(new { success = false, message = "Semua field wajib diisi" });
+            }
+
+            var existingAdmin = await _context.Admins.AnyAsync(a => a.Email == Email);
+            if (existingAdmin)
+            {
+                return Json(new { success = false, message = "Email sudah digunakan oleh akun lain" });
+            }
+
+            var newAdmin = new AdminModel
+            {
+                Nama = FullName,
+                Email = Email,
+                RegionManaged = "Pusat"
+            };
+
+            newAdmin.PasswordHash = _passwordHasher.HashPassword(newAdmin, Password);
+
+            try
+            {
+                _context.Admins.Add(newAdmin);
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true, message = "Registrasi berhasil! Silakan login." });
+            }
+            catch (System.Exception ex)
+            {
+                return Json(new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + ex.Message });
+            }
+        }
+
         // ==========================================
         // POST: /Admin/Login/ForgotPassword
         // ==========================================

@@ -17,12 +17,16 @@ namespace sinta_asp.Services
         }
 
         // ============================================================
-        // 1. EMAIL KURIR → ADMIN (Untuk Pendaftaran Baru)
+        // 1. EMAIL KURIR → ADMIN (Diperbarui dengan displayName)
         // ============================================================
-        public async Task SendWithCourierAsync(string to, string subject, string body)
+        public async Task SendWithCourierAsync(string to, string subject, string body, string displayName = null)
         {
             var email = new MimeMessage();
-            email.From.Add(new MailboxAddress("SINTA System", _config["EmailSettings:Email"]));
+            
+            // Gunakan displayName jika ada, jika tidak gunakan default "SINTA System"
+            string nameToShow = string.IsNullOrEmpty(displayName) ? "SINTA System" : displayName;
+            
+            email.From.Add(new MailboxAddress(nameToShow, _config["EmailSettings:Email"]));
             email.To.Add(MailboxAddress.Parse(to));
             email.Subject = subject;
 
@@ -102,6 +106,7 @@ namespace sinta_asp.Services
                 <br>
                 <p>Salam,<br><strong>SINTA System Notifier</strong></p>";
 
+            // Tetap memanggil dengan 3 parameter (displayName akan menjadi null/default)
             await SendWithCourierAsync(adminEmail, subject, body);
         }
 

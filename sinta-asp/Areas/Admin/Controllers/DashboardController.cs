@@ -220,6 +220,7 @@ namespace sinta_asp.Areas.Admin.Controllers
         {
             var adminRole = HttpContext.Session.GetString("AdminRole");
             var adminRegion = HttpContext.Session.GetString("AdminRegion");
+            var userEmail = User.Identity?.Name;
 
             var query = _context.Notifications.AsNoTracking().AsQueryable();
 
@@ -229,10 +230,15 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
             else
             {
+                // Gabungan logika filter berdasarkan Region atau Email
                 if (!string.IsNullOrEmpty(adminRegion))
                 {
                     var region = adminRegion.Trim().ToLower();
                     query = query.Where(n => n.Lokasi != null && n.Lokasi.ToLower().Trim() == region);
+                }
+                else if (!string.IsNullOrEmpty(userEmail))
+                {
+                    query = query.Where(n => n.UserEmail == userEmail);
                 }
             }
 
@@ -241,10 +247,14 @@ namespace sinta_asp.Areas.Admin.Controllers
                 .Take(20)
                 .Select(n => new {
                     id = n.Id,
-                    nama = n.Nama,
+                    title = n.Title ?? n.Nama,
+                    message = n.Message ?? $"Pendaftaran dari {n.Nama}",
                     lokasi = n.Lokasi,
                     type = n.Type,
                     isRead = n.IsRead,
+                    iconClass = n.Type == "Magang" ? "fa-file-alt" : "fa-bell",
+                    iconColor = n.Type == "Magang" ? "text-primary" : "text-success",
+                    timeAgo = CalculateTimeAgo(n.CreatedAt),
                     rawDate = n.CreatedAt
                 })
                 .ToListAsync();
@@ -373,6 +383,16 @@ namespace sinta_asp.Areas.Admin.Controllers
 
             string fileNameOnly = System.IO.Path.GetFileName(fileName);
             return $"/uploads/{folder}/{fileNameOnly}";
+        }
+
+        private string CalculateTimeAgo(DateTime dt)
+        {
+            var span = DateTime.Now - dt;
+            if (span.TotalMinutes < 1) return "Baru saja";
+            if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} menit lalu";
+            if (span.TotalHours < 24) return $"{(int)span.TotalHours} jam lalu";
+            if (span.TotalDays < 7) return $"{(int)span.TotalDays} hari lalu";
+            return dt.ToString("dd MMM yyyy");
         }
     }
 }

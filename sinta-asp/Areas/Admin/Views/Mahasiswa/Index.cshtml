@@ -160,8 +160,10 @@
         <div>
             <h3 class="title-bold mb-0">Manajemen Mahasiswa</h3>
             <p class="text-muted small mb-0">Portal Kendali <span class="fw-bold text-danger">Internship Pertamina</span> 
-                @if(adminRole != "SuperAdmin") { <span class="badge bg-primary ms-2">Region: @adminRegionManaged</span> }
-            </p>
+            @if(adminRole != "SuperAdmin") 
+                { 
+                    <span class="ms-1 fw-bold" style="color: var(--p-red);">@adminRegionManaged</span> 
+                }            </p>
         </div>
         <button class="btn btn-pertamina shadow-sm" style="background: #10b981;" onclick="exportExcel()">
             <i class="fas fa-file-excel me-1"></i> Export Excel

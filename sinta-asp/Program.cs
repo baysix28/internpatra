@@ -1,24 +1,36 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using sinta_asp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. KONEKSI DATABASE (SQL SERVER)
+// ==========================================================
+// 1. AREA REGISTRASI SERVICES (Sebelum builder.Build())
+// ==========================================================
+
+// MVC & Controllers
+builder.Services.AddControllersWithViews();
+
+// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// 2. REGISTER EMAIL SERVICE
+// Authentication & Cookies
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Admin/Login/Index"; // Disesuaikan dengan struktur Area Admin
+        options.AccessDeniedPath = "/Home/AccessDenied";
+    });
+
+// Email Service
 // Menggunakan AddScoped agar IEmailService merujuk ke EmailService
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// 3. HTTP CONTEXT ACCESSOR
+// HttpContext & Session
 builder.Services.AddHttpContextAccessor();
-
-// 4. SESSION CONFIGURATION
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -27,12 +39,15 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// 5. MVC CONFIGURATION
-builder.Services.AddControllersWithViews();
-
+// ==========================================================
+// 2. BUILD APLIKASI
+// ==========================================================
 var app = builder.Build();
 
-// 6. CONFIGURE HTTP PIPELINE
+// ==========================================================
+// 3. AREA MIDDLEWARE / HTTP PIPELINE (Setelah builder.Build())
+// ==========================================================
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -41,25 +56,30 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 
-// Penting: Session diletakkan sebelum Authorization
+// Urutan Session, Auth, dan Authz ini SANGAT PENTING
 app.UseSession(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
-// 7. ROUTING MAP (URUTAN SANGAT PENTING)
-// MapAreaControllerRoute memastikan URL /Admin/ selalu dicari di folder Areas/Admin
+// ==========================================================
+// 4. ROUTING / MAPPING (URUTAN SANGAT PENTING)
+// ==========================================================
+
+// 1. Route Khusus Area Admin (Explicit)
 app.MapAreaControllerRoute(
     name: "admin_area",
     areaName: "Admin",
-    pattern: "Admin/{controller=Account}/{action=Login}/{id?}");
+    pattern: "Admin/{controller=Login}/{action=Index}/{id?}");
 
-// Route untuk Area lainnya jika ada
+// 2. Route untuk Area secara umum
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Route Default (Luar Area / Peserta Magang)
+// 3. Route Default (Luar Area / Peserta Magang)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
