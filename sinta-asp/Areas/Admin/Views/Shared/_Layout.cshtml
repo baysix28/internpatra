@@ -4,6 +4,8 @@
 @{
     var adminNama = HttpContextAccessor.HttpContext?.Session.GetString("AdminNama") ?? "Admin";
     var adminEmail = HttpContextAccessor.HttpContext?.Session.GetString("AdminEmail");
+    // Ambil Role untuk pengecekan menu
+    var adminRole = HttpContextAccessor.HttpContext?.Session.GetString("AdminRole");
     var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminNama)}&background=00549B&color=fff";
 }
 
@@ -152,7 +154,7 @@
             transition: background 0.2s ease;
         }
 
-        /* PERUBAHAN: Warna Background berdasarkan status */
+        /* Update background berdasarkan status baca */
         .notif-unread { background-color: #f0f7ff !important; }
         .notif-read { background-color: #ffffff !important; }
 
@@ -186,7 +188,19 @@
     <ul style="list-style:none; padding:0; flex-grow:1;">
         <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "active" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><i class="fa-solid fa-house mr-2"></i> Dashboard</a></li>
         <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Mahasiswa" ? "active" : "")" asp-area="Admin" asp-controller="Mahasiswa" asp-action="Index"><i class="fa-solid fa-users mr-2"></i> Data Mahasiswa</a></li>
-        <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "EmailTemplate" ? "active" : "")" asp-area="Admin" asp-controller="EmailTemplate" asp-action="Index"><i class="fa-solid fa-envelope-open-text mr-2"></i> Format Konfirmasi</a></li>
+        
+        @* MENU KHUSUS SUPER ADMIN *@
+        @if (adminRole == "SuperAdmin")
+        {
+            <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admins" ? "active" : "")" asp-area="Admin" asp-controller="Admins" asp-action="Index"><i class="fa-solid fa-user-gear mr-2"></i> Manajemen Admin</a></li>
+        }
+
+        @* MENU KHUSUS ADMIN REGION (SUPER ADMIN TIDAK BISA LIHAT) *@
+        @if (adminRole != "SuperAdmin")
+        {
+            <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "EmailTemplate" ? "active" : "")" asp-area="Admin" asp-controller="EmailTemplate" asp-action="Index"><i class="fa-solid fa-envelope-open-text mr-2"></i> Format Konfirmasi</a></li>
+        }
+
         <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "active" : "")" asp-area="Admin" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear mr-2"></i> Settings</a></li>
     </ul>
 
@@ -211,7 +225,7 @@
             </div>
             <div class="dropdown-menu dropdown-menu-right dropdown-notif-menu">
                 <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
-                    <h6 class="mb-0 font-weight-bold small text-uppercase" style="letter-spacing: 1px;">Notifikasi Hari Ini</h6>
+                    <h6 class="mb-0 font-weight-bold small text-uppercase" style="letter-spacing: 1px;">Notifikasi</h6>
                     <span class="badge badge-primary" id="notifCountText">0</span>
                 </div>
                 <div id="notifContainer" style="max-height: 400px; overflow-y: auto;">
@@ -303,7 +317,6 @@
         const countText = $('#notifCountText');
 
         if (data && data.length > 0) {
-            // PERUBAHAN: Hanya hitung yang BELUM DIBACA (isRead === false)
             const unreadCount = data.filter(x => x.isRead === false).length; 
             
             if (unreadCount > 0) {
@@ -322,7 +335,6 @@
                 let colorClass = item.type === 'new' ? 'bg-notif-blue' : 'bg-notif-red';
                 let actionText = item.type === 'new' ? 'baru saja mendaftar' : 'menyelesaikan magang hari ini';
                 
-                // PERUBAHAN: Tentukan kelas background berdasarkan status isRead
                 let statusClass = item.isRead ? 'notif-read' : 'notif-unread';
                 
                 let timeDisplay = formatTimeDisplay(item.rawDate);
@@ -344,8 +356,8 @@
         } else {
             badge.hide();
             countText.text("0");
-            container.html('<div class="text-center py-4 text-muted small">Tidak ada aktivitas baru hari ini</div>');
-            modalFull.html('<div class="text-center py-4 text-muted small">Tidak ada riwayat untuk hari ini</div>');
+            container.html('<div class="text-center py-4 text-muted small">Tidak ada aktivitas baru</div>');
+            modalFull.html('<div class="text-center py-4 text-muted small">Tidak ada riwayat notifikasi</div>');
         }
     }
 

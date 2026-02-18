@@ -6,6 +6,7 @@ using sinta_asp.Areas.Admin.Models;
 using sinta_asp.Services;
 using System.Globalization;
 using ClosedXML.Excel;
+using Microsoft.AspNetCore.Http;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
@@ -39,7 +40,6 @@ namespace sinta_asp.Areas.Admin.Controllers
 
                 foreach (var item in pesertaSelesai)
                 {
-                    // Simpan ke tabel Notifikasi agar muncul di lonceng (Type: expired)
                     var existingNotif = await _context.Notifications
                         .AnyAsync(n => n.ExternalId == item.Id.ToString() && n.Type == "expired");
 
@@ -57,7 +57,8 @@ namespace sinta_asp.Areas.Admin.Controllers
                     }
 
                     var admin = await _context.Admins.FirstOrDefaultAsync(a => 
-                        a.RegionManaged.ToLower().Trim() == item.Region.ToLower().Trim());
+                        a.Region != null && item.Region != null &&
+                        a.Region.ToLower().Trim() == item.Region.ToLower().Trim());
 
                     if (admin != null)
                     {
@@ -95,13 +96,44 @@ namespace sinta_asp.Areas.Admin.Controllers
             return View(mahasiswa);
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string selectedRegion = "all")
         {
             var adminNama = HttpContext.Session.GetString("AdminNama");
+            var adminRole = HttpContext.Session.GetString("AdminRole"); 
+            var adminRegionManaged = HttpContext.Session.GetString("AdminRegion");
+
             if (string.IsNullOrEmpty(adminNama))
                 return RedirectToAction("Index", "Login", new { area = "Admin" });
 
-            var query = GetFilteredQuery(adminNama);
+            var allRegionsInDb = await _context.Admins
+                .Where(a => !string.IsNullOrEmpty(a.Region))
+                .Select(a => a.Region)
+                .Distinct()
+                .OrderBy(r => r)
+                .ToListAsync();
+
+            ViewBag.AllRegions = allRegionsInDb;
+
+            var query = _context.PendaftaranMagang.AsNoTracking();
+
+            if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrEmpty(adminRegionManaged))
+                {
+                    var region = adminRegionManaged.Trim().ToLower();
+                    query = query.Where(x => x.Region != null && x.Region.Trim().ToLower() == region);
+                    ViewBag.SelectedRegion = adminRegionManaged;
+                }
+            }
+            else
+            {
+                if (selectedRegion != "all")
+                {
+                    query = query.Where(x => x.Region == selectedRegion);
+                }
+                ViewBag.SelectedRegion = selectedRegion;
+            }
+
             var magang = await query.OrderByDescending(m => m.CreatedAt).ToListAsync();
 
             var viewModel = new DashboardModel
@@ -115,12 +147,22 @@ namespace sinta_asp.Areas.Admin.Controllers
                 TotalInternAktif = magang.Count(x => x.Status == "Diterima")
             };
 
+            ViewBag.AdminRole = adminRole;
+
             return View(viewModel);
         }
 
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, string status)
         {
+            var rawRole = HttpContext.Session.GetString("AdminRole") ?? "";
+            var adminRole = rawRole.Trim();
+            
+            if (string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            {
+                return Json(new { success = false, message = "Akses Ditolak: Akun SuperAdmin hanya memiliki hak akses Lihat Data (Read-Only)." });
+            }
+
             try
             {
                 var data = await _context.PendaftaranMagang.FindAsync(id);
@@ -132,7 +174,6 @@ namespace sinta_asp.Areas.Admin.Controllers
 
                 data.Status = status;
 
-                // Tambahkan notifikasi update status
                 _context.Notifications.Add(new Notification
                 {
                     Nama = data.NamaLengkap,
@@ -168,14 +209,11 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
         }
 
-        // Logic baru untuk menangkap pendaftar baru hari ini (Biasanya dipanggil saat submit form pendaftaran)
-        // Namun sebagai pengaman, logic notifikasi "new" biasanya diletakkan di DashboardController 
-        // atau saat entitas Magang pertama kali dibuat.
-
         private async Task KirimEmailNotifikasi(Magang mhs, string status)
         {
             var admin = await _context.Admins.FirstOrDefaultAsync(a => 
-                a.RegionManaged.ToLower().Trim() == mhs.Region.ToLower().Trim());
+                a.Region != null && mhs.Region != null &&
+                a.Region.ToLower().Trim() == mhs.Region.ToLower().Trim());
 
             if (admin == null) 
                 throw new Exception($"Admin untuk region '{mhs.Region}' tidak ditemukan.");
@@ -205,63 +243,115 @@ namespace sinta_asp.Areas.Admin.Controllers
                 mhs.EmailPribadi, 
                 status == "Diterima" ? "Selamat! Seleksi Magang Diterima" : "Informasi Seleksi Magang",
                 htmlBody,
-                "HC Pertamina - " + admin.RegionManaged
+                "HC Pertamina - " + admin.Region
             );
         }
 
-        private IQueryable<Magang> GetFilteredQuery(string adminNama)
-        {
-            var query = _context.PendaftaranMagang.AsQueryable();
-            var regionMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "Admin MOR I", "Regional Sumbagut" },
-                { "Admin MOR III", "Regional Jawa Bagian Barat" },
-                { "Admin MOR IV", "Regional Jawa Bagian Tengah" },
-                { "Admin MOR V", "Regional Jatimbalinus" },
-                { "Admin MOR VI", "Regional Kalimantan" },
-                { "Admin MOR VIII", "Regional Maluku Papua" },
-                { "Admin RU VI", "Refinery Unit VI Balongan" }
-            };
-
-            if (regionMap.ContainsKey(adminNama))
-            {
-                var targetRegion = regionMap[adminNama];
-                query = query.Where(x => x.Region == targetRegion);
-            }
-            return query;
-        }
-
         [HttpGet]
-        public async Task<IActionResult> ExportMahasiswa()
+        public async Task<IActionResult> ExportMahasiswa(string selectedRegion = "all")
         {
-            var adminNama = HttpContext.Session.GetString("AdminNama");
-            if (string.IsNullOrEmpty(adminNama)) return Unauthorized();
-            var data = await GetFilteredQuery(adminNama).ToListAsync();
+            var adminRole = HttpContext.Session.GetString("AdminRole");
+            var adminRegionManaged = HttpContext.Session.GetString("AdminRegion");
+
+            var query = _context.PendaftaranMagang.AsNoTracking();
+
+            if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrEmpty(adminRegionManaged))
+                {
+                    var region = adminRegionManaged.Trim().ToLower();
+                    query = query.Where(x => x.Region != null && x.Region.Trim().ToLower() == region);
+                }
+            }
+            else
+            {
+                if (selectedRegion != "all" && !string.IsNullOrEmpty(selectedRegion))
+                {
+                    query = query.Where(x => x.Region == selectedRegion);
+                }
+            }
+
+            var data = await query.OrderByDescending(m => m.CreatedAt).ToListAsync();
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
 
             using (var workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add("Daftar Mahasiswa");
-                string[] headers = { "NIM", "Nama Lengkap", "Email", "No HP", "Universitas", "Fakultas", "Jurusan", "Company", "Lokasi", "Mulai Magang", "Selesai Magang", "Status" };
-                for (int i = 0; i < headers.Length; i++) worksheet.Cell(1, i + 1).Value = headers[i];
+                var worksheet = workbook.Worksheets.Add("Data Mahasiswa");
+                
+                string[] headers = { 
+                    "ID", "Tgl Daftar", "NIM", "Nama Lengkap", "Email", "No HP", 
+                    "Instagram", "Tempat Lahir", "Tgl Lahir", "Universitas", 
+                    "Fakultas", "Jurusan", "Company", "Region", "Lokasi Unit", 
+                    "Rekomendasi", "Mulai", "Selesai", "Status", 
+                    "Link CV", "Link Surat", "Link Proposal" 
+                };
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    var cell = worksheet.Cell(1, i + 1);
+                    cell.Value = headers[i];
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#00549B");
+                    cell.Style.Font.FontColor = XLColor.White;
+                }
 
                 int row = 2;
                 foreach (var item in data)
                 {
-                    worksheet.Cell(row, 1).Value = item.NIM;
-                    worksheet.Cell(row, 2).Value = item.NamaLengkap;
-                    worksheet.Cell(row, 3).Value = item.EmailPribadi;
-                    worksheet.Cell(row, 10).Value = item.MulaiMagang.ToString("yyyy-MM-dd");
-                    worksheet.Cell(row, 11).Value = item.SelesaiMagang.ToString("yyyy-MM-dd");
-                    worksheet.Cell(row, 12).Value = item.Status;
+                    worksheet.Cell(row, 1).Value = item.Id;
+                    worksheet.Cell(row, 2).Value = item.CreatedAt.ToString("dd/MM/yyyy");
+                    worksheet.Cell(row, 3).Value = item.NIM;
+                    worksheet.Cell(row, 4).Value = item.NamaLengkap;
+                    worksheet.Cell(row, 5).Value = item.EmailPribadi;
+                    worksheet.Cell(row, 6).Value = item.NoHp;
+                    worksheet.Cell(row, 7).Value = item.Instagram ?? "-";
+                    worksheet.Cell(row, 8).Value = item.TempatLahir;
+                    worksheet.Cell(row, 9).Value = item.TanggalLahir.ToString("dd/MM/yyyy");
+                    worksheet.Cell(row, 10).Value = item.NamaPerguruanTinggi;
+                    worksheet.Cell(row, 11).Value = item.Fakultas;
+                    worksheet.Cell(row, 12).Value = item.Jurusan;
+                    worksheet.Cell(row, 13).Value = item.Company;
+                    worksheet.Cell(row, 14).Value = item.Region;
+                    worksheet.Cell(row, 15).Value = item.Lokasi;
+                    worksheet.Cell(row, 16).Value = item.RekomendasiPegawai ?? "-";
+                    worksheet.Cell(row, 17).Value = item.MulaiMagang.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 18).Value = item.SelesaiMagang.ToString("yyyy-MM-dd");
+                    worksheet.Cell(row, 19).Value = item.Status;
+
+                    AddHyperlink(worksheet.Cell(row, 20), item.FileCv, "cv", baseUrl);
+                    AddHyperlink(worksheet.Cell(row, 21), item.FileSuratPengantar, "surat", baseUrl);
+                    AddHyperlink(worksheet.Cell(row, 22), item.FileProposal, "proposal", baseUrl);
+
                     row++;
                 }
+
+                worksheet.Columns().AdjustToContents();
                 
                 using (var stream = new MemoryStream())
                 {
                     workbook.SaveAs(stream);
-                    var content = stream.ToArray();
-                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Data_Mahasiswa_{DateTime.Now:yyyyMMdd}.xlsx");
+                    var fileName = selectedRegion == "all" ? "Rekap_Magang_Semua" : $"Rekap_Magang_{selectedRegion}";
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{fileName}_{DateTime.Now:yyyyMMdd}.xlsx");
                 }
+            }
+        }
+
+        private void AddHyperlink(IXLCell cell, string? fileName, string folder, string baseUrl)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                cell.Value = "-";
+            }
+            else
+            {
+                var cleanFileName = fileName.Split('/').Last();
+                var fullPath = $"{baseUrl}/uploads/{folder}/{cleanFileName}";
+                
+                cell.Value = fullPath;
+                cell.GetHyperlink().ExternalAddress = new Uri(fullPath);
+                
+                cell.Style.Font.FontColor = XLColor.Blue;
+                cell.Style.Font.Underline = XLFontUnderlineValues.Single;
             }
         }
     }

@@ -9,13 +9,23 @@ namespace sinta_asp.Areas.Admin.Models
         public string? AdminName { get; set; }
         public DateTime LoginTime { get; set; }
 
+        // Properti Identitas & Filter
+        public string? AdminRole { get; set; }
+        public string? AdminRegion { get; set; }
+        
+        // Tambahkan ini untuk menampung daftar region (master data) 
+        // yang akan ditampilkan di dropdown filter View
+        public List<string> Regions { get; set; } = new();
+
         public List<Magang> DaftarMagang { get; set; } = new();
 
+        // Statistik Summary
         public int TotalInternAktif { get; set; }
         public int StatusDiproses { get; set; } 
         public int StatusDiterima { get; set; }
         public int StatusDitolak { get; set; }
 
+        // Statistik Kampus & Jurusan
         public List<string> UnivLabels { get; set; } = new();
         public List<int> UnivCounts { get; set; } = new();
 
@@ -25,6 +35,7 @@ namespace sinta_asp.Areas.Admin.Models
         public List<string> KampusLabels { get; set; } = new();
         public List<int> KampusCounts { get; set; } = new();
 
+        // Statistik Waktu (Grafik Line/Bar)
         public List<string> WeeklyLabels { get; set; } = new();
         public List<int> WeeklyCounts { get; set; } = new();
         public List<string> MonthlyLabels { get; set; } = new();
@@ -32,6 +43,7 @@ namespace sinta_asp.Areas.Admin.Models
         public List<string> YearlyLabels { get; set; } = new();
         public List<int> YearlyCounts { get; set; } = new();
 
+        // Statistik Sebaran Lokasi/Unit (Stacked Bar Chart)
         public List<string> LokasiStatLabels { get; set; } = new();
         public List<int> LokasiDiterima { get; set; } = new();
         public List<int> LokasiDitolak { get; set; } = new();

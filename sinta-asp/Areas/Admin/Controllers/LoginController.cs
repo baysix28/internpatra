@@ -66,51 +66,19 @@ namespace sinta_asp.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Password salah" });
             }
 
-            // SET SESSION
+            // ======================================================
+            // SET SESSION (Update: Ditambahkan Role dan Region)
+            // ======================================================
             HttpContext.Session.SetString("AdminLogin", "true");
             HttpContext.Session.SetString("AdminId", admin.Id.ToString());
             HttpContext.Session.SetString("AdminNama", admin.Nama ?? "Admin");
             HttpContext.Session.SetString("AdminEmail", admin.Email);
+            
+            // Menggunakan .Trim() untuk memastikan tidak ada spasi kosong yang tersimpan
+            HttpContext.Session.SetString("AdminRole", (admin.Role ?? "Admin").Trim());
+            HttpContext.Session.SetString("AdminRegion", admin.Region ?? "");
 
             return Json(new { success = true });
-        }
-
-        // ===============================
-        // POST: /Admin/Login/Register (PENDAFTARAN)
-        // ===============================
-        [HttpPost]
-        public async Task<IActionResult> Register(string FullName, string Email, string Password)
-        {
-            if (string.IsNullOrEmpty(FullName) || string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
-            {
-                return Json(new { success = false, message = "Semua field wajib diisi" });
-            }
-
-            var existingAdmin = await _context.Admins.AnyAsync(a => a.Email == Email);
-            if (existingAdmin)
-            {
-                return Json(new { success = false, message = "Email sudah digunakan oleh akun lain" });
-            }
-
-            var newAdmin = new AdminModel
-            {
-                Nama = FullName,
-                Email = Email
-            };
-
-            newAdmin.PasswordHash = _passwordHasher.HashPassword(newAdmin, Password);
-
-            try
-            {
-                _context.Admins.Add(newAdmin);
-                await _context.SaveChangesAsync();
-                
-                return Json(new { success = true, message = "Registrasi berhasil! Silakan login." });
-            }
-            catch (System.Exception ex)
-            {
-                return Json(new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + ex.Message });
-            }
         }
 
         // ==========================================
@@ -138,9 +106,16 @@ namespace sinta_asp.Areas.Admin.Controllers
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 
                 var smtpHost = _config["EmailSettings:Host"];
-                var smtpPort = int.Parse(_config["EmailSettings:Port"]);
+                var smtpPortStr = _config["EmailSettings:Port"];
                 var senderEmail = _config["EmailSettings:Email"];
                 var senderPass = _config["EmailSettings:Password"];
+
+                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpPortStr))
+                {
+                    return Json(new { success = false, message = "Konfigurasi Email (Host/Port) tidak ditemukan." });
+                }
+
+                int smtpPort = int.Parse(smtpPortStr);
                 
                 using (var smtpClient = new SmtpClient(smtpHost))
                 {

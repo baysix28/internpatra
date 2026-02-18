@@ -11,11 +11,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-// 2. REGISTER EMAIL SERVICE (FIXED)
-// Gunakan AddScoped dengan Interface agar sinkron dengan Controller kamu
+// 2. REGISTER EMAIL SERVICE
+// Menggunakan AddScoped agar IEmailService merujuk ke EmailService
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// 3. HTTP CONTEXT ACCESSOR (Untuk keperluan Session/User context)
+// 3. HTTP CONTEXT ACCESSOR
 builder.Services.AddHttpContextAccessor();
 
 // 4. SESSION CONFIGURATION
@@ -47,13 +47,19 @@ app.UseRouting();
 app.UseSession(); 
 app.UseAuthorization();
 
-// 7. ROUTING MAP
-// Route untuk Areas (Admin, dll)
+// 7. ROUTING MAP (URUTAN SANGAT PENTING)
+// MapAreaControllerRoute memastikan URL /Admin/ selalu dicari di folder Areas/Admin
+app.MapAreaControllerRoute(
+    name: "admin_area",
+    areaName: "Admin",
+    pattern: "Admin/{controller=Account}/{action=Login}/{id?}");
+
+// Route untuk Area lainnya jika ada
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}");
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// Route Default
+// Route Default (Luar Area / Peserta Magang)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

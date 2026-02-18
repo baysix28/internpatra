@@ -85,8 +85,7 @@ namespace sinta_asp.Services
         }
 
         // ============================================================
-        // 3. NOTIFIKASI SELESAI MAGANG → ADMIN REGION (Baru)
-        // Memberitahu Admin bahwa ada peserta di regionnya yang selesai hari ini
+        // 3. NOTIFIKASI SELESAI MAGANG → ADMIN REGION
         // ============================================================
         public async Task SendCompletionNotificationToAdminAsync(string adminEmail, string namaPeserta, string lokasi)
         {
@@ -103,8 +102,28 @@ namespace sinta_asp.Services
                 <br>
                 <p>Salam,<br><strong>SINTA System Notifier</strong></p>";
 
-            // Menggunakan fungsi kurir pusat untuk mengirim ke email admin region
             await SendWithCourierAsync(adminEmail, subject, body);
+        }
+
+        // ============================================================
+        // 4. RESET PASSWORD → ADMIN (Fitur Lupa Password)
+        // ============================================================
+        public async Task SendForgotPasswordEmailAsync(string toEmail, string resetLink)
+        {
+            var subject = "Reset Password Akun SINTA Admin";
+            var body = $@"
+                <h3>Permintaan Reset Password</h3>
+                <p>Kami menerima permintaan untuk mereset password akun Admin SINTA Anda.</p>
+                <p>Silakan klik tombol di bawah ini untuk melanjutkan:</p>
+                <div style='margin: 20px 0;'>
+                    <a href='{resetLink}' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Reset Password</a>
+                </div>
+                <p>Link ini akan kedaluwarsa dalam 1 jam.</p>
+                <p>Jika Anda tidak merasa melakukan permintaan ini, silakan abaikan email ini.</p>
+                <br>
+                <p>Salam,<br><strong>SINTA System</strong></p>";
+
+            await SendWithCourierAsync(toEmail, subject, body);
         }
     }
 }

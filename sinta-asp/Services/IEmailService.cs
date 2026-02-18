@@ -12,5 +12,8 @@ namespace sinta_asp.Services
 
         // Tambahan: Untuk mengirim notifikasi otomatis ke Admin Region jika ada peserta yang selesai hari ini
         Task SendCompletionNotificationToAdminAsync(string adminEmail, string namaPeserta, string lokasi);
+
+        // JANGAN UBAH DI ATAS - Tambahan untuk fitur Forgot Password
+        Task SendForgotPasswordEmailAsync(string email, string resetLink);
     }
 }

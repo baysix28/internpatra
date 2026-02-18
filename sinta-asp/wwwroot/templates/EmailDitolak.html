@@ -2,67 +2,47 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333333; 
             margin: 0; 
-            padding: 0; 
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #333333;
-            background-color: #ffffff;
+            padding: 20px;
         }
         .container { 
             max-width: 600px; 
-            margin: 0 auto; 
-            padding: 20px; 
+            margin: auto; 
         }
-        .header { 
-            padding-bottom: 20px;
-            border-bottom: 2px solid #ec1c24; 
-            margin-bottom: 30px;
-        }
-        .status-label {
-            color: #ec1c24;
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            display: block;
+        .status-info {
+            font-weight: bold;
+            color: #000;
+            margin-bottom: 20px;
+            font-size: 16px;
         }
         .content { 
-            text-align: left; 
-            white-space: pre-wrap; 
+            margin-bottom: 30px; 
+            white-space: pre-wrap;
             font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 40px;
-            color: #444444;
         }
         .signature { 
-            font-weight: bold; 
+            margin-top: 25px; 
             font-size: 14px;
-            line-height: 1.5;
-            color: #333333;
         }
         .footer { 
-            margin-top: 50px; 
-            padding-top: 15px;
-            border-top: 1px solid #eeeeee;
-            font-size: 11px; 
-            color: #888888; 
-        }
-        strong { 
-            color: #ec1c24; 
+            margin-top: 40px; 
+            padding-top: 15px; 
+            border-top: 1px solid #eeeeee; 
+            font-size: 12px; 
+            color: #777777; 
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <img src="~/images/logo-pertamina.png" alt="Pertamina" style="height: 45px; display: block;">
+        <div class="status-info">
+            Informasi Status Pendaftaran
         </div>
-        
-        <span class="status-label">Informasi Status Pendaftaran</span>
 
         <div class="content">
 {IsiPesan}
@@ -70,13 +50,13 @@
 
         <div class="signature">
             Salam hormat,<br><br>
-            Human Capital Jawa Bagian Tengah<br>
+            <strong>Human Capital Jawa Bagian Tengah</strong><br>
             PT Pertamina Patra Niaga
         </div>
 
         <div class="footer">
-            <p>Email dikirim otomatis oleh <strong>SINTA ASP</strong>.<br>
-            Email ini bersifat informasi satu arah, mohon untuk tidak membalas pesan ini.</p>
+            Email ini dikirim otomatis oleh sistem <strong>SINTA ASP</strong>.<br>
+            Email ini bersifat informasi satu arah, mohon untuk tidak membalas pesan ini.
         </div>
     </div>
 </body>

@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity; 
+using Microsoft.AspNetCore.Http;
 using sinta_asp.Data;
+using System;
+using System.Threading.Tasks;
 using AdminModel = sinta_asp.Models.Admin;
 
 namespace sinta_asp.Areas.Admin.Controllers
@@ -18,18 +21,24 @@ namespace sinta_asp.Areas.Admin.Controllers
             _passwordHasher = new PasswordHasher<AdminModel>();
         }
 
+        // --- Menampilkan Halaman Pengaturan ---
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var adminIdStr = HttpContext.Session.GetString("AdminId");
             if (string.IsNullOrEmpty(adminIdStr))
                 return RedirectToAction("Index", "Login", new { area = "Admin" });
 
-            int adminId = int.Parse(adminIdStr);
+            if (!int.TryParse(adminIdStr, out int adminId))
+                return RedirectToAction("Index", "Login", new { area = "Admin" });
+
             var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Id == adminId);
+            if (admin == null) return NotFound();
 
             return View(admin);
         }
 
+        // --- Update Profil (Nama & Email) ---
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(int UserId, string FullName, string Email)
@@ -37,26 +46,29 @@ namespace sinta_asp.Areas.Admin.Controllers
             try
             {
                 var admin = await _context.Admins.FindAsync(UserId);
-                if (admin == null) return Json(new { success = false, message = "User tidak ditemukan" });
+                if (admin == null) 
+                    return Json(new { success = false, message = "User tidak ditemukan" });
 
+                // Update Data di Database
                 admin.Nama = FullName;
                 admin.Email = Email;
 
                 _context.Update(admin);
                 await _context.SaveChangesAsync();
 
-                // UPDATE SESSION: Agar login tetap valid dengan identitas baru
+                // SINKRONISASI SESSION: Agar nama di header dashboard langsung berubah
                 HttpContext.Session.SetString("AdminNama", FullName);
                 HttpContext.Session.SetString("AdminEmail", Email);
 
-                return Json(new { success = true });
+                return Json(new { success = true, message = "Profil berhasil diperbarui" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = "Terjadi kesalahan: " + ex.Message });
             }
         }
 
+        // --- Ganti Password ---
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(int id, string OldPassword, string NewPassword)
@@ -64,31 +76,34 @@ namespace sinta_asp.Areas.Admin.Controllers
             try
             {
                 var admin = await _context.Admins.FindAsync(id);
-                if (admin == null) return Json(new { success = false, message = "User tidak ditemukan" });
+                if (admin == null) 
+                    return Json(new { success = false, message = "User tidak ditemukan" });
 
-                // Verifikasi Password Lama
-                var result = _passwordHasher.VerifyHashedPassword(admin, admin.PasswordHash, OldPassword);
-                if (result != PasswordVerificationResult.Success)
+                // 1. Verifikasi apakah password lama benar
+                var verificationResult = _passwordHasher.VerifyHashedPassword(admin, admin.PasswordHash, OldPassword);
+                if (verificationResult != PasswordVerificationResult.Success)
                 {
-                    return Json(new { success = false, message = "Kata sandi lama salah" });
+                    return Json(new { success = false, message = "Kata sandi lama yang Anda masukkan salah" });
                 }
 
+                // 2. Validasi panjang password baru
                 if (string.IsNullOrEmpty(NewPassword) || NewPassword.Length < 6)
                 {
-                    return Json(new { success = false, message = "Kata sandi baru minimal 6 karakter" });
+                    return Json(new { success = false, message = "Kata sandi baru minimal harus 6 karakter" });
                 }
 
-                // Hash dan Simpan Password Baru
+                // 3. Hash password baru dan simpan
                 admin.PasswordHash = _passwordHasher.HashPassword(admin, NewPassword);
+                
                 _context.Update(admin);
                 await _context.SaveChangesAsync();
 
-                // Sesi tetap aman karena AdminId tidak berubah di database
-                return Json(new { success = true });
+                // Catatan: User tidak perlu logout karena AdminId di session tetap valid
+                return Json(new { success = true, message = "Kata sandi berhasil diperbarui" });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Gagal: " + ex.Message });
+                return Json(new { success = false, message = "Gagal memperbarui kata sandi: " + ex.Message });
             }
         }
     }

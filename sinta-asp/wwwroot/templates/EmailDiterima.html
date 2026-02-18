@@ -2,70 +2,49 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
             margin: 0; 
-            padding: 0; 
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #333333;
-            background-color: #ffffff;
+            padding: 20px;
         }
         .container { 
             max-width: 600px; 
-            margin: 0 auto; 
-            padding: 20px; 
-        }
-        .header { 
-            padding-bottom: 20px;
-            border-bottom: 2px solid #00549B; /* Biru Pertamina */
-            margin-bottom: 30px;
+            margin: auto; 
         }
         .content { 
-            text-align: left; 
-            white-space: pre-wrap; 
-            font-size: 15px;
-            line-height: 1.6;
-            margin-bottom: 40px;
-            color: #333333;
+            margin-bottom: 30px; 
+            white-space: pre-wrap;
         }
         .signature { 
-            font-weight: bold; 
-            font-size: 14px;
-            line-height: 1.5;
-            color: #333333;
+            margin-top: 20px; 
         }
         .footer { 
-            margin-top: 50px; 
-            padding-top: 15px;
-            border-top: 1px solid #eeeeee;
-            font-size: 11px; 
-            color: #888888; 
-        }
-        strong { 
-            color: #00549B; 
+            margin-top: 40px; 
+            padding-top: 10px; 
+            border-top: 1px solid #ddd; 
+            font-size: 12px; 
+            color: #777; 
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <img src="~/images/logo-pertamina.png" alt="Pertamina" style="height: 45px; display: block;">
-        </div>
-        
         <div class="content">
 {IsiPesan}
         </div>
 
         <div class="signature">
             Salam hormat,<br><br>
-            Human Capital Jawa Bagian Tengah<br>
+            <strong>Human Capital Jawa Bagian Tengah</strong><br>
             PT Pertamina Patra Niaga
         </div>
 
         <div class="footer">
-            <p>Email dikirim otomatis oleh <strong>SINTA ASP</strong> (Sistem Informasi Magang).<br>
-            Mohon untuk tidak membalas pesan ini secara langsung.</p>
+            Email ini dikirimkan secara otomatis oleh sistem SINTA ASP (Sistem Informasi Magang).<br>
+            Mohon tidak membalas email ini.
         </div>
     </div>
 </body>
