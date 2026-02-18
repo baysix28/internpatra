@@ -119,6 +119,9 @@ namespace sinta_asp.Controllers
                 await _context.SaveChangesAsync(); 
                 // penting: supaya model.Id sudah terbentuk
 
+                 // ===== NOMOR PENDAFTARAN RESMI (BERDASARKAN ID) =====
+                model.NoPendaftaran = $"PEN/{DateTime.Now:yyyy}/{DateTime.Now:MM}/{model.Id:D4}";
+
                 // ===== NOTIFIKASI KE USER =====
                 _context.Notifications.Add(new Notification
                 {
@@ -155,15 +158,12 @@ namespace sinta_asp.Controllers
                 // ===== LOGIKA EMAIL 2: KE KAMU (USER) =====
                 try 
                 {
-                    // Membuat format nomor pendaftaran PEN/2026/02/00XX
-                    string noPendaftaran = $"PEN/{DateTime.Now:yyyy}/{DateTime.Now:MM}/000{new Random().Next(1, 99)}"; 
-                    
-                    string subjekUser = "Pendaftaran Magang Berhasil - " + noPendaftaran;
+                    string subjekUser = "Pendaftaran Magang Berhasil - " + model.NoPendaftaran;
                     string pesanUser = $@"
                         <div style='font-family: sans-serif; line-height: 1.6; color: #333;'>
                             <p>Yth. Sdr/i <b>{model.NamaLengkap}</b>,</p>
                             <p>Pendaftaran penelitian Anda telah masuk dalam sistem dengan nomor pendaftaran:</p>
-                            <p style='font-size: 18px; color: #003399;'><b>{noPendaftaran}</b></p>
+                            <p style='font-size: 18px; color: #003399;'><b>{model.NoPendaftaran}</b></p>
                             <p>Silakan tunggu email tanggapan dari kami atau periksa status penerimaan penelitian Anda melalui Web Sinta dengan memasukkan nomor pendaftaran tersebut.</p>
                             <p>
                                 Salam hormat,<br/>
@@ -181,12 +181,14 @@ namespace sinta_asp.Controllers
                     Console.WriteLine("DEBUG ERROR USER: " + ex.Message);
                 }
 
-                return RedirectToAction("Sukses", "PendaftaranMagang");
+                return RedirectToAction(nameof(Sukses));
             }
             catch (Exception ex)
             {
+                Console.WriteLine("CRITICAL ERROR: " + ex.Message);
                 TempData["Error"] = "Gagal simpan data: " + ex.Message;
-                return View("Index", model);
+                // Kembalikan ke view DataMagang, bukan Index!
+                return View("DataMagang", model); 
             }
         }
 

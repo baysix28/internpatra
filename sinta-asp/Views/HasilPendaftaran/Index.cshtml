@@ -74,6 +74,18 @@
         cursor: pointer;
     }
 
+    #searchInput {
+        text-transform: uppercase;
+    }
+
+    /* Biar alert merahnya makin cakep dan mirip gaya Pertamina */
+    .alert-danger {
+        background-color: #FEF2F2;
+        border: 1px solid #FCA5A5;
+        color: #991B1B;
+        font-weight: 500;
+    }
+
     /* HASIL SEARCH */
     #searchResult {
         display: none;
@@ -122,7 +134,7 @@
             <div class="status-card">
                 <form id="searchForm">
                     <div class="input-group-custom">
-                        <input type="text" id="searchInput" placeholder="Masukkan Nomor Pendaftaran atau Email Anda" required>
+                        <input type="text" id="searchInput" placeholder="Masukkan Nomor Pendaftaran Anda" required>
                         <button type="submit" class="btn-periksa">
                             <i class="fas fa-search"></i> Periksa
                         </button>
@@ -156,8 +168,13 @@
                 <div class="mt-2 p-2 rounded-3" style="background-color: #fff9e6; border-left: 4px solid #ffc107;">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
-                        Gunakan email yang terdaftar pada sistem SINTA.
+                        Sesuaikan nomor pendaftaran yang telah dikirim di Email.
                     </small>
+                </div>
+
+                <div id="alertNotFound" class="alert alert-danger mt-3" style="display: none; border-radius: 10px; font-size: 13px;">
+                    <i class="fas fa-exclamation-circle me-2"></i> 
+                    Maaf, nomor pendaftaran <strong><span id="invalidNo"></span></strong> tidak ditemukan. Silakan periksa kembali.
                 </div>
             </div>
         </div>
@@ -169,12 +186,49 @@
         document.getElementById('searchForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const emailValue = document.getElementById('searchInput').value;
+            const noPendaftaran = document.getElementById('searchInput').value;
+            const resultDiv = document.getElementById('searchResult');
+            const alertDiv = document.getElementById('alertNotFound');
+            const invalidNoSpan = document.getElementById('invalidNo');
 
-            document.getElementById('resEmail').innerText = ": " + emailValue;
-            document.getElementById('resName').innerText = ": Peserta Magang SINTA";
+            // Reset tampilan: sembunyikan hasil dan alert setiap kali cari ulang
+            resultDiv.style.display = 'none';
+            alertDiv.style.display = 'none';
 
-            document.getElementById('searchResult').style.display = 'block';
+            fetch(`/HasilPendaftaran/CekStatus?no=${encodeURIComponent(noPendaftaran)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        // 1. Jika data ditemukan: Isi data ke tabel
+                        document.getElementById('resName').innerText = ": " + data.nama;
+                        document.getElementById('resEmail').innerText = ": " + data.email;
+                        
+                        const statusBadge = document.querySelector('.status-badge');
+                        statusBadge.innerText = data.status;
+
+                        // 2. Update warna badge sesuai status dari DB
+                        if (data.status === "Diterima") {
+                            statusBadge.className = "status-badge bg-success text-white";
+                        } else if (data.status === "Ditolak") {
+                            statusBadge.className = "status-badge bg-danger text-white";
+                        } else {
+                            statusBadge.className = "status-badge status-pending";
+                        }
+
+                        // Tampilkan kotak hasil
+                        resultDiv.style.display = 'block';
+                    } else {
+                        // 3. Jika data TIDAK ditemukan: Tampilkan pesan error di page
+                        invalidNoSpan.innerText = noPendaftaran;
+                        alertDiv.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Gunakan pesan error di page juga jika terjadi error sistem
+                    invalidNoSpan.innerText = "sistem";
+                    alertDiv.style.display = 'block';
+                });
         });
     </script>
 }
