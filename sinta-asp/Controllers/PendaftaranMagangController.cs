@@ -181,7 +181,8 @@ namespace sinta_asp.Controllers
                     Console.WriteLine("DEBUG ERROR USER: " + ex.Message);
                 }
 
-                return RedirectToAction(nameof(Sukses));
+                TempData["Success"] = "Pendaftaran berhasil dikirim!";
+                return RedirectToAction("Sukses", "PendaftaranMagang");
             }
             catch (Exception ex)
             {

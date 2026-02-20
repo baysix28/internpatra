@@ -879,8 +879,11 @@
     $('#markAllReadBtn').click(function (e) {
         e.preventDefault();
 
+        $('#notifBadge').hide(); // langsung sembunyikan badge
+
         $.post('/Notification/MarkAllRead', function () {
             loadNotifications();
+            loadUnreadCount();
         });
     });
 
@@ -911,6 +914,10 @@
     $(document).ready(function() {
         loadNotifications();
         loadUnreadCount();
+
+        setInterval(function(){
+            loadUnreadCount();
+        }, 5000); // cek setiap 5 detik
 
         const params = new URLSearchParams(window.location.search);
         const tabFromNotif = params.get('tab');

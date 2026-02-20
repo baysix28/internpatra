@@ -66,13 +66,12 @@ app.UseAuthorization();
 // ==========================================================
 // 4. ROUTING / MAPPING
 // ==========================================================
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Login}/{action=Index}/{id?}");
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
