@@ -31,6 +31,15 @@ namespace sinta_asp.Controllers
                 .OrderByDescending(m => m.CreatedAt)
                 .ToListAsync();
 
+            // --- INOVASI: AMBIL DATA MAGANG AKTIF (TERBARU & DITERIMA) ---
+            ViewBag.MagangAktif = riwayatMagang.FirstOrDefault(m => m.Status == "Diterima");
+
+            // --- LOGIKA PERHITUNGAN UNTUK DASHBOARD ---
+            ViewBag.TotalMagang = riwayatMagang.Count;
+            ViewBag.Menunggu = riwayatMagang.Count(m => m.Status == "Menunggu" || m.Status == "Review Berkas");
+            ViewBag.Diterima = riwayatMagang.Count(m => m.Status == "Diterima");
+            ViewBag.Ditolak = riwayatMagang.Count(m => m.Status == "Ditolak");
+
             ViewBag.RiwayatMagang = riwayatMagang;
 
             return View(profil);
