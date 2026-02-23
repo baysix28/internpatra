@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>sinta_asp</RootNamespace>
+
+    <!-- TAMBAH INI -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
   </PropertyGroup>
 
   <ItemGroup>
