@@ -28,17 +28,15 @@ namespace sinta_asp.Data
         public DbSet<UserProfile> UserProfile { get; set; }
 
         // ===== NOTIFIKASI =====
-        // Notifikasi untuk sisi Mahasiswa/User
         public DbSet<Notification> Notifications { get; set; }
-
-        // Notifikasi untuk sisi Admin (Dashboard & Sidebar)
         public DbSet<AdminNotification> AdminNotifications { get; set; }
         public DbSet<AdminNotificationRead> AdminNotificationReads { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             
-            // Opsional: Memastikan nama tabel di database sesuai
+            // Konfigurasi Tabel AdminNotification
             modelBuilder.Entity<AdminNotification>().ToTable("AdminNotifications");
         }
     }

@@ -1094,10 +1094,21 @@
         document.getElementById('modalKonfirmasi').classList.remove('show');
     }
 
+    let submitting = false;
+
     function konfirmasiKirim() {
-        console.log("FORM DIKIRIM");
+        if (submitting) return;
+        submitting = true;
+
+        clearDraft();
         tutupModal();
-        document.getElementById('formMagang').submit();
+
+        const form = document.getElementById('formMagang');
+        form.submit();
+
+        setTimeout(() => {
+            window.location.href = "/PendaftaranMagang/Sukses";
+        }, 700);
     }
 
     // Jalankan ini di halaman DataMagang.cshtml setiap kali input diisi

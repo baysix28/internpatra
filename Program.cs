@@ -6,7 +6,7 @@ using sinta_asp.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ==========================================================
-// 1. AREA REGISTRASI SERVICES (Sebelum builder.Build())
+// 1. AREA REGISTRASI SERVICES
 // ==========================================================
 
 // MVC & Controllers
@@ -21,12 +21,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Admin/Login/Index"; // Disesuaikan dengan struktur Area Admin
+        // Gunakan path login yang lebih umum atau sesuaikan jika Admin & Peserta loginnya beda.
+        // Kita pakai path milik Sophie untuk support Area Admin.
+        options.LoginPath = "/Admin/Login/Index"; 
         options.AccessDeniedPath = "/Home/AccessDenied";
     });
 
 // Email Service
-// Menggunakan AddScoped agar IEmailService merujuk ke EmailService
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 // HttpContext & Session
@@ -45,7 +46,7 @@ builder.Services.AddSession(options =>
 var app = builder.Build();
 
 // ==========================================================
-// 3. AREA MIDDLEWARE / HTTP PIPELINE (Setelah builder.Build())
+// 3. AREA MIDDLEWARE / HTTP PIPELINE
 // ==========================================================
 
 if (!app.Environment.IsDevelopment())
@@ -59,27 +60,27 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Urutan Session, Auth, dan Authz ini SANGAT PENTING
+// Urutan SANGAT PENTING: Session -> Auth -> Authz
 app.UseSession(); 
 app.UseAuthentication();
 app.UseAuthorization();
 
 // ==========================================================
-// 4. ROUTING / MAPPING (URUTAN SANGAT PENTING)
+// 4. ROUTING / MAPPING (Gabungan & Urutan Prioritas)
 // ==========================================================
 
-// 1. Route Khusus Area Admin (Explicit)
+// 1. Prioritas Utama: Route Khusus Area Admin (Punya Sophie)
 app.MapAreaControllerRoute(
     name: "admin_area",
     areaName: "Admin",
     pattern: "Admin/{controller=Login}/{action=Index}/{id?}");
 
-// 2. Route untuk Area secara umum
+// 2. Route Umum untuk semua Area yang ada (Punya Kamu & Sophie)
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
-// 3. Route Default (Luar Area / Peserta Magang)
+// 3. Route Terakhir: Default (Luar Area / Halaman Utama Peserta)
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

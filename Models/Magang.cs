@@ -45,7 +45,7 @@ namespace sinta_asp.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        public string Status { get; set; } = "Menunggu";
+        public string Status { get; set; } = "Proses Review";
 
         public string? NoPendaftaran { get; set; }
     }
