@@ -1,0 +1,360 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var adminNama = HttpContextAccessor.HttpContext?.Session.GetString("AdminNama") ?? "Admin";
+    var adminEmail = HttpContextAccessor.HttpContext?.Session.GetString("AdminEmail");
+    var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminNama)}&background=00549B&color=fff";
+}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - Admin SINTA</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+
+    <style>
+        :root {
+            --p-blue: #00549B;
+            --p-red: #ec1c24;
+            --sidebar-width: 280px;
+            --topbar-height: 80px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #fff;
+            border-right: 1px solid #e2e8f0;
+            z-index: 1000;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-container { margin-bottom: 50px; padding: 0 10px; }
+        .brand-logo-pertamina { height: 60px; }
+
+        .nav-link-custom {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: #64748b;
+            border-radius: 12px;
+            text-decoration: none !important;
+            margin-bottom: 6px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .nav-link-custom:hover {
+            background: rgba(0, 84, 155, 0.05);
+            color: var(--p-blue);
+            transform: translateX(5px);
+        }
+
+        .nav-link-custom.active {
+            background: var(--p-blue);
+            color: #fff !important;
+            box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2);
+        }
+
+        .nav-link-logout {
+            color: var(--p-red) !important;
+            border: 1px solid #fee2e2;
+            background: #fffafa;
+            margin-top: auto;
+        }
+
+        /* Topbar Styling */
+        .topbar {
+            height: var(--topbar-height);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .brand-logo-sinta { height: 45px; }
+        .main-content { margin-left: var(--sidebar-width); padding-top: var(--topbar-height); }
+
+        /* Notifikasi */
+        .notif-wrapper {
+            position: relative;
+            padding: 8px;
+            cursor: pointer;
+            margin-right: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            color: #64748b;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            padding: 2px 5px;
+            background: var(--p-red);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            display: none;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .dropdown-notif-menu {
+            width: 380px;
+            border-radius: 15px !important;
+            margin-top: 5px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+            border: none;
+            padding: 0;
+            overflow: hidden;
+            left: auto !important; 
+            right: 0 !important;
+            transform: none !important;
+        }
+
+        .notif-item {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: flex-start;
+            text-decoration: none !important;
+            color: inherit;
+            transition: background 0.2s ease;
+        }
+
+        /* PERUBAHAN: Warna Background berdasarkan status */
+        .notif-unread { background-color: #f0f7ff !important; }
+        .notif-read { background-color: #ffffff !important; }
+
+        .notif-item:hover { 
+            background-color: #f8fafc !important; 
+        }
+
+        .notif-icon-circle {
+            min-width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        .bg-notif-blue { background: #e0efff; color: #00549B; }
+        .bg-notif-red { background: #fff0f0; color: #ec1c24; }
+
+        .modal-content-bubble { border-radius: 20px; border: none; }
+        .dropdown-toggle::after { display: none !important; }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <div class="brand-container">
+        <img src="~/images/logo-pertamina.png" class="brand-logo-pertamina" alt="Pertamina">
+    </div>
+
+    <ul style="list-style:none; padding:0; flex-grow:1;">
+        <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "active" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><i class="fa-solid fa-house mr-2"></i> Dashboard</a></li>
+        <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Mahasiswa" ? "active" : "")" asp-area="Admin" asp-controller="Mahasiswa" asp-action="Index"><i class="fa-solid fa-users mr-2"></i> Data Mahasiswa</a></li>
+        <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "EmailTemplate" ? "active" : "")" asp-area="Admin" asp-controller="EmailTemplate" asp-action="Index"><i class="fa-solid fa-envelope-open-text mr-2"></i> Format Konfirmasi</a></li>
+        <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "active" : "")" asp-area="Admin" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear mr-2"></i> Settings</a></li>
+    </ul>
+
+    <a asp-area="Admin" asp-controller="Login" asp-action="Logout" class="nav-link-custom nav-link-logout">
+        <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+    </a>
+</nav>
+
+<header class="topbar">
+    <div class="d-flex align-items-center">
+        <i class="fa-solid fa-bars-staggered mr-3 text-muted d-none d-md-block"></i>
+        <span class="font-weight-bold text-muted">Panel Administrator</span>
+    </div>
+
+    <div class="d-flex align-items-center">
+        <img src="~/images/logo-sinta.png" class="brand-logo-sinta mr-4">
+
+        <div class="dropdown">
+            <div class="notif-wrapper" id="notifBell" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa-solid fa-bell fa-lg"></i>
+                <span class="notif-badge" id="globalNotifBadge">0</span>
+            </div>
+            <div class="dropdown-menu dropdown-menu-right dropdown-notif-menu">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+                    <h6 class="mb-0 font-weight-bold small text-uppercase" style="letter-spacing: 1px;">Notifikasi Hari Ini</h6>
+                    <span class="badge badge-primary" id="notifCountText">0</span>
+                </div>
+                <div id="notifContainer" style="max-height: 400px; overflow-y: auto;">
+                    <div class="text-center py-4 text-muted small">Memuat data...</div>
+                </div>
+                <button type="button" class="dropdown-item text-center small text-primary font-weight-bold py-2 bg-light" data-toggle="modal" data-target="#modalNotifLengkap">
+                    Lihat Semua
+                </button>
+            </div>
+        </div>
+
+        <div class="text-right mr-3" style="border-left:1px solid #e2e8f0; padding-left:20px;">
+            <div class="small font-weight-bold">@adminNama</div>
+            <small class="text-success font-weight-bold">Online</small>
+        </div>
+
+        <div class="dropdown profile-dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" style="cursor: pointer;">
+                <img src="@avatarUrl" class="rounded-circle shadow-sm border" width="45">
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius:12px">
+                <a class="dropdown-item" asp-area="Admin" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-user-shield mr-2"></i> Profil</a>
+                <a class="dropdown-item text-danger" asp-area="Admin" asp-controller="Login" asp-action="Logout"><i class="fa-solid fa-power-off mr-2"></i> Keluar</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="container-fluid py-4">
+        @RenderBody()
+    </div>
+</main>
+
+<div class="modal fade" id="modalNotifLengkap" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md" role="document">
+        <div class="modal-content modal-content-bubble">
+            <div class="modal-header border-0 px-4 pt-4">
+                <h5 class="modal-title font-weight-bold">History Notifikasi</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body px-0 pt-2 pb-4">
+                <div id="modalListFull" style="max-height: 550px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function markAsRead(id, element) {
+        $.ajax({
+            url: '/Admin/Dashboard/MarkAsRead',
+            method: 'POST',
+            data: { id: id },
+            success: function(res) {
+                if(res.success) {
+                    fetchNotifications(); 
+                }
+            }
+        });
+    }
+
+    function formatTimeDisplay(dateString) {
+        const notifDate = new Date(dateString);
+        const today = new Date();
+        const isToday = notifDate.toDateString() === today.toDateString();
+        return isToday 
+            ? notifDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            : notifDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function fetchNotifications() {
+        $.ajax({
+            url: '/Admin/Dashboard/GetNotifications',
+            method: 'GET',
+            success: function(data) {
+                updateNotifUI(data);
+            }
+        });
+    }
+
+    function updateNotifUI(data) {
+        const container = $('#notifContainer');
+        const modalFull = $('#modalListFull');
+        const badge = $('#globalNotifBadge');
+        const countText = $('#notifCountText');
+
+        if (data && data.length > 0) {
+            // PERUBAHAN: Hanya hitung yang BELUM DIBACA (isRead === false)
+            const unreadCount = data.filter(x => x.isRead === false).length; 
+            
+            if (unreadCount > 0) {
+                badge.text(unreadCount).show();
+                countText.text(unreadCount);
+            } else {
+                badge.hide();
+                countText.text("0");
+            }
+
+            container.empty();
+            modalFull.empty();
+
+            data.forEach(item => {
+                let icon = item.type === 'new' ? 'fa-user-plus' : 'fa-hourglass-end';
+                let colorClass = item.type === 'new' ? 'bg-notif-blue' : 'bg-notif-red';
+                let actionText = item.type === 'new' ? 'baru saja mendaftar' : 'menyelesaikan magang hari ini';
+                
+                // PERUBAHAN: Tentukan kelas background berdasarkan status isRead
+                let statusClass = item.isRead ? 'notif-read' : 'notif-unread';
+                
+                let timeDisplay = formatTimeDisplay(item.rawDate);
+                let checkUrl = `/Admin/Mahasiswa/Index?highlightId=${item.id}`;
+                let msg = `<b>${item.nama}</b> ${actionText} di <b>${item.lokasi || 'Unit Kerja'}</b>.`;
+
+                let html = `
+                    <a href="${checkUrl}" class="notif-item ${statusClass}" onclick="markAsRead('${item.id}', this)">
+                        <div class="notif-icon-circle ${colorClass}"><i class="fa-solid ${icon}"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="small text-dark" style="line-height:1.4">${msg}</div>
+                            <small class="text-muted" style="font-size:10px"><i class="fa-regular fa-clock mr-1"></i>${timeDisplay}</small>
+                        </div>
+                    </a>`;
+
+                container.append(html);
+                modalFull.append(html);
+            });
+        } else {
+            badge.hide();
+            countText.text("0");
+            container.html('<div class="text-center py-4 text-muted small">Tidak ada aktivitas baru hari ini</div>');
+            modalFull.html('<div class="text-center py-4 text-muted small">Tidak ada riwayat untuk hari ini</div>');
+        }
+    }
+
+    $(document).ready(function() {
+        fetchNotifications();
+        setInterval(fetchNotifications, 30000); 
+    });
+</script>
+
+@RenderSection("Scripts", required: false)
+</body>
+</html>

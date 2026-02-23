@@ -1,0 +1,1226 @@
+@model sinta_asp.Models.Magang
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="~/js/Tooltip.js"></script>
+
+
+@{
+    ViewData["Title"] = "Data Diri - Program Magang Pertamina";
+}
+
+<style>
+    :root {
+        --pertamina-blue: #005EB8;
+        --pertamina-green: #00A859;
+        --pertamina-red: #E30613;
+        --pertamina-dark: #003B76;
+        --background-light: #F4F6F8;
+        --text-dark: #333333;
+        --text-light: #666666;
+        --border-color: #D1D5DB;
+        --shadow-light: rgba(0, 94, 184, 0.08);
+        --shadow-medium: rgba(0, 94, 184, 0.15);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+        position: relative;
+        overflow-x: hidden;
+        min-height: 100vh;
+        font-size: 14px;
+    }
+
+    body::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-image: 
+            radial-gradient(circle at 15% 50%, rgba(0, 94, 184, 0.03) 0%, transparent 20%),
+            radial-gradient(circle at 85% 30%, rgba(0, 168, 89, 0.03) 0%, transparent 20%),
+            radial-gradient(circle at 50% 80%, rgba(227, 6, 19, 0.02) 0%, transparent 20%);
+        z-index: -1;
+    }
+
+    /* ================= STEPPER ================= */
+    .step-wrapper {
+        background: white;
+        padding: 18px 0;
+        box-shadow: 0 2px 10px var(--shadow-light);
+        margin-bottom: 25px;
+    }
+
+    .step {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        max-width: 760px;
+        margin: auto;
+        padding: 0 20px;
+    }
+
+    .step::before {
+        content: "";
+        position: absolute;
+        top: 18px;
+        left: 15%;
+        right: 15%;
+        height: 2px;
+        background: var(--border-color);
+        z-index: 0;
+    }
+
+    .step-item {
+        text-align: center;
+        font-size: 12px;
+        color: var(--text-light);
+        width: 25%;
+        position: relative;
+        z-index: 1;
+        cursor: pointer;
+    }
+
+    .step-circle {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid var(--border-color);
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 8px;
+        font-weight: 700;
+        font-size: 13px;
+        box-shadow: 0 2px 6px var(--shadow-light);
+    }
+
+    .error-dot {
+        position: absolute;
+        top: -6px;
+        right: 26%;
+        background: var(--pertamina-red);
+        color: white;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: bold;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid white;
+        z-index: 5;
+    }
+
+    .step-active {
+        color: var(--pertamina-red);
+        font-weight: 600;
+    }
+
+    .step-active .step-circle {
+        background: var(--pertamina-red);
+        color: white;
+        border-color: var(--pertamina-red);
+        transform: scale(1.1);
+    }
+
+    /* ================= CARD ================= */
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px var(--shadow-medium);
+        background: white;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 4px;
+        background: linear-gradient(90deg, var(--pertamina-blue), var(--pertamina-green), var(--pertamina-red));
+    }
+
+    .card-body {
+        padding: 24px !important;
+    }
+
+    /* ================= UPLOAD FOTO ================= */
+    .upload-box {
+        border: 2px dashed var(--pertamina-blue);
+        border-radius: 14px;
+        width: 180px;
+        height: 230px;
+        margin: 0 auto 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background: #f9fbfd;
+        overflow: hidden;
+    }
+
+    .upload-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* ================= FORM ================= */
+    .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
+
+    .form-control {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1.8px solid var(--border-color);
+        font-size: 13px;
+    }
+
+    /* ================= BUTTON ================= */
+    .btn-custom {
+        padding: 10px 26px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-back {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-next {
+        background: var(--pertamina-blue);
+        color: white;
+    }
+
+    /* ===== STEP VISIBILITY FIX ===== */
+    .step-content {
+        display: none;
+    }
+
+    .step-content.active {
+        display: block;
+    }
+
+   /* ================= TOOLTIP HOVER ================= */
+    .lokasi-tooltip {
+        position: fixed; /* WAJIB: Agar bisa muncul di atas dropdown yang melayang */
+        background: linear-gradient(135deg, #2c3e50, #1a1a2e);
+        color: #fff;
+        padding: 14px;
+        border-radius: 10px;
+        font-size: 12px;
+        width: 280px;
+        z-index: 99999; /* Sangat tinggi */
+        display: none;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        border-left: 5px solid var(--pertamina-red);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .lokasi-tooltip.show {
+        display: block;
+        opacity: 1;
+    }
+
+    .lokasi-tooltip h6 {
+        font-size: 13px;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: #fff;
+    }
+
+    .lokasi-tooltip p {
+        margin-bottom: 0;
+        line-height: 1.5;
+        color: #e0e0e0;
+    }
+
+    .lokasi-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: -10px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: transparent var(--pertamina-red) transparent transparent;
+    }
+
+    /* ================= MODAL KONFIRMASI ================= */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .modal-overlay.show {
+        display: flex;
+    }
+
+    .modal-box {
+        background: white;
+        border-radius: 14px;
+        padding: 28px 24px;
+        max-width: 420px;
+        width: 100%;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        text-align: center;
+        animation: scaleIn 0.25s ease;
+    }
+
+    @@keyframes scaleIn {
+        from {
+            transform: scale(0.9);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .modal-icon {
+        font-size: 42px;
+        color: var(--pertamina-blue);
+        margin-bottom: 12px;
+    }
+
+    .modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .modal-text {
+        font-size: 13px;
+        color: var(--text-light);
+        margin-bottom: 22px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .modal-btn {
+        padding: 8px 18px;
+        border-radius: 6px;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .modal-btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+
+    .modal-btn-confirm {
+        background: var(--pertamina-green);
+        color: white;
+    }
+
+    /* Gaya untuk pesan error di bawah input */
+    .error-message {
+        color: var(--pertamina-red);
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: 4px;
+        display: none; /* Sembunyi secara default */
+        align-items: center;
+        gap: 4px;
+    }
+
+    .is-invalid {
+        border-color: var(--pertamina-red) !important;
+    }
+
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    #error-final {
+        animation: shake 0.3s ease-in-out;
+        background-color: rgba(227, 6, 19, 0.05); /* Merah tipis transparan */
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--pertamina-red);
+    }
+
+    /* Container untuk mengatur posisi tombol di kanan */
+    .header-action-container {
+        display: flex;
+        justify-content: flex-end; /* Memindah tombol ke sisi kanan */
+        margin-bottom: 20px;
+    }
+
+    .btn-sinta-back {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 24px;
+        background-color: var(--pertamina-blue); /* Biru Pertamina sesuai :root kamu */
+        color: #ffffff !important;
+        border-radius: 50px; /* Membuat bentuk kapsul sempurna */
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 94, 184, 0.2);
+        border: none;
+    }
+
+    .btn-sinta-back i {
+        margin-right: 10px;
+        font-size: 12px;
+    }
+
+    .btn-sinta-back:hover {
+        background-color: var(--pertamina-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 94, 184, 0.3);
+        color: #ffffff;
+    }
+
+    /* Biar gak tabrakan sama elemen lain di mobile */
+    @@media (max-width: 768px) {
+        .btn-sinta-back {
+            padding: 6px 18px;
+            font-size: 13px;
+        }
+    }
+</style>
+
+<div class="step-wrapper">
+    <div class="step">
+        <div class="step-item step-active" onclick="showStep(1)" id="step-tab-1">
+            <div class="error-dot" id="dot-1">!</div>
+            <div class="step-circle">1</div>
+            <div>Data Diri</div>
+        </div>
+        <div class="step-item" onclick="showStep(2)" id="step-tab-2">
+            <div class="error-dot" id="dot-2">!</div>
+            <div class="step-circle">2</div>
+            <div>Data Kampus</div>
+        </div>
+        <div class="step-item" onclick="showStep(3)" id="step-tab-3">
+            <div class="error-dot" id="dot-3">!</div>
+            <div class="step-circle">3</div>
+            <div>Data Magang</div>
+        </div>
+        <div class="step-item" onclick="showStep(4)" id="step-tab-4">
+            <div class="error-dot" id="dot-4">!</div>
+            <div class="step-circle">4</div>
+            <div>File Pendukung</div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-3" style="max-width: 700px;">
+    <div class="d-flex justify-content-between mb-3">
+        <a href="javascript:history.back()" class="btn-sinta-back">
+            <i class="fas fa-chevron-left"></i> Back
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+
+            <form id="formMagang" asp-action="Store" asp-controller="PendaftaranMagang" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+            <!-- ================= STEP 1 ================= -->
+            <div id="content-1" class="step-content active">
+                <h5><i class="fas fa-user-circle"></i> Data Diri Peserta</h5>
+
+                <div class="mb-3 text-center">
+                    <input type="file" id="foto" name="Foto" hidden accept="image/*">
+                    <label for="foto" style="cursor: pointer;">
+                        <div class="upload-box" id="uploadBox">
+                            <img id="preview" style="display: none;">
+                            <div class="upload-placeholder" id="placeholder">
+                                <i class="fas fa-camera fa-3x mb-2 text-primary"></i><br>
+                                <strong>Upload Foto</strong><br>
+                                <small>Pas Foto (Max 2MB)</small>
+                            </div>
+                        </div>
+                    </label>
+                    <div id="error-foto" class="error-message justify-content-center">
+                        <i class="fas fa-exclamation-circle"></i> Ukuran foto maksimal 2MB!
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="nama" name="NamaLengkap" placeholder="Masukkan nama lengkap">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label>Email</label>
+                        <input type="email" class="form-control" value="@Model.EmailPribadi" readonly />
+                        <input type="hidden" name="EmailPribadi" value="@Model.EmailPribadi" />
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="tempat_lahir" name="TempatLahir" placeholder="Masukkan tempat lahir">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control wajib" id="tanggal_lahir" name="TanggalLahir">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">No HP <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control wajib" id="no_hp" name="NoHp" placeholder="Contoh: 08123456789" maxlength="13"
+                            oninput="validatePhone(this)" pattern="^08[0-9]{7,11}$">
+                        <div id="hp-error" class="error-message">Nomor harus diawali 08 dan maksimal 13 digit.</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Instagram <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="instagram" name="Instagram" placeholder="Masukkan username Instagram">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn-custom btn-next" onclick="showStep(2)">Selanjutnya</button>
+                </div>
+            </div>
+
+            <!-- ================= STEP 2 ================= -->
+            <div id="content-2" class="step-content">
+                <h5><i class="fas fa-university"></i> Data Kampus</h5>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Nama Perguruan Tinggi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="perguruan_tinggi" name="NamaPerguruanTinggi" placeholder="Masukkan nama perguruan tinggi">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Fakultas <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="fakultas" name="Fakultas" placeholder="Masukkan fakultas">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Jurusan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="jurusan" name="Jurusan" placeholder="Masukkan jurusan">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">NIM <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control wajib" id="nim" name="NIM" placeholder="Masukkan NIM">
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn-custom btn-back" onclick="showStep(1)">Kembali</button>
+                    <button type="button" class="btn-custom btn-next" onclick="showStep(3)">Selanjutnya</button>
+                </div>
+            </div>
+
+            <!-- ================= STEP 3 ================= -->
+            <div id="content-3" class="step-content">
+                <h5><i class="fas fa-briefcase"></i> Data Magang</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">Company <span class="text-danger">*</span></label>
+                    <select class="form-select form-control wajib" id="company" name="Company">
+                        <option value="">Pilih Company</option>
+                        <option value="KPI">PT Kilang Pertamina Internasional</option>
+                        <option value="PPN">PT Pertamina Patra Niaga</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Region<span class="text-danger">*</span></label>
+                    <select class="form-select form-control wajib" id="region" name="Region">
+                        <option value="">Pilih Region</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Lokasi<span class="text-danger">*</span></label>
+                    <select class="form-select form-control wajib" id="lokasi" name="Lokasi">
+                        <option value="">Pilih Lokasi</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Rekomendasi Pegawai</label>
+                    <input type="text" class="form-control" id="rekomendasi" name="RekomendasiPegawai" placeholder="Nama Pegawai (fungsi)">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Mulai Magang <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control wajib" id="tanggal_mulai" name="MulaiMagang">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Selesai Magang <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="SelesaiMagang" name="SelesaiMagang">
+                        <div id="error-selesai" class="text-danger" style="display:none; font-size: 12px; margin-top: 5px;">
+                            Tanggal tidak valid!
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn-custom btn-back" onclick="showStep(2)">Kembali</button>
+                    <button type="button" class="btn-custom btn-next" onclick="showStep(4)">Selanjutnya</button>
+                </div>
+            </div>
+
+            <!-- ================= STEP 4 ================= -->
+            <div id="content-4" class="step-content">
+                <h5><i class="fas fa-file-alt"></i> File Pendukung</h5>
+
+                <div class="mb-3">
+                    <label class="form-label">CV <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control wajib" id="file_cv" name="FileCV" accept=".pdf">
+                    <div id="error-file_cv" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> Ukuran file maksimal 5MB!
+                    </div>
+                    <small class="text-muted">Format PDF, maksimal 5MB.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Surat Pengantar <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control wajib" id="file_surat_pengantar" name="FileSuratPengantar" accept=".pdf">
+                    <div id="error-file_surat_pengantar" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> Ukuran file maksimal 5MB!
+                    </div>
+                    <small class="text-muted">Format PDF, maksimal 5MB.</small>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Proposal <span class="text-danger">*</span></label>
+                    <input type="file" class="form-control wajib" id="file_transkrip" name="FileProposal" accept=".pdf">
+                    <div id="error-file_transkrip" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i> Ukuran file maksimal 5MB!
+                    </div>
+                    <small class="text-muted">Format PDF, maksimal 5MB.</small>
+                </div>
+
+                <div id="error-final" class="error-message justify-content-center mb-3" style="font-size: 14px;">
+                    <i class="fas fa-exclamation-triangle"></i> Mohon lengkapi semua data yang wajib diisi (cek tanda seru merah di atas)!
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn-custom btn-back" onclick="showStep(3)">Kembali</button>
+                    <button type="button" class="btn-custom btn-next"
+                            style="background:var(--pertamina-green)"
+                            onclick="simpanSemua()">
+                        Simpan Data
+                    </button>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi -->
+<div class="modal-overlay" id="modalKonfirmasi">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <i class="fas fa-question-circle"></i>
+        </div>
+        <div class="modal-title">Konfirmasi Pengiriman Data</div>
+        <div class="modal-text">
+            Apakah Anda yakin data yang Anda isi sudah benar dan siap untuk dikirim?
+            Pastikan semua informasi sudah sesuai sebelum melanjutkan.
+        </div>
+        <div class="modal-buttons">
+            <button type="button"
+                    class="modal-btn modal-btn-cancel"
+                    onclick="tutupModal()">
+                Tidak
+            </button>
+
+            <button type="button"
+                    class="modal-btn modal-btn-confirm"
+                    onclick="konfirmasiKirim()">
+                Ya, Kirim Data
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tooltip diletakkan di sini, di luar container -->
+<div id="tooltipHover" class="lokasi-tooltip">
+    <h6 id="tooltipHoverTitle">Tentang Posisi</h6>
+    <p id="tooltipHoverDesc"></p>
+</div>
+
+@section Scripts {
+<script>
+    let fotoTerisi = false;
+    
+    const dataKPI = {
+        "Refinery Unit VI Balongan": [
+            "Akuntansi / Ekonomi & Bisnis",
+            "Elektro (Arus Kuat)",
+            "Elektro (Arus Lemah)",
+            "Emergency & Insurance",
+            "Health",
+            "Hukum",
+            "Ilmu Komunikasi / FISIP / Administrasi Publik",
+            "Internal Audit",
+            "Kelautan / Perkapalan",
+            "Kimia Murni / MIPA",
+            "Konversi Energi / Migas / Kimia Air Bersih / Blanding / Loading",
+            "Logistik / Pergudangan / Procurement",
+            "Manajemen / SDM / Psikologi",
+            "Metalurgi / Material / Dirgantara",
+            "Safety (K3) / SMK3",
+            "Teknik Fisika",
+            "Teknik Industri",
+            "Teknik Informatika",
+            "Teknik Kimia",
+            "Teknik Lingkungan",
+            "Teknik Mesin",
+            "Teknik Mesin (Rotating)",
+            "Teknik Sipil"
+        ]};
+
+        const dataPPN = {
+        "Regional Jatimbalinus": [
+            "Asset Operation MOR V","Bitumen Plant Gresik","C&T IA Jatimbalinus","Comm, Rel, & CSR MOR V",
+            "Corporate Operation & Service Region V","Corporate Sales Region V","DPPU BIL","DPPU Eltari Group",
+            "DPPU Iswahyudi","DPPU Juanda","DPPU Ngurah Rai","Finance MOR V","Fuel Terminal Atapupu",
+            "Fuel Terminal Badas","Fuel Terminal Bima","Fuel Terminal Camplong","Fuel Terminal Ende",
+            "Fuel Terminal Kalabahi","Fuel Terminal Madiun","Fuel Terminal Malang","Fuel Terminal Maumere",
+            "Fuel Terminal Reo","Fuel Terminal Sanggaran","Fuel Terminal Tenau","Fuel Terminal Tuban",
+            "Fuel Terminal Waingapu","HC Jatimbalinus","HSSE Region V","Integrated Terminal Ampenan",
+            "Integrated Terminal Manggis","Integrated Terminal Surabaya","Integrated Terminal T. Wangi",
+            "Legal Counsel Regional Jatimbalinus","Marine Region V","Medical Jatimbalinus",
+            "Procurement MOR V","Rel & Project Dev Region V","Retail Bali","Retail Kediri",
+            "Retail Malang","Retail NTB","Retail NTT","Retail Sales Region V","Retail Surabaya",
+            "S&D Region V","SSC ICT VI Jatimbalinus","XXX"
+        ],
+        "Regional Jawa Bagian Barat": [
+            "Asset Operation JBB","Corp. Opt & Serv JBB","Corporate Sales JBB","DPPU Halim PK Group",
+            "DPPU Husein Sastranegara","DPPU Kertajati","Finance JBB","Fuel Terminal Bandung Group",
+            "Fuel Terminal Cikampek","Fuel Terminal Tasikmalaya","Fuel Terminal Tg Gerem","HSSE JBB",
+            "Human Capital","Integrated Terminal Balongan","Integrated Terminal Jakarta","Legal Counsel JBB",
+            "Medical JBB","MWH & LPG Cylinder","Procurement JBB","Reliability & Project Dev JBB",
+            "SA Retail Bandung","SA Retail Cirebon","SA Retail Karawang","SA Retail Sukabumi",
+            "SAM Retail Banten","SAM Retail Jabode","SHAFTHI","SHIPS","SCC ICT JBB",
+            "Supply & Distribution JBB","Unit Comm, Rel & CSR JBB"
+        ],
+        "Regional Jawa Bagian Tengah": [
+            "AFT Adi Sumarmo","AFT Adi Sucipto","AFT Ahmad Yani","AFT YIA",
+            "Fuel Terminal Boyolali","Fuel Terminal Lomanis","Fuel Terminal Maos",
+            "Fuel Terminal Rewulu","Fuel Terminal Tegal","Integrated Terminal Cilacap",
+            "Integrated Terminal Semarang","Kantor Branch Marketing DIY & Surakarta",
+            "Kantor Unit - Asset Operation JBT","Kantor Unit - Comm, Rel & CSR JBT",
+            "Kantor Unit - Corp Operation & Serv JBT","Kantor Unit - Corporate Sales JBT",
+            "Kantor Unit - Finance JBT","Kantor Unit - HC JBT","Kantor Unit - HSSE JBT",
+            "Kantor Unit - Internal Audit","Kantor Unit - Legal Counsel JBT",
+            "Kantor Unit - Medical JBT","Kantor Unit - Operational Risk JBT",
+            "Kantor Unit - Procurement JBT","Kantor Unit - Rel & Project Dev JBT",
+            "Kantor Unit - Retail Sales JBT","Kantor Unit - SSC ICT V JBT",
+            "Kantor Unit - Supply & Distribution JBT"
+        ],
+        "Regional Kalimantan": [
+            "DPPU APT Pranoto","DPPU H. Asan","DPPU Iskandar","DPPU Juwata",
+            "DPPU Kalimaru","DPPU Sepinggan","DPPU Supadio","DPPU Syamsudin Noor",
+            "DPPU Tjilik Riwut","Fuel Terminal Pulang Pisau","Fuel Terminal Kotabaru",
+            "Fuel Terminal Pangkalan Bun","Fuel Terminal Samarinda","Fuel Terminal Sampit",
+            "Fuel Terminal Sintang","Fuel Terminal Tarakan","Integrated Terminal Balikpapan",
+            "Integrated Terminal Banjarmasin","Integrated Terminal Pontianak",
+            "Kantor Patra Niaga Region Kalimantan","SAM Retail Kalbar","SAM Retail Kalselteng",
+            "SAM Retail Kaltimut"
+        ],
+        "Regional Maluku Papua": [
+            "Aviation FT Babullah","Aviation FT Deo","Aviation FT Depati Mopah",
+            "Aviation FT Depati Rendani","Aviation FT Dumatubun","Aviation FT Frans Kaisiepo",
+            "Aviation FT Mathilda","Aviation FT Mozes Kilangin","Aviation FT Paniai",
+            "Aviation FT Pattimura","Aviation FT Sentani","Aviation FT Utarom",
+            "FT Biak","FT Bula","FT Dobo","FT Fak-Fak","FT Kaimana","FT Labuha",
+            "FT Manokwari","FT Masohi","FT Merauke","FT Nabire","FT Namlea",
+            "FT Sanana","FT Saumlaki","FT Serui","FT Sorong","FT Ternate",
+            "FT Tobelo","FT Tual","IT Jayapura","IT Wayame",
+            "Kantor Region - Asset Operation Papua-Maluku",
+            "Kantor Region - Comm, Rel & CSR Papua-Maluku",
+            "Kantor Region - Corp Operation & Serv Papua-Maluku",
+            "Kantor Region - Corporate Sales Papua-Maluku",
+            "Kantor Region - Finance Papua-Maluku",
+            "Kantor Region - HC Papua-Maluku",
+            "Kantor Region - HSSE Papua-Maluku",
+            "Kantor Region - Legal Counsel Papua-Maluku",
+            "Kantor Region - Medical Papua-Maluku",
+            "Kantor Region - Procurement Papua-Maluku",
+            "Kantor Region - Rel & Project Dev Papua-Maluku",
+            "Kantor Region - Retail Sales Papua-Maluku",
+            "Kantor Region - Supply & Dist Papua-Maluku",
+            "Sales Area Ambon"
+        ],
+        "Regional Sumbagut": [
+            "Asset Operation Region Sumbagut","Branch Marketing Aceh",
+            "Branch Marketing Kepulauan Riau","Branch Marketing Sibolga",
+            "Branch Marketing Sumbar","Communication & CSR Region Sumbagut",
+            "Corp Operation & Serv Region Sumbagut","Corporate Sales Region Sumbagut",
+            "DPPU Hang Nadim Group","DPPU Kualanamu Group","DPPU Minangkabau",
+            "DPPU SIM","DPPU SSK II","Finance Region Sumbagut",
+            "Fuel Terminal Batam","Fuel Terminal Gunung Sitoli",
+            "Fuel Terminal Kijang Group","Fuel Terminal Kisaran",
+            "Fuel Terminal Krueng Raya","Fuel Terminal Medan Group",
+            "Fuel Terminal Meulaboh","Fuel Terminal Natuna Group",
+            "Fuel Terminal Pematang Siantar","Fuel Terminal Sabang",
+            "Fuel Terminal Sei Siak","Fuel Terminal Sibolga",
+            "Fuel Terminal Simeulue","Fuel Terminal Tembilahan",
+            "HC Region Sumbagut","HSSE Region Sumbagut",
+            "IA Region I","Integrated Terminal Dumai",
+            "Integrated Terminal Lhokseumawe","Integrated Terminal Tanjung Uban",
+            "Integrated Terminal Teluk Kabung","Legal Counsel Region Sumbagut",
+            "Medical Region Sumbagut","Procurement Region Sumbagut",
+            "Rel & Project Dev Region Sumbagut",
+            "Retail Sales Region Sumbagut",
+            "SSC ICT I Region Sumbagut",
+            "Supply & Distribution Region Sumbagut"
+        ]};
+
+    document.getElementById('company').addEventListener('change', function () {
+        const regionSelect = document.getElementById('region');
+        const lokasiSelect = document.getElementById('lokasi');
+        regionSelect.innerHTML = '<option value="">Pilih Region</option>';
+        lokasiSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+        let regions = [];
+        if (this.value === 'KPI') {
+            regions = Object.keys(dataKPI);
+        } else if (this.value === 'PPN') {
+            regions = Object.keys(dataPPN);
+        }
+        regions.forEach(region => {
+            const option = document.createElement('option');
+            option.value = region;
+            option.textContent = region;
+            regionSelect.appendChild(option);
+        });
+    });
+
+    document.getElementById('region').addEventListener('change', function () {
+        const lokasiSelect = document.getElementById('lokasi');     
+        lokasiSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+        let lokasiList = [];
+        const company = document.getElementById('company').value;
+        if (company === 'KPI' && dataKPI[this.value]) {
+            lokasiList = dataKPI[this.value];
+        } else if (company === 'PPN' && dataPPN[this.value]) {
+            lokasiList = dataPPN[this.value];
+        }
+        lokasiList.forEach(lokasi => {
+            const option = document.createElement('option');
+            option.value = lokasi;
+            option.textContent = lokasi;
+            lokasiSelect.appendChild(option);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Di dalam DOMContentLoaded:
+        loadDraft(); // Jalankan fungsi load data saat halaman siap
+
+        // Pasang event listener ke semua input agar otomatis save saat diisi
+        const allInputs = document.querySelectorAll('input, select, textarea');
+        allInputs.forEach(input => {
+            input.addEventListener('input', saveDraft);
+            input.addEventListener('change', saveDraft);
+        });
+
+        /* ===============================
+        ENTER KEY NAVIGATION (KODE KAMU)
+        =============================== */
+        const form = document.getElementById('formMagang');
+        if (!form) return;
+
+        form.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+
+                // Textarea tetap boleh enter
+                if (e.target.tagName.toLowerCase() === 'textarea') return;
+
+                e.preventDefault();
+
+                const currentStepElement = document.querySelector('.step-content.active');
+                if (!currentStepElement) return;
+
+                const focusableElements = currentStepElement.querySelectorAll(
+                    'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button.btn-next'
+                );
+
+                const index = Array.from(focusableElements).indexOf(e.target);
+
+                if (index > -1) {
+                    const nextElement = focusableElements[index + 1];
+
+                    if (nextElement) {
+                        nextElement.focus();
+                    } else {
+                        const nextBtn = currentStepElement.querySelector('.btn-next');
+                        if (nextBtn) nextBtn.click();
+                    }
+                }
+            }
+        });
+    });
+
+    function validateEmail(input) {
+        const emailError = document.getElementById('email-error');
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if (input.value === "") {
+            // Jika kosong, hilangkan merah (karena nanti divalidasi oleh class 'wajib')
+            input.classList.remove('is-invalid');
+            emailError.style.display = 'none';
+        } else if (!emailPattern.test(input.value)) {
+            // Jika format salah, kasih merah
+            input.classList.add('is-invalid');
+            emailError.style.display = 'flex';
+        } else {
+            // Jika sudah benar, bersihkan merah
+            input.classList.remove('is-invalid');
+            emailError.style.display = 'none';
+        }
+    }
+
+    // ========== VALIDASI TANGGAL REAL-TIME ==========
+    function validasiPeriodeMagang() {
+        const tglMulai = document.getElementById('tanggal_mulai');
+        const tglSelesai = document.getElementById('SelesaiMagang');
+        const errorMsg = document.getElementById('error-selesai');
+
+        if (tglMulai.value && tglSelesai.value) {
+            const mulai = new Date(tglMulai.value);
+            const selesai = new Date(tglSelesai.value);
+
+            if (selesai <= mulai) {
+                // 1. Tambahkan border merah pada input
+                tglSelesai.style.borderColor = "#dc3545"; 
+                tglSelesai.classList.add('is-invalid');
+
+                // 2. Munculkan pesan teks di bawahnya
+                errorMsg.style.display = 'block';
+            } else {
+                // Kembalikan ke normal jika sudah benar
+                tglSelesai.style.borderColor = "#dee2e6";
+                tglSelesai.classList.remove('is-invalid');
+                errorMsg.style.display = 'none';
+            }
+        }
+        
+        // Update status kelengkapan data (stepper)
+        if (typeof cekDataLengkap === "function") {
+            cekDataLengkap();
+        }
+    }
+
+    // Pasang listener pada kedua input tanggal
+    document.getElementById('tanggal_mulai')?.addEventListener('change', validasiPeriodeMagang);
+    document.getElementById('SelesaiMagang')?.addEventListener('change', validasiPeriodeMagang);
+
+
+    // Preview Foto dengan Validasi In-Page
+    document.getElementById('foto').addEventListener('change', function () {
+        const file = this.files[0];
+        const errorMsg = document.getElementById('error-foto');
+        const uploadBox = document.getElementById('uploadBox');
+        const prev = document.getElementById('preview');
+        const place = document.getElementById('placeholder');
+
+        if (file) {
+            // Jika ukuran lebih dari 2MB
+            if (file.size > 2 * 1024 * 1024) {
+                // Tampilkan error di page
+                errorMsg.style.display = 'flex';
+                uploadBox.classList.add('is-invalid');
+                
+                // Reset input dan preview
+                this.value = '';
+                prev.style.display = 'none';
+                place.style.display = 'block';
+                fotoTerisi = false;
+            } else {
+                // Jika valid, sembunyikan error
+                errorMsg.style.display = 'none';
+                uploadBox.classList.remove('is-invalid');
+
+                const reader = new FileReader();
+                reader.onload = e => {
+                    prev.src = e.target.result;
+                    prev.style.display = 'block';
+                    place.style.display = 'none';
+                    fotoTerisi = true;
+                    if (typeof cekDataLengkap === "function") cekDataLengkap();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+
+    // Validasi File PDF dengan pesan error di page (Tanpa Alert)
+    const fileInputs = ['file_cv', 'file_surat_pengantar', 'file_transkrip'];
+
+    fileInputs.forEach(id => {
+        const input = document.getElementById(id);
+        const errorMsg = document.getElementById('error-' + id);
+
+        if (input) {
+            input.addEventListener('change', function() {
+                const file = this.files[0];
+                const maxMB = 5;
+                const maxSize = maxMB * 1024 * 1024; // 5MB
+
+                if (file && file.size > maxSize) {
+                    // Tampilkan gaya error merah (sama seperti foto)
+                    errorMsg.style.display = 'flex';
+                    this.classList.add('is-invalid');
+                    
+                    // Reset input
+                    this.value = '';
+                } else {
+                    // Sembunyikan error jika file aman
+                    errorMsg.style.display = 'none';
+                    this.classList.remove('is-invalid');
+                }
+                // Update titik merah di stepper
+                cekDataLengkap();
+            });
+        }
+    });
+    
+    function showStep(n) {
+        document.querySelectorAll('.step-item').forEach(item => item.classList.remove('step-active'));
+        document.getElementById('step-tab-' + n).classList.add('step-active');
+
+        document.querySelectorAll('.step-content').forEach(content => content.classList.remove('active'));
+        document.getElementById('content-' + n).classList.add('active');
+
+        window.scrollTo(0,0);
+        cekDataLengkap();
+    }
+
+    function cekDataLengkap() {
+        for (let i = 1; i <= 4; i++) {
+            const container = document.getElementById('content-' + i);
+            const inputs = container.querySelectorAll('.wajib');
+            let kosong = false;
+
+            inputs.forEach(input => {
+                if (input.type === 'file') {
+                    if (input.files.length === 0) kosong = true;
+                } else {
+                    if (!input.value.trim()) kosong = true;
+                }
+            });
+
+            // Khusus step 1 tambah cek foto
+            if (i === 1 && !fotoTerisi) kosong = true;
+
+            document.getElementById('dot-' + i).style.display = kosong ? 'flex' : 'none';
+        }
+    }
+
+    // Listener Real-time
+    document.querySelectorAll('.wajib').forEach(input => {
+        input.addEventListener('input', cekDataLengkap);
+        input.addEventListener('change', cekDataLengkap);
+    });
+
+    function simpanSemua() {
+        // 1. Jalankan pengecekan ulang untuk memastikan semua dot merah terupdate
+        cekDataLengkap();
+
+        let semuaLengkap = true;
+        const errorFinal = document.getElementById('error-final');
+
+        // 2. Cek apakah masih ada dot merah di stepper (1-4)
+        for (let i = 1; i <= 4; i++) {
+            const dot = document.getElementById('dot-' + i);
+            if (dot && dot.style.display === 'flex') {
+                semuaLengkap = false;
+                break;
+            }
+        }
+
+        // 3. Logika tampilan tanpa alert
+        if (!semuaLengkap) {
+            // Munculkan pesan error di halaman
+            errorFinal.style.display = 'flex';
+            
+            // Scroll halus ke arah pesan error agar user melihatnya
+            errorFinal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Opsional: Hilangkan pesan secara otomatis setelah 5 detik
+            setTimeout(() => {
+                errorFinal.style.display = 'none';
+            }, 5000);
+
+            return; // Berhenti di sini, jangan lanjut ke modal
+        }
+
+        // 4. Jika sudah lengkap, sembunyikan error (jika ada) dan buka modal konfirmasi
+        errorFinal.style.display = 'none';
+        document.getElementById('modalKonfirmasi').classList.add('show');
+    }
+
+    function tutupModal() {
+        document.getElementById('modalKonfirmasi').classList.remove('show');
+    }
+
+    let submitting = false;
+
+    function konfirmasiKirim() {
+        if (submitting) return;
+        submitting = true;
+
+        clearDraft();
+        tutupModal();
+
+        const form = document.getElementById('formMagang');
+        form.submit();
+
+        setTimeout(() => {
+            window.location.href = "/PendaftaranMagang/Sukses";
+        }, 700);
+    }
+
+    // Jalankan ini di halaman DataMagang.cshtml setiap kali input diisi
+    function updateSavedProgress() {
+        const inputs = document.querySelectorAll('.profile-input');
+        const filled = Array.from(inputs).filter(i => i.value.trim() !== "").length;
+        const percent = Math.round((filled / inputs.length) * 100);
+        
+        // Simpan ke storage agar bisa dibaca halaman Dashboard
+        localStorage.setItem('profile_completion', percent);
+    }
+
+    $(document).ready(function() {
+        $('#no_hp').on('input', function() {
+            // 1. Ambil nilai dan buang karakter non-angka
+            let value = $(this).val().replace(/\D/g, '');
+            $(this).val(value); // Update field hanya dengan angka
+
+            const errorMsg = $('#hp-error');
+            
+            // 2. Validasi: Jika sudah mulai mengetik, cek apakah diawali 08
+            if (value.length >= 2) {
+                if (value.substring(0, 2) !== '08') {
+                    $(this).addClass('is-invalid');
+                    errorMsg.css('display', 'flex').text('Nomor HP harus diawali dengan 08');
+                } else if (value.length < 10) {
+                    $(this).addClass('is-invalid');
+                    errorMsg.css('display', 'flex').text('Nomor HP minimal 10 digit');
+                } else {
+                    $(this).removeClass('is-invalid');
+                    errorMsg.hide();
+                }
+            } else if (value.length > 0 && value[0] !== '0') {
+                // Cek digit pertama harus 0
+                $(this).addClass('is-invalid');
+                errorMsg.css('display', 'flex').text('Nomor HP harus diawali dengan 08');
+            } else {
+                // Jika kosong atau baru 1 digit benar (angka 0)
+                $(this).removeClass('is-invalid');
+                errorMsg.hide();
+            }
+        });
+    });
+
+    // --- SISTEM DRAFT GOOGLE FORM STYLE ---
+
+    // 1. Fungsi untuk menyimpan semua input ke localStorage
+    function saveDraft() {
+        const formData = {};
+        const inputs = document.querySelectorAll('input, select, textarea');
+        
+        inputs.forEach(input => {
+            if (input.id) {
+                if (input.type === 'file') {
+                    // Kita tidak bisa simpan filenya, tapi kita simpan statusnya
+                    // agar sistem tahu user sudah pernah upload
+                    formData[input.id + "_status"] = input.files.length > 0 ? "uploaded" : "empty";
+                } else {
+                    formData[input.id] = input.value;
+                }
+            }
+        });
+
+        localStorage.setItem('form_magang_draft', JSON.stringify(formData));
+    }
+
+    // 2. Fungsi untuk memuat data saat halaman dibuka kembali
+    function loadDraft() {
+        const savedData = localStorage.getItem('form_magang_draft');
+        if (!savedData) return;
+
+        const formData = JSON.parse(savedData);
+
+        // 1. Isi Company dulu
+        if (formData['company']) {
+            const comp = document.getElementById('company');
+            comp.value = formData['company'];
+            comp.dispatchEvent(new Event('change'));
+
+            // 2. Tunggu sebentar sampai Region terisi, lalu isi Region
+            setTimeout(() => {
+                if (formData['region']) {
+                    const reg = document.getElementById('region');
+                    reg.value = formData['region'];
+                    reg.dispatchEvent(new Event('change'));
+
+                    // 3. Tunggu lagi sampai Lokasi terisi, lalu isi Lokasi
+                    setTimeout(() => {
+                        if (formData['lokasi']) {
+                            const lok = document.getElementById('lokasi');
+                            $(lok).val(formData['lokasi']).trigger('change'); // Pakai trigger Select2
+                        }
+                        cekDataLengkap();
+                    }, 300);
+                }
+            }, 300);
+        }
+        
+        // 4. Isi field lainnya (Nama, Email, HP, dsb)
+        Object.keys(formData).forEach(id => {
+            if (id !== 'company' && id !== 'region' && id !== 'lokasi') {
+                const el = document.getElementById(id);
+                if (el) el.value = formData[id];
+            }
+        });
+    }
+
+    // 3. Fungsi menghapus draft setelah sukses submit
+    function clearDraft() {
+        localStorage.removeItem('form_magang_draft');
+    }
+
+    window.onload = cekDataLengkap;
+</script>
+}
