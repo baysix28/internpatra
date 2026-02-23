@@ -1,0 +1,234 @@
+@{
+    ViewData["Title"] = "Monitoring Status Pendaftaran - SINTA";
+}
+
+<style>
+    :root {
+        --pertamina-blue: #005EB8;
+        --pertamina-green: #00A859;
+        --pertamina-red: #E30613;
+        --pertamina-dark: #003B76;
+        --shadow-medium: rgba(0, 94, 184, 0.15);
+    }
+
+    /* HEADER LEBIH PENDEK */
+    .header-status {
+        background: linear-gradient(135deg, var(--pertamina-blue) 0%, var(--pertamina-dark) 100%);
+        color: white;
+        padding: 22px 0 30px 0;
+        text-align: center;
+    }
+
+    .header-status h2 {
+        font-weight: 700;
+        font-size: 26px;
+        margin-bottom: 2px;
+    }
+
+    .header-status p {
+        font-size: 12px;
+        margin-bottom: 0;
+        opacity: 0.9;
+    }
+
+    /* SEARCH CONTAINER NAIK */
+    .search-container {
+        margin-top: 20px;
+        margin-bottom: 15px;
+    }
+
+    .status-card {
+        background: white;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 6px 18px var(--shadow-medium);
+        border-top: 4px solid var(--pertamina-green);
+    }
+
+    /* INPUT SEARCH LEBIH RINGKAS */
+    .input-group-custom {
+        display: flex;
+        background: #f8fbff;
+        border: 1.5px solid #e1e8f0;
+        border-radius: 35px;
+        padding: 3px 3px 3px 16px;
+        align-items: center;
+    }
+
+    .input-group-custom input {
+        border: none;
+        background: transparent;
+        width: 100%;
+        outline: none;
+        font-size: 13px;
+    }
+
+    .btn-periksa {
+        background: linear-gradient(135deg, var(--pertamina-green), #008a49);
+        color: white;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 35px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    #searchInput {
+        text-transform: uppercase;
+    }
+
+    /* Biar alert merahnya makin cakep dan mirip gaya Pertamina */
+    .alert-danger {
+        background-color: #FEF2F2;
+        border: 1px solid #FCA5A5;
+        color: #991B1B;
+        font-weight: 500;
+    }
+
+    /* HASIL SEARCH */
+    #searchResult {
+        display: none;
+        margin-top: 14px;
+    }
+
+    .result-box {
+        border: 1px solid #e1e8f0;
+        border-radius: 10px;
+        padding: 14px;
+        background-color: #ffffff;
+    }
+
+    .result-box h6 {
+        font-size: 13px;
+    }
+
+    .table td {
+        font-size: 12.5px;
+        padding: 5px;
+    }
+
+    .status-badge {
+        padding: 3px 10px;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 11px;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+</style>
+
+<section class="header-status">
+    <div class="container">
+        <h2>Monitoring Status Pendaftaran</h2>
+        <p>Cek progres lamaran magang Anda</p>
+    </div>
+</section>
+
+<div class="container search-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="status-card">
+                <form id="searchForm">
+                    <div class="input-group-custom">
+                        <input type="text" id="searchInput" placeholder="Masukkan Nomor Pendaftaran Anda" required>
+                        <button type="submit" class="btn-periksa">
+                            <i class="fas fa-search"></i> Periksa
+                        </button>
+                    </div>
+                </form>
+
+                <div id="searchResult">
+                    <hr class="my-2">
+                    <div class="result-box">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="fw-bold mb-0">Hasil Pencarian</h6>
+                            <span class="status-badge status-pending">Sedang Diproses</span>
+                        </div>
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td width="130" class="text-muted">Nama Pelamar</td>
+                                <td id="resName">: -</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Email</td>
+                                <td id="resEmail">: -</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Posisi Magang</td>
+                                <td>: Regional Jawa Bagian Tengah</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-2 p-2 rounded-3" style="background-color: #fff9e6; border-left: 4px solid #ffc107;">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Sesuaikan nomor pendaftaran yang telah dikirim di Email.
+                    </small>
+                </div>
+
+                <div id="alertNotFound" class="alert alert-danger mt-3" style="display: none; border-radius: 10px; font-size: 13px;">
+                    <i class="fas fa-exclamation-circle me-2"></i> 
+                    Maaf, nomor pendaftaran <strong><span id="invalidNo"></span></strong> tidak ditemukan. Silakan periksa kembali.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const noPendaftaran = document.getElementById('searchInput').value;
+            const resultDiv = document.getElementById('searchResult');
+            const alertDiv = document.getElementById('alertNotFound');
+            const invalidNoSpan = document.getElementById('invalidNo');
+
+            // Reset tampilan: sembunyikan hasil dan alert setiap kali cari ulang
+            resultDiv.style.display = 'none';
+            alertDiv.style.display = 'none';
+
+            fetch(`/HasilPendaftaran/CekStatus?no=${encodeURIComponent(noPendaftaran)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        // 1. Jika data ditemukan: Isi data ke tabel
+                        document.getElementById('resName').innerText = ": " + data.nama;
+                        document.getElementById('resEmail').innerText = ": " + data.email;
+                        
+                        const statusBadge = document.querySelector('.status-badge');
+                        statusBadge.innerText = data.status;
+
+                        // 2. Update warna badge sesuai status dari DB
+                        if (data.status === "Diterima") {
+                            statusBadge.className = "status-badge bg-success text-white";
+                        } else if (data.status === "Ditolak") {
+                            statusBadge.className = "status-badge bg-danger text-white";
+                        } else {
+                            statusBadge.className = "status-badge status-pending";
+                        }
+
+                        // Tampilkan kotak hasil
+                        resultDiv.style.display = 'block';
+                    } else {
+                        // 3. Jika data TIDAK ditemukan: Tampilkan pesan error di page
+                        invalidNoSpan.innerText = noPendaftaran;
+                        alertDiv.style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Gunakan pesan error di page juga jika terjadi error sistem
+                    invalidNoSpan.innerText = "sistem";
+                    alertDiv.style.display = 'block';
+                });
+        });
+    </script>
+}

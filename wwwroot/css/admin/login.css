@@ -1,0 +1,80 @@
+﻿:root {
+    --p-blue: #00549B;
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f4f8;
+    overflow: hidden;
+}
+
+.login-card {
+    width: 420px;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+    .login-card h2 {
+        color: var(--p-blue);
+        font-weight: 700;
+    }
+
+    .login-card p {
+        color: #64748b;
+        margin-bottom: 30px;
+    }
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: var(--p-blue);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+    button:hover {
+        background: #003f73;
+    }
+
+/* Bubble */
+.bubble {
+    position: absolute;
+    bottom: -150px;
+    background: rgba(0, 84, 155, 0.08);
+    border-radius: 50%;
+    animation: rise 12s infinite linear;
+}
+
+@keyframes rise {
+    from {
+        transform: translateY(0);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(-120vh);
+        opacity: 1;
+    }
+}
