@@ -844,6 +844,12 @@
     });
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Tambahan pengaman: Jika ini pertama kali halaman dibuka setelah login baru
+        if (!sessionStorage.getItem('session_start')) {
+            localStorage.removeItem('form_magang_draft'); // Hapus sisa akun sebelah
+            sessionStorage.setItem('session_start', 'active');
+        }
+
         // Di dalam DOMContentLoaded:
         loadDraft(); // Jalankan fungsi load data saat halaman siap
 

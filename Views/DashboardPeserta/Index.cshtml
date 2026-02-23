@@ -468,6 +468,7 @@
 
             @if (ViewBag.MagangAktif != null)
             {
+                // --- KONDISI 1: BIRU PERTAMINA (SEDANG AKTIF) ---
                 var aktif = (sinta_asp.Models.Magang)ViewBag.MagangAktif;
                 var sisaHari = (aktif.SelesaiMagang - DateTime.Now).Days;
                 var warnaBadge = sisaHari <= 7 ? "#dc3545" : "#FFC107";
@@ -486,7 +487,7 @@
                                 </p>
                                 <div class="p-2 px-3 d-inline-block" style="background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
                                     <p class="mb-0" style="font-size: 13px;">
-                                        <i class="fa fa-calendar-alt mr-2"></i> Periote: 
+                                        <i class="fa fa-calendar-alt mr-2"></i> Periode: 
                                         <strong>@aktif.MulaiMagang.ToString("dd MMM yyyy")</strong> — <strong>@aktif.SelesaiMagang.ToString("dd MMM yyyy")</strong>
                                     </p>
                                 </div>
@@ -498,6 +499,28 @@
                             </div>
                             <div class="col-md-4 text-right d-none d-md-block">
                                 <i class="fa fa-id-card" style="font-size: 80px; opacity: 0.15;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                // --- KONDISI 2: TIDAK ADA MAGANG AKTIF (MENUNGGU/DITOLAK/BELUM DAFTAR) ---
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px; background: linear-gradient(135deg, #8e9eab 0%, #eef2f3 100%); color: #4b5563;">
+                    <div class="card-body p-4 text-center text-md-left">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="badge badge-pill badge-secondary mb-2" style="font-weight: bold; padding: 5px 15px;">
+                                    <i class="fa fa-times-circle mr-1"></i> SEDANG TIDAK AKTIF MAGANG
+                                </div>
+                                <h4 class="font-weight-bold mb-1" style="color: #1f2937;">Status Magang: Tidak Aktif</h4>
+                                <p class="mb-0 opacity-80" style="font-size: 14px;">
+                                    Anda belum terdaftar dalam program magang aktif. Silakan lakukan pendaftaran atau pantau riwayat lamaran Anda.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-right d-none d-md-block">
+                                <i class="fa fa-user-slash" style="font-size: 80px; opacity: 0.1;"></i>
                             </div>
                         </div>
                     </div>
@@ -570,9 +593,10 @@
                         </tr>
                     </thead>
                     <tbody id="tabelBodyRiwayat">
-                        @if (ViewBag.RiwayatMagang != null) {
-                            foreach (var item in (List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang) {
-                                // Kita simpan status di data-status untuk dibaca JavaScript
+                        @if (ViewBag.RiwayatMagang != null && ((List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang).Count > 0) 
+                        {
+                            foreach (var item in (List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang) 
+                            {
                                 <tr class="baris-magang" data-status="@item.Status">
                                     <td class="px-4 font-weight-bold" style="color: var(--p-blue);">@item.Company</td>
                                     <td style="color: #333;">@item.Region</td>
@@ -595,8 +619,19 @@
                                     </td>
                                 </tr>
                             }
-                        } else {
-                            <tr><td colspan="6" class="text-center py-5">Belum ada data.</td></tr>
+                        }
+                        else
+                        {
+                            @* Blok ini sekarang akan muncul jika list null ATAU list kosong *@
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="py-4">
+                                        <i class="fa fa-folder-open mb-3" style="font-size: 50px; color: #dee2e6;"></i>
+                                        <h6 class="font-weight-bold text-muted">Tidak terdapat riwayat magang</h6>
+                                        <p class="small text-muted">Anda belum pernah melakukan pengajuan magang.</p>
+                                    </div>
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -1287,10 +1322,20 @@
     }
 
     function handleLogout() {
-        Swal.fire({title: 'Keluar?', text: "Sesi akan berakhir.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ec1c24', confirmButtonText: 'Logout'
+        Swal.fire({
+            title: 'Keluar?',
+            text: "Sesi akan berakhir",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ec1c24',
+            confirmButtonText: 'Logout'
         }).then((r) => { 
             if (r.isConfirmed) {
-                localStorage.removeItem('lastOpenedPage');
+                // Hapus draft spesifik dan bersihkan semuanya
+                localStorage.removeItem('form_magang_draft'); 
+                localStorage.clear();
+                sessionStorage.clear();
+
                 window.location.href = '/Auth/Logout'; 
             }
         });
