@@ -104,6 +104,36 @@ namespace sinta_asp.Controllers
                 model.CreatedAt = DateTime.Now;
                 model.Status = "Menunggu";
 
+                // === TAMBAHKAN LOGIKA NORMALISASI NAMA KAMPUS DI SINI ===
+                if (!string.IsNullOrEmpty(model.NamaPerguruanTinggi))
+                {
+                    // 1. Bersihkan spasi depan/belakang dan ubah ke kecil semua
+                    string input = model.NamaPerguruanTinggi.Trim().ToLower();
+
+                    // 2. Ubah jadi Title Case (Contoh: universitas diponegoro -> Universitas Diponegoro)
+                    var textInfo = new System.Globalization.CultureInfo("en-US", false).TextInfo;
+                    model.NamaPerguruanTinggi = textInfo.ToTitleCase(input);
+
+                    // 3. Mapping Otomatis jika user masih bandel ngetik singkatan
+                    var mapping = new Dictionary<string, string>
+                    {
+                        { "Undip", "Universitas Diponegoro" },
+                        { "Ugm", "Universitas Gadjah Mada" },
+                        { "Ui", "Universitas Indonesia" },
+                        { "Itb", "Institut Teknologi Bandung" },
+                        { "Unair", "Universitas Airlangga" },
+                        { "Uns", "Universitas Sebelas Maret" },
+                        { "Its", "Institut Teknologi Sepuluh Nopember" },
+                        { "Ub", "Universitas Brawijaya" },
+                        { "Unpad", "Universitas Padjadjaran" }
+                    };
+
+                    if (mapping.ContainsKey(model.NamaPerguruanTinggi))
+                    {
+                        model.NamaPerguruanTinggi = mapping[model.NamaPerguruanTinggi];
+                    }
+                }
+
                 // Hapus draft lama milik user ini
                 var oldDraft = await _context.PendaftaranMagang
                     .FirstOrDefaultAsync(x => x.EmailPribadi == currentUserEmail && x.Status == "Draft");
@@ -139,18 +169,18 @@ namespace sinta_asp.Controllers
                 // ===== 3. LOGIKA EMAIL (DIBUNGKUS TRY-CATCH MASING-MASING) =====
                 
                 // Email ke Admin
-                try {
-                    var adminUser = await _context.Admins
-                        .FirstOrDefaultAsync(a => a.RegionManaged.ToLower().Trim() == model.Region.ToLower().Trim());
+                // try {
+                //     var adminUser = await _context.Admins
+                //         .FirstOrDefaultAsync(a => a.RegionManaged.ToLower().Trim() == model.Region.ToLower().Trim());
                     
-                    if (adminUser != null && !string.IsNullOrEmpty(adminUser.Email)) {
-                        string subjekAdmin = "Notifikasi SINTA: Pendaftaran Magang Baru";
-                        string pesanAdmin = $"<h2>Halo, {adminUser.Nama}</h2><p>Pendaftar baru: {model.NamaLengkap} untuk wilayah {model.Region}.</p>";
-                        await _emailService.SendWithCourierAsync(adminUser.Email, subjekAdmin, pesanAdmin);
-                    }
-                } catch (Exception ex) {
-                    Console.WriteLine("DEBUG ERROR ADMIN: " + ex.Message);
-                }
+                //     if (adminUser != null && !string.IsNullOrEmpty(adminUser.Email)) {
+                //         string subjekAdmin = "Notifikasi SINTA: Pendaftaran Magang Baru";
+                //         string pesanAdmin = $"<h2>Halo, {adminUser.Nama}</h2><p>Pendaftar baru: {model.NamaLengkap} untuk wilayah {model.Region}.</p>";
+                //         await _emailService.SendWithCourierAsync(adminUser.Email, subjekAdmin, pesanAdmin);
+                //     }
+                // } catch (Exception ex) {
+                //     Console.WriteLine("DEBUG ERROR ADMIN: " + ex.Message);
+                // }
 
                 // Email ke User
                 try {

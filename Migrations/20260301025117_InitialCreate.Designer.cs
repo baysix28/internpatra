@@ -12,7 +12,7 @@ using sinta_asp.Data;
 namespace sinta_asp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260223042323_InitialCreate")]
+    [Migration("20260301025117_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -104,6 +104,28 @@ namespace sinta_asp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AdminNotifications", (string)null);
+                });
+
+            modelBuilder.Entity("sinta_asp.Models.AdminNotificationRead", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AdminId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NotificationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AdminNotificationReads");
                 });
 
             modelBuilder.Entity("sinta_asp.Models.Magang", b =>
@@ -440,6 +462,9 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsEmailConfirmed")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Nama")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -450,6 +475,9 @@ namespace sinta_asp.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VerificationToken")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

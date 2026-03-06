@@ -12,8 +12,8 @@ using sinta_asp.Data;
 namespace sinta_asp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260223045404_AddNotifReadStatus")]
-    partial class AddNotifReadStatus
+    [Migration("20260301034006_AddEmailVerificationColumns")]
+    partial class AddEmailVerificationColumns
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -462,6 +462,9 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsEmailConfirmed")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Nama")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -472,6 +475,9 @@ namespace sinta_asp.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VerificationToken")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

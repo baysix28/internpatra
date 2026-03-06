@@ -22,5 +22,9 @@ namespace sinta_asp.Models
         public string Role { get; set; } = "Peserta"; 
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // --- TAMBAHKAN DUA BARIS INI ---
+        public bool IsEmailConfirmed { get; set; } = false; // Default: Belum diverifikasi
+        public string? VerificationToken { get; set; }     // Kode unik untuk link email
     }
 }

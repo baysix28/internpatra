@@ -13,10 +13,12 @@ namespace sinta_asp.Controllers
     public class DashboardPesertaController : Controller
     {
         private readonly AppDbContext _context;
+        // private readonly IWebHostEnvironment _environment;
 
         public DashboardPesertaController(AppDbContext context)
         {
             _context = context;
+            // _environment = environment; // Tambahkan ini
         }
 
         public async Task<IActionResult> Index()

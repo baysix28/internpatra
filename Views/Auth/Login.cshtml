@@ -131,6 +131,13 @@
                 <p>Silakan masuk ke akun Peserta SINTA</p>
             </div>
 
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert-box alert-success-glass">
+                    <i class="fas fa-check-circle"></i> <span>@TempData["SuccessMessage"]</span>
+                </div>
+            }
+
             @if (TempData["ErrorMessage"] != null)
             {
                 <div class="alert-box alert-danger-glass">
