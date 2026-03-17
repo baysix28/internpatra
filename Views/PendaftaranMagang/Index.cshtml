@@ -393,41 +393,30 @@
 
         positions.forEach(pos => {
             if (pos.toLowerCase().includes(search)) {
-
                 let deskripsi = "";
-
-                // KPI
                 if (company === "KPI") {
-                    deskripsi = deskripsiPosisi[pos] ||
-                        "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
+                    deskripsi = deskripsiPosisi[pos] || "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
                 }
-
-                // PPN
                 if (company === "PPN") {
                     deskripsi = generateDeskripsiPPN(pos);
                 }
 
-
+                // --- BAGIAN YANG DIUPDATE ---
                 const card = `
                     <div class="flip-card animate__animated animate__fadeInUp">
                         <div class="flip-card-inner">
-
                             <div class="flip-card-front shadow-sm">
                                 <div class="wadah-ikon-sm">
                                     <i class="${getIcon(pos)}"></i>
                                 </div>
-
                                 <div class="judul-posisi">${pos}</div>
-
                                 <small class="text-muted d-block mb-3">
                                     <i class="fas fa-map-marker-alt me-1 text-danger"></i>${lokasi}
                                 </small>
-
                                 <div class="syarat-dokumen mb-2">
                                     <small class="fw-bold text-muted d-block mb-1">Dokumen:</small>
                                     <small class="text-muted">CV, Proposal, Surat Kampus</small>
                                 </div>
-
                                 <div class="mt-auto pt-2 border-top">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="fw-bold text-muted" style="font-size: 11px;">KUOTA</span>
@@ -437,14 +426,16 @@
                             </div>
 
                             <div class="flip-card-back shadow-lg">
-                                <h6 class="fw-bold mb-3" style="font-size: 14px;">
-                                    Fungsi Bidang
-                                </h6>
-                                <p style="font-size: 11px; line-height: 1.5; opacity: 0.9;">
+                                <h6 class="fw-bold mb-2" style="font-size: 14px;">Fungsi Bidang</h6>
+                                <p style="font-size: 11px; line-height: 1.4; opacity: 0.9; margin-bottom: 15px;">
                                     ${deskripsi}
                                 </p>
+                                <button onclick="pilihPosisi('${company}', '${region}', '${lokasi}', '${pos}')" 
+                                        class="btn btn-light btn-sm fw-bold w-100 mt-2" 
+                                        style="border-radius: 8px; color: var(--p-biru); font-size: 11px;">
+                                    PILIH POSISI
+                                </button>
                             </div>
-
                         </div>
                     </div>`;
 
@@ -522,12 +513,11 @@
         });
     }
 
-    @* // 2. Perbaiki fungsi pilihPosisi agar cek login dulu
     function pilihPosisi(company, region, lokasi, posisi) {
-        if (currentUser === "Guest") {
-            showLoginWarning(); // Munculkan Alert jika belum login
+        if (currentUser === "Guest" || currentUser === "") {
+            showLoginWarning();
         } else {
-            // Jika sudah login, simpan data dan pindah halaman
+            // Simpan semua detail ke localStorage
             localStorage.setItem('magang_company', company);
             localStorage.setItem('magang_region', region);
             localStorage.setItem('magang_lokasi', lokasi);
@@ -535,7 +525,7 @@
 
             window.location.href = '/PendaftaranMagang/DataMagang';
         }
-    } *@
+    }
 
     // 3. Tambahkan juga proteksi pada tombol "Mulai Pendaftaran" di Hero Section
     function handleMulaiDaftar() {

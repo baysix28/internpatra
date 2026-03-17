@@ -347,6 +347,24 @@
             font-weight: 600;
             letter-spacing: 0.3px;
         }
+
+        #tableLowongan thead th {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            padding: 15px 10px;
+            letter-spacing: 0.5px;
+        }
+
+        #tableLowongan tbody td {
+            vertical-align: middle;
+            padding: 15px 10px;
+            border-top: 1px solid #f2f2f2;
+        }
+
+        .border-left-primary {
+            border-left: 4px solid var(--p-blue) !important;
+        }
         
         @@keyframes slideDown {
         from { 
@@ -368,6 +386,9 @@
     <div style="flex-grow: 1;">
         <button onclick="showPage('dashboard')" class="nav-link-custom active" id="nav-dashboard">
             <i class="fa-solid fa-house mr-3"></i> Dashboard
+        </button>
+        <button onclick="showPage('informasi')" class="nav-link-custom" id="nav-informasi">
+            <i class="fa-solid fa-circle-info mr-3"></i> Informasi Tersedia
         </button>
         <button onclick="showPage('riwayat')" class="nav-link-custom" id="nav-riwayat">
             <i class="fa-solid fa-clipboard-list mr-3"></i> Riwayat Magang
@@ -537,6 +558,45 @@
                                 Lihat detail pendaftaran <i class="fa fa-arrow-right ml-1"></i>
                             </a>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-informasi" style="display: none;">
+            <div class="container-fluid">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold"><i class="fa-solid fa-briefcase text-primary mr-2"></i> Lowongan Magang Real-Time</h4>
+                    <span class="badge badge-success px-3 py-2">
+                        <i class="fa-solid fa-sync-alt fa-spin mr-1"></i> Terhubung ke Database SINTA
+                    </span>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card border-0 shadow-sm border-left-primary">
+                            <div class="card-body">
+                                <small class="text-muted font-weight-bold">TOTAL POSISI</small>
+                                <h3 class="mb-0" id="total-posisi">0</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <table id="tableLowongan" class="table table-hover w-100">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Program</th>
+                                    <th>Unit / Regional</th>
+                                    <th>Lokasi Penempatan</th>
+                                    <th>Posisi / Bidang</th>
+                                    <th>Deskripsi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyLowongan"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -897,6 +957,69 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    var dataTableInformasi; // Variabel global untuk instance datatable
+
+    function renderInformasi() {
+        const body = document.getElementById('bodyLowongan');
+        
+        // Jika datatable sudah ada, jangan render ulang datanya, cukup return
+        if ($.fn.DataTable.isDataTable('#tableLowongan')) return;
+
+        let rows = "";
+        let count = 0;
+
+        // 1. Render data KPI
+        for (const [unit, posisiList] of Object.entries(dataKPI)) {
+            posisiList.forEach(posisi => {
+                rows += createRowHtml("KPI", "Refinery Unit (RU)", unit, posisi, deskripsiPosisi[posisi] || "-");
+                count++;
+            });
+        }
+
+        // 2. Render data PPN
+        for (const [region, unitList] of Object.entries(dataPPN)) {
+            unitList.forEach(unit => {
+                rows += createRowHtml("PPN", region, unit, "General Internship", generateDeskripsiPPN(unit));
+                count++;
+            });
+        }
+
+        body.innerHTML = rows;
+        document.getElementById('total-posisi').innerText = count;
+
+        // Inisialisasi DataTables
+        dataTableInformasi = $('#tableLowongan').DataTable({
+            "dom": 'rt<"p-3 d-flex justify-content-between"ip>', // Menghilangkan search default karena kita buat custom
+            "pageLength": 10,
+            "language": {
+                "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ posisi",
+                "paginate": { "next": "→", "previous": "←" }
+            }
+        });
+
+        // Event Filter Custom Search
+        $('#custom-search').keyup(function() {
+            dataTableInformasi.search($(this).val()).draw();
+        });
+
+        // Event Filter Program
+        $('#filter-program').change(function() {
+            dataTableInformasi.column(0).search($(this).val()).draw();
+        });
+    }
+
+    function createRowHtml(prog, reg, lok, pos, desc) {
+        const badgeColor = prog === "KPI" ? "badge-primary" : "badge-info text-white";
+        return `
+            <tr>
+                <td class="px-4"><span class="badge ${badgeColor}" style="font-size: 11px;">${prog}</span></td>
+                <td><small class="font-weight-bold text-muted">${reg}</small></td>
+                <td><div style="font-weight: 600; color: #444;">${lok}</div></td>
+                <td><span class="text-primary" style="font-weight: 600;">${pos}</span></td>
+                <td><small class="text-muted" style="display: block; max-width: 300px; line-height: 1.4;">${desc}</small></td>
+            </tr>`;
+    }
+
     function showReviewDetail(id) {
         $.ajax({
             url: '/PendaftaranMagang/GetDetailMagang/' + id,
@@ -1273,6 +1396,7 @@
 
         const breadcrumbs = {
             'dashboard': 'Panel Peserta / Dashboard',
+            'informasi': 'Panel Peserta /  Informasi Tersedia',
             'riwayat': 'Panel Peserta / Riwayat Magang',
             'penelitian': 'Panel Peserta / Riwayat Riset',
             'profil': 'Panel Peserta / Pengaturan Profil'
