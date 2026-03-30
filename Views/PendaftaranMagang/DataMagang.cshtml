@@ -852,57 +852,90 @@
     });
 
     document.addEventListener('DOMContentLoaded', function () {
-        // Tambahan pengaman: Jika ini pertama kali halaman dibuka setelah login baru
-        if (!sessionStorage.getItem('session_start')) {
-            localStorage.removeItem('form_magang_draft'); // Hapus sisa akun sebelah
-            sessionStorage.setItem('session_start', 'active');
-        }
+        const data = {
+            company: localStorage.getItem('magang_company'),
+            region: localStorage.getItem('magang_region'),
+            lokasi: localStorage.getItem('magang_lokasi'),
+            posisi: localStorage.getItem('magang_posisi')
+        };
 
-        // Di dalam DOMContentLoaded:
-        loadDraft(); // Jalankan fungsi load data saat halaman siap
+        if (data.company) {
+            console.log("Data kiriman terdeteksi, memulai proses auto-fill...");
 
-        // Pasang event listener ke semua input agar otomatis save saat diisi
-        const allInputs = document.querySelectorAll('input, select, textarea');
-        allInputs.forEach(input => {
-            input.addEventListener('input', saveDraft);
-            input.addEventListener('change', saveDraft);
-        });
-
-        /* ===============================
-        ENTER KEY NAVIGATION (KODE KAMU)
-        =============================== */
-        const form = document.getElementById('formMagang');
-        if (!form) return;
-
-        form.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-
-                // Textarea tetap boleh enter
-                if (e.target.tagName.toLowerCase() === 'textarea') return;
-
-                e.preventDefault();
-
-                const currentStepElement = document.querySelector('.step-content.active');
-                if (!currentStepElement) return;
-
-                const focusableElements = currentStepElement.querySelectorAll(
-                    'input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled]), button.btn-next'
-                );
-
-                const index = Array.from(focusableElements).indexOf(e.target);
-
-                if (index > -1) {
-                    const nextElement = focusableElements[index + 1];
-
-                    if (nextElement) {
-                        nextElement.focus();
-                    } else {
-                        const nextBtn = currentStepElement.querySelector('.btn-next');
-                        if (nextBtn) nextBtn.click();
-                    }
-                }
+            // 1. Isi & Kunci Company
+            const elComp = document.getElementById('company');
+            if (elComp) {
+                elComp.value = data.company;
+                elComp.style.backgroundColor = "#e9ecef";
+                elComp.style.pointerEvents = "none";
+                elComp.dispatchEvent(new Event('change'));
             }
-        });
+
+            // 2. Polling: Tunggu sampai Dropdown Region & Lokasi siap
+            let attempts = 0;
+            const checkReady = setInterval(() => {
+                const elReg = document.getElementById('region');
+                const elLok = document.getElementById('lokasi');
+                attempts++;
+
+                // Cek apakah opsi sudah masuk ke dropdown
+                if (elReg && elReg.options.length > 1 && elLok && elLok.options.length > 1) {
+                    clearInterval(checkReady);
+                    console.log("Dropdown siap, mengisi data...");
+
+                    // Set & Kunci Region
+                    elReg.value = data.region;
+                    elReg.style.backgroundColor = "#e9ecef";
+                    elReg.style.pointerEvents = "none";
+                    elReg.dispatchEvent(new Event('change'));
+
+                    // Set & Kunci Lokasi (Cara khusus Select2)
+                    setTimeout(() => {
+                        // Pakai jQuery karena Select2 butuh ini
+                        const $lok = $('#lokasi');
+                        $lok.val(data.lokasi).trigger('change');
+                        
+                        // Kunci tampilan Select2
+                        const $container = $lok.next('.select2-container');
+                        $container.css('pointer-events', 'none');
+                        $container.find('.select2-selection').css('background-color', '#e9ecef');
+
+                        // Set & Kunci Posisi
+                        setTimeout(() => {
+                            const elPos = document.getElementById('posisi');
+                            if (elPos) {
+                                elPos.value = data.posisi;
+                                elPos.style.backgroundColor = "#e9ecef";
+                                elPos.style.pointerEvents = "none";
+                            }
+                            
+                            console.log("Semua data berhasil diisi dan dikunci!");
+                            
+                            // Penting: Simpan ke draft agar tidak hilang saat refresh
+                            if(typeof saveDraft === "function") saveDraft();
+                            
+                            // Bersihkan storage
+                            localStorage.removeItem('magang_company');
+                            localStorage.removeItem('magang_region');
+                            localStorage.removeItem('magang_lokasi');
+                            localStorage.removeItem('magang_posisi');
+                            
+                            if(typeof cekDataLengkap === "function") cekDataLengkap();
+                        }, 300);
+                    }, 300);
+                }
+
+                // Jika setelah 10 detik tidak muncul, hentikan (mungkin ada error lain)
+                if (attempts > 50) {
+                    clearInterval(checkReady);
+                    console.error("Gagal memuat data dropdown dalam 10 detik.");
+                }
+            }, 200);
+
+        } else {
+            // Jika tidak ada data kiriman, baru jalankan loadDraft biasa
+            if(typeof loadDraft === "function") loadDraft();
+        }
     });
 
     function validateEmail(input) {

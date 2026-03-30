@@ -437,14 +437,19 @@
                             </div>
 
                             <div class="flip-card-back shadow-lg">
-                                <h6 class="fw-bold mb-3" style="font-size: 14px;">
+                                <h6 class="fw-bold mb-2" style="font-size: 13px;">
                                     Fungsi Bidang
                                 </h6>
-                                <p style="font-size: 11px; line-height: 1.5; opacity: 0.9;">
+
+                                <p style="font-size: 11px; line-height: 1.4; opacity: 0.9;">
                                     ${deskripsi}
                                 </p>
-                            </div>
 
+                                <button onclick="pilihPosisi('${company}', '${region}', '${lokasi}', '${pos}')" 
+                                        class="btn-pilih mt-3">
+                                    Pilih Posisi
+                                </button>
+                            </div>
                         </div>
                     </div>`;
 
@@ -522,20 +527,17 @@
         });
     }
 
-    @* // 2. Perbaiki fungsi pilihPosisi agar cek login dulu
+    // Pastikan fungsi ini ada dan bisa diakses global
     function pilihPosisi(company, region, lokasi, posisi) {
-        if (currentUser === "Guest") {
-            showLoginWarning(); // Munculkan Alert jika belum login
-        } else {
-            // Jika sudah login, simpan data dan pindah halaman
-            localStorage.setItem('magang_company', company);
-            localStorage.setItem('magang_region', region);
-            localStorage.setItem('magang_lokasi', lokasi);
-            localStorage.setItem('magang_posisi', posisi);
+        // Simpan ke localStorage
+        localStorage.setItem('magang_company', company);
+        localStorage.setItem('magang_region', region);
+        localStorage.setItem('magang_lokasi', lokasi);
+        localStorage.setItem('magang_posisi', posisi);
 
-            window.location.href = '/PendaftaranMagang/DataMagang';
-        }
-    } *@
+        // Langsung arahkan ke halaman DataMagang
+        window.location.href = '/PendaftaranMagang/DataMagang';
+    }
 
     // 3. Tambahkan juga proteksi pada tombol "Mulai Pendaftaran" di Hero Section
     function handleMulaiDaftar() {
