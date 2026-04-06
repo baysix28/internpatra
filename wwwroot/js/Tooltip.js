@@ -89,65 +89,65 @@ function generateDeskripsiPPN(nama) {
     return "Unit operasional pendukung distribusi dan pengelolaan energi regional.";
 }
 
-// ===============================
-// Script Tooltip Select2
-// ===============================
+// // ===============================
+// // Script Tooltip Select2
+// // ===============================
 
-$(document).ready(function() {
-    // Inisialisasi Select2 pada dropdown lokasi
-        $('#lokasi').select2({
-            placeholder: "Pilih Lokasi",
-            width: '100%'
-        });
+// $(document).ready(function() {
+//     // Inisialisasi Select2 pada dropdown lokasi
+//         $('#lokasi').select2({
+//             placeholder: "Pilih Lokasi",
+//             width: '100%'
+//         });
 
-        const tooltipHover = document.getElementById('tooltipHover');
-        const tTitle = document.getElementById('tooltipHoverTitle');
-        const tDesc = document.getElementById('tooltipHoverDesc');
+//         const tooltipHover = document.getElementById('tooltipHover');
+//         const tTitle = document.getElementById('tooltipHoverTitle');
+//         const tDesc = document.getElementById('tooltipHoverDesc');
 
-        // MENDETEKSI HOVER PADA LIST (SESUAI ARAHAN KURSOR)
-        $(document).on('mouseenter', '.select2-results__option', function() {
-            const text = $(this).text().trim();
+//         // MENDETEKSI HOVER PADA LIST (SESUAI ARAHAN KURSOR)
+//         $(document).on('mouseenter', '.select2-results__option', function() {
+//             const text = $(this).text().trim();
 
-            let deskripsi = null;
+//             let deskripsi = null;
 
-            // 1️⃣ CEK KPI
-            if (deskripsiPosisi[text]) {
-                deskripsi = deskripsiPosisi[text];
-            }
+//             // 1️⃣ CEK KPI
+//             if (deskripsiPosisi[text]) {
+//                 deskripsi = deskripsiPosisi[text];
+//             }
 
-            // 2️⃣ CEK PPN BERDASARKAN REGIONAL
-            const selectedRegion = $('#region').val();
-            if (selectedRegion && dataPPN[selectedRegion]) {
-                if (dataPPN[selectedRegion].includes(text)) {
-                    deskripsi = generateDeskripsiPPN(text);
-                }
-            }
+//             // 2️⃣ CEK PPN BERDASARKAN REGIONAL
+//             const selectedRegion = $('#region').val();
+//             if (selectedRegion && dataPPN[selectedRegion]) {
+//                 if (dataPPN[selectedRegion].includes(text)) {
+//                     deskripsi = generateDeskripsiPPN(text);
+//                 }
+//             }
 
-            // 3️⃣ JIKA ADA DESKRIPSI → TAMPILKAN TOOLTIP
-            if (deskripsi) {
-                tTitle.innerText = text;
-                tDesc.innerText = deskripsi;
+//             // 3️⃣ JIKA ADA DESKRIPSI → TAMPILKAN TOOLTIP
+//             if (deskripsi) {
+//                 tTitle.innerText = text;
+//                 tDesc.innerText = deskripsi;
 
-                const rect = this.getBoundingClientRect();
+//                 const rect = this.getBoundingClientRect();
 
-                tooltipHover.style.top = rect.top + 'px';
-                tooltipHover.style.left = (rect.right + 20) + 'px';
-                tooltipHover.classList.add('show');
-            }
-        });
+//                 tooltipHover.style.top = rect.top + 'px';
+//                 tooltipHover.style.left = (rect.right + 20) + 'px';
+//                 tooltipHover.classList.add('show');
+//             }
+//         });
 
-        // SEMBUNYIKAN SAAT KELUAR DARI BARIS TERSEBUT
-        $(document).on('mouseleave', '.select2-results__option', function() {
-            tooltipHover.classList.remove('show');
-        });
+//         // SEMBUNYIKAN SAAT KELUAR DARI BARIS TERSEBUT
+//         $(document).on('mouseleave', '.select2-results__option', function() {
+//             tooltipHover.classList.remove('show');
+//         });
 
-        // SEMBUNYIKAN JIKA DROPDOWN TERTUTUP
-        $('#lokasi').on('select2:closing', function() {
-            tooltipHover.classList.remove('show');
-        });
+//         // SEMBUNYIKAN JIKA DROPDOWN TERTUTUP
+//         $('#lokasi').on('select2:closing', function() {
+//             tooltipHover.classList.remove('show');
+//         });
 
-        $('#lokasi').on('select2:select', function (e) {
-            saveDraft();
-            cekDataLengkap();
-        });
-    });
+//         $('#lokasi').on('select2:select', function (e) {
+//             saveDraft();
+//             cekDataLengkap();
+//         });
+//     });

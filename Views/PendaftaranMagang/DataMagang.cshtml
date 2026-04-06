@@ -1,8 +1,8 @@
 @model sinta_asp.Models.Magang
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@* <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> *@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+@* <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> *@
 <script src="~/js/Tooltip.js"></script>
 
 
@@ -176,11 +176,27 @@
         font-size: 13px;
     }
 
-    .form-control {
+    .form-control,
+    .form-select {
         padding: 10px 14px;
         border-radius: 8px;
         border: 1.8px solid var(--border-color);
         font-size: 13px;
+        min-height: 50px;
+        box-shadow: none;
+    }
+
+    .form-select:focus,
+    .form-control:focus {
+        border-color: var(--pertamina-blue);
+        box-shadow: 0 0 0 0.15rem rgba(0, 94, 184, 0.12);
+    }
+
+    #company[data-locked="true"],
+    #region[data-locked="true"],
+    #lokasi[data-locked="true"] {
+        background-color: #e9ecef !important;
+        cursor: not-allowed;
     }
 
     /* ================= BUTTON ================= */
@@ -556,7 +572,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">Company <span class="text-danger">*</span></label>
-                    <select class="form-select form-control wajib" id="company" name="Company">
+                    <select class="form-select wajib" id="company" name="Company">
                         <option value="">Pilih Company</option>
                         <option value="KPI">PT Kilang Pertamina Internasional</option>
                         <option value="PPN">PT Pertamina Patra Niaga</option>
@@ -565,14 +581,14 @@
 
                 <div class="mb-3">
                     <label class="form-label">Region<span class="text-danger">*</span></label>
-                    <select class="form-select form-control wajib" id="region" name="Region">
+                    <select class="form-select wajib" id="region" name="Region">
                         <option value="">Pilih Region</option>
                     </select>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Lokasi<span class="text-danger">*</span></label>
-                    <select class="form-select form-control wajib" id="lokasi" name="Lokasi">
+                    <select class="form-select wajib" id="lokasi" name="Lokasi">
                         <option value="">Pilih Lokasi</option>
                     </select>
                 </div>
@@ -851,91 +867,84 @@
         });
     });
 
+    function lockSelectVisual(el) {
+        if (!el) return;
+        el.style.backgroundColor = "#e9ecef";
+        el.style.pointerEvents = "none";
+        el.style.touchAction = "none";
+        el.setAttribute("data-locked", "true");
+    }
+
+    function waitUntil(checkFn, callback, maxTry = 30, delay = 150) {
+        let count = 0;
+        const timer = setInterval(() => {
+            count++;
+            if (checkFn()) {
+                clearInterval(timer);
+                callback();
+            } else if (count >= maxTry) {
+                clearInterval(timer);
+                console.warn("Timeout menunggu dropdown siap");
+            }
+        }, delay);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const data = {
             company: localStorage.getItem('magang_company'),
             region: localStorage.getItem('magang_region'),
             lokasi: localStorage.getItem('magang_lokasi'),
-            posisi: localStorage.getItem('magang_posisi')
+            locked: localStorage.getItem('magang_locked_from_card')
         };
 
-        if (data.company) {
-            console.log("Data kiriman terdeteksi, memulai proses auto-fill...");
+        const elComp = document.getElementById('company');
+        const elReg = document.getElementById('region');
+        const elLok = document.getElementById('lokasi');
 
-            // 1. Isi & Kunci Company
-            const elComp = document.getElementById('company');
-            if (elComp) {
-                elComp.value = data.company;
-                elComp.style.backgroundColor = "#e9ecef";
-                elComp.style.pointerEvents = "none";
-                elComp.dispatchEvent(new Event('change'));
-            }
+        if (data.company && data.region && data.lokasi && data.locked === 'true') {
+            console.log("Auto-fill data magang dari card...");
 
-            // 2. Polling: Tunggu sampai Dropdown Region & Lokasi siap
-            let attempts = 0;
-            const checkReady = setInterval(() => {
-                const elReg = document.getElementById('region');
-                const elLok = document.getElementById('lokasi');
-                attempts++;
+            elComp.value = data.company;
+            elComp.dispatchEvent(new Event('change'));
 
-                // Cek apakah opsi sudah masuk ke dropdown
-                if (elReg && elReg.options.length > 1 && elLok && elLok.options.length > 1) {
-                    clearInterval(checkReady);
-                    console.log("Dropdown siap, mengisi data...");
-
-                    // Set & Kunci Region
+            waitUntil(
+                () => elReg && elReg.options.length > 1,
+                () => {
                     elReg.value = data.region;
-                    elReg.style.backgroundColor = "#e9ecef";
-                    elReg.style.pointerEvents = "none";
                     elReg.dispatchEvent(new Event('change'));
 
-                    // Set & Kunci Lokasi (Cara khusus Select2)
-                    setTimeout(() => {
-                        // Pakai jQuery karena Select2 butuh ini
-                        const $lok = $('#lokasi');
-                        $lok.val(data.lokasi).trigger('change');
-                        
-                        // Kunci tampilan Select2
-                        const $container = $lok.next('.select2-container');
-                        $container.css('pointer-events', 'none');
-                        $container.find('.select2-selection').css('background-color', '#e9ecef');
+                    waitUntil(
+                        () => elLok && elLok.options.length > 1,
+                        () => {
+                            elLok.value = data.lokasi;
+                            elLok.dispatchEvent(new Event('change'));
 
-                        // Set & Kunci Posisi
-                        setTimeout(() => {
-                            const elPos = document.getElementById('posisi');
-                            if (elPos) {
-                                elPos.value = data.posisi;
-                                elPos.style.backgroundColor = "#e9ecef";
-                                elPos.style.pointerEvents = "none";
-                            }
-                            
-                            console.log("Semua data berhasil diisi dan dikunci!");
-                            
-                            // Penting: Simpan ke draft agar tidak hilang saat refresh
-                            if(typeof saveDraft === "function") saveDraft();
-                            
-                            // Bersihkan storage
-                            localStorage.removeItem('magang_company');
-                            localStorage.removeItem('magang_region');
-                            localStorage.removeItem('magang_lokasi');
-                            localStorage.removeItem('magang_posisi');
-                            
-                            if(typeof cekDataLengkap === "function") cekDataLengkap();
-                        }, 300);
-                    }, 300);
+                            lockSelectVisual(elComp);
+                            lockSelectVisual(elReg);
+                            lockSelectVisual(elLok);
+
+                            if (typeof saveDraft === "function") saveDraft();
+                            if (typeof cekDataLengkap === "function") cekDataLengkap();
+                        }
+                    );
                 }
-
-                // Jika setelah 10 detik tidak muncul, hentikan (mungkin ada error lain)
-                if (attempts > 50) {
-                    clearInterval(checkReady);
-                    console.error("Gagal memuat data dropdown dalam 10 detik.");
-                }
-            }, 200);
-
+            );
         } else {
-            // Jika tidak ada data kiriman, baru jalankan loadDraft biasa
-            if(typeof loadDraft === "function") loadDraft();
+            if (typeof loadDraft === "function") loadDraft();
         }
+    });
+
+    ['company', 'region', 'lokasi'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('mousedown', function (e) {
+            if (this.dataset.locked === "true") e.preventDefault();
+        });
+
+        el.addEventListener('keydown', function (e) {
+            if (this.dataset.locked === "true") e.preventDefault();
+        });
     });
 
     function validateEmail(input) {

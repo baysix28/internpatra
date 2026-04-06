@@ -34,7 +34,26 @@ namespace sinta_asp.Controllers
                 .ToListAsync();
 
             // --- INOVASI: AMBIL DATA MAGANG AKTIF (TERBARU & DITERIMA) ---
-            ViewBag.MagangAktif = riwayatMagang.FirstOrDefault(m => m.Status == "Diterima");
+            var today = DateTime.Today;
+
+            var magangDiterima = riwayatMagang
+                .Where(m => m.Status == "Diterima")
+                .OrderByDescending(m => m.SelesaiMagang)
+                .FirstOrDefault();
+
+            ViewBag.MagangAktif = null;
+            ViewBag.MagangAkanDatang = null;
+            ViewBag.MagangSelesai = null;
+
+            if (magangDiterima != null)
+            {
+                if (magangDiterima.MulaiMagang.Date > today)
+                    ViewBag.MagangAkanDatang = magangDiterima;
+                else if (magangDiterima.SelesaiMagang.Date < today)
+                    ViewBag.MagangSelesai = magangDiterima;
+                else
+                    ViewBag.MagangAktif = magangDiterima;
+            }
 
             // --- LOGIKA PERHITUNGAN UNTUK DASHBOARD ---
             ViewBag.TotalMagang = riwayatMagang.Count;
@@ -45,6 +64,35 @@ namespace sinta_asp.Controllers
             ViewBag.RiwayatMagang = riwayatMagang;
 
             return View(profil);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetInformasiTersedia()
+        {
+            var data = await _context.PendaftaranMagang
+                .Where(m => !string.IsNullOrEmpty(m.Company) 
+                        && !string.IsNullOrEmpty(m.Region) 
+                        && !string.IsNullOrEmpty(m.Lokasi))
+                .Select(m => new
+                {
+                    company = m.Company,
+                    region = m.Region,
+                    lokasi = m.Lokasi,
+                    createdAt = m.CreatedAt
+                })
+                .Distinct()
+                .OrderBy(x => x.company)
+                .ThenBy(x => x.region)
+                .ThenBy(x => x.lokasi)
+                .ToListAsync();
+
+            return Json(data);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> InformasiTersedia()
+        {
+            return View();
         }
 
         [HttpPost]

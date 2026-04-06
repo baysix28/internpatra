@@ -201,7 +201,7 @@
         <div class="col-12">
             <div class="kartu-formal border-0 shadow-sm">
                 <div class="label-bagian">Peluang Magang</div>
-                <h5 class="fw-bold mb-4">Posisi Yang Tersedia</h5>
+                <h5 class="fw-bold mb-4">Informasi Posisi</h5>
 
                 <div class="row g-3 mb-5 p-3 bg-light rounded-4 border">
                     <div class="col-md-6">
@@ -375,89 +375,145 @@
     const emptyState = document.getElementById('emptyState');
     const searchInput = document.getElementById('searchPosisi');
 
+    function getDefaultCards(limit = 8) {
+        const cards = [];
+
+        Object.keys(dataMagang).forEach(company => {
+            Object.keys(dataMagang[company]).forEach(region => {
+                dataMagang[company][region].forEach(pos => {
+                    cards.push({
+                        company,
+                        region,
+                        lokasi: region,
+                        posisi: pos
+                    });
+                });
+            });
+        });
+
+        return cards.slice(0, limit);
+    }
+
     function renderCards() {
         const company = companySelect.value;
         const region = regionSelect.value;
         const lokasi = lokasiSelect.value;
-        const search = searchInput.value.toLowerCase();
+        const search = searchInput.value.toLowerCase().trim();
 
         container.innerHTML = '';
 
-        if (!company || !region || !lokasi) {
-            emptyState.style.display = 'block';
-            return;
+        let itemsToRender = [];
+
+        // Kondisi awal: belum pilih filter apapun -> tampilkan card default
+        if (!company && !region && !lokasi && !search) {
+            emptyState.style.display = 'none';
+            itemsToRender = getDefaultCards(8);
+        } else {
+            // Filter dinamis
+            Object.keys(dataMagang).forEach(comp => {
+                // filter company
+                if (company && comp !== company) return;
+
+                Object.keys(dataMagang[comp]).forEach(reg => {
+                    // filter region
+                    if (region && reg !== region) return;
+
+                    dataMagang[comp][reg].forEach(pos => {
+                        // filter lokasi
+                        if (lokasi && reg !== lokasi) return;
+
+                        // filter search
+                        if (search && !pos.toLowerCase().includes(search)) return;
+
+                        itemsToRender.push({
+                            company: comp,
+                            region: reg,
+                            lokasi: reg,
+                            posisi: pos
+                        });
+                    });
+                });
+            });
+
+            if (itemsToRender.length === 0) {
+                emptyState.style.display = 'block';
+                emptyState.innerHTML = `
+                    <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                    <p>Tidak ada lowongan yang sesuai.</p>
+                `;
+                return;
+            } else {
+                emptyState.style.display = 'none';
+            }
         }
 
-        emptyState.style.display = 'none';
-        const positions = dataMagang[company][region];
+        itemsToRender.forEach(item => {
+            let deskripsi = "";
 
-        positions.forEach(pos => {
-            if (pos.toLowerCase().includes(search)) {
+            if (item.company === "KPI") {
+                deskripsi = typeof deskripsiPosisi !== "undefined" && deskripsiPosisi[item.posisi]
+                    ? deskripsiPosisi[item.posisi]
+                    : "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
+            }
 
-                let deskripsi = "";
+            if (item.company === "PPN") {
+                deskripsi = typeof generateDeskripsiPPN === "function"
+                    ? generateDeskripsiPPN(item.posisi)
+                    : "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
+            }
 
-                // KPI
-                if (company === "KPI") {
-                    deskripsi = deskripsiPosisi[pos] ||
-                        "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
-                }
+            const card = `
+                <div class="flip-card animate__animated animate__fadeInUp">
+                    <div class="flip-card-inner">
 
-                // PPN
-                if (company === "PPN") {
-                    deskripsi = generateDeskripsiPPN(pos);
-                }
-
-
-                const card = `
-                    <div class="flip-card animate__animated animate__fadeInUp">
-                        <div class="flip-card-inner">
-
-                            <div class="flip-card-front shadow-sm">
-                                <div class="wadah-ikon-sm">
-                                    <i class="${getIcon(pos)}"></i>
-                                </div>
-
-                                <div class="judul-posisi">${pos}</div>
-
-                                <small class="text-muted d-block mb-3">
-                                    <i class="fas fa-map-marker-alt me-1 text-danger"></i>${lokasi}
-                                </small>
-
-                                <div class="syarat-dokumen mb-2">
-                                    <small class="fw-bold text-muted d-block mb-1">Dokumen:</small>
-                                    <small class="text-muted">CV, Proposal, Surat Kampus</small>
-                                </div>
-
-                                <div class="mt-auto pt-2 border-top">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-bold text-muted" style="font-size: 11px;">KUOTA</span>
-                                        <span class="fw-bold text-primary" style="font-size: 11px;">TERSEDIA</span>
-                                    </div>
-                                </div>
+                        <div class="flip-card-front shadow-sm">
+                            <div class="wadah-ikon-sm">
+                                <i class="${getIcon(item.posisi)}"></i>
                             </div>
 
-                            <div class="flip-card-back shadow-lg">
-                                <h6 class="fw-bold mb-2" style="font-size: 13px;">
-                                    Fungsi Bidang
-                                </h6>
+                            <div class="judul-posisi">${item.posisi}</div>
 
-                                <p style="font-size: 11px; line-height: 1.4; opacity: 0.9;">
-                                    ${deskripsi}
-                                </p>
+                            <small class="text-muted d-block mb-2">
+                                <i class="fas fa-building me-1 text-primary"></i>${item.company}
+                            </small>
 
-                                <button onclick="pilihPosisi('${company}', '${region}', '${lokasi}', '${pos}')" 
-                                        class="btn-pilih mt-3">
-                                    Pilih Posisi
-                                </button>
+                            <small class="text-muted d-block mb-3">
+                                <i class="fas fa-map-marker-alt me-1 text-danger"></i>${item.lokasi}
+                            </small>
+
+                            <div class="syarat-dokumen mb-2">
+                                <small class="fw-bold text-muted d-block mb-1">Dokumen:</small>
+                                <small class="text-muted">CV, Proposal, Surat Kampus</small>
+                            </div>
+
+                            <div class="mt-auto pt-2 border-top">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-muted" style="font-size: 11px;">KUOTA</span>
+                                    <span class="fw-bold text-primary" style="font-size: 11px;">TERSEDIA</span>
+                                </div>
                             </div>
                         </div>
-                    </div>`;
 
-                container.insertAdjacentHTML('beforeend', card);
-            }
+                        <div class="flip-card-back shadow-lg">
+                            <h6 class="fw-bold mb-2" style="font-size: 13px;">
+                                Fungsi Bidang
+                            </h6>
+
+                            <p style="font-size: 11px; line-height: 1.4; opacity: 0.9;">
+                                ${deskripsi}
+                            </p>
+
+                            <button onclick="pilihPosisi('${item.company}', '${item.region}', '${item.lokasi}')"
+                                    class="btn-pilih mt-3">
+                                Pilih Posisi
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+
+            container.insertAdjacentHTML('beforeend', card);
         });
     }
-
 
     function getIcon(pos) {
         pos = pos.toLowerCase();
@@ -470,9 +526,10 @@
     }
 
     companySelect.addEventListener('change', function() {
-        regionSelect.innerHTML = '<option value="">Pilih Region</option>';
-        lokasiSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+        regionSelect.innerHTML = '<option value="">Pilih</option>';
+        lokasiSelect.innerHTML = '<option value="">Pilih</option>';
         lokasiSelect.disabled = true;
+
         if (this.value) {
             regionSelect.disabled = false;
             Object.keys(dataMagang[this.value]).forEach(r => {
@@ -481,17 +538,20 @@
         } else {
             regionSelect.disabled = true;
         }
+
         renderCards();
     });
 
     regionSelect.addEventListener('change', function() {
-        lokasiSelect.innerHTML = '<option value="">Pilih Lokasi</option>';
+        lokasiSelect.innerHTML = '<option value="">Pilih</option>';
+
         if (this.value) {
             lokasiSelect.disabled = false;
             lokasiSelect.innerHTML += `<option value="${this.value}">${this.value}</option>`;
         } else {
             lokasiSelect.disabled = true;
         }
+
         renderCards();
     });
 
@@ -528,14 +588,12 @@
     }
 
     // Pastikan fungsi ini ada dan bisa diakses global
-    function pilihPosisi(company, region, lokasi, posisi) {
-        // Simpan ke localStorage
+    function pilihPosisi(company, region, lokasi) {
         localStorage.setItem('magang_company', company);
         localStorage.setItem('magang_region', region);
         localStorage.setItem('magang_lokasi', lokasi);
-        localStorage.setItem('magang_posisi', posisi);
+        localStorage.setItem('magang_locked_from_card', 'true');
 
-        // Langsung arahkan ke halaman DataMagang
         window.location.href = '/PendaftaranMagang/DataMagang';
     }
 
@@ -560,5 +618,9 @@
     // Event Listeners (Tetap)
     lokasiSelect.addEventListener('change', renderCards);
     searchInput.addEventListener('input', renderCards);
+
+    document.addEventListener('DOMContentLoaded', function () {
+        renderCards();
+    });
 
 </script>

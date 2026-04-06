@@ -26,12 +26,12 @@ namespace sinta_asp.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync("PesertaScheme");
             return RedirectToAction("Login", "Auth"); 
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string Email, string Password)
+        public async Task<IActionResult> Login(string Email, string Password, string? returnUrl = null)
         {
             var account = _context.Users.FirstOrDefault(u => u.Email == Email && u.Password == Password);
 
@@ -42,20 +42,26 @@ namespace sinta_asp.Controllers
                     TempData["ErrorMessage"] = "Akun Anda belum aktif. Harap verifikasi email Anda!";
                     return RedirectToAction("Login");
                 }
-                
+
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, account.Email),
-                    new Claim("Id", account.Id.ToString())
+                    new Claim("Id", account.Id.ToString()),
+                    new Claim(ClaimTypes.Role, account.Role ?? "Peserta")
                 };
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, 
+                var claimsIdentity = new ClaimsIdentity(claims, "PesertaScheme");
+
+                await HttpContext.SignInAsync(
+                    "PesertaScheme",
                     new ClaimsPrincipal(claimsIdentity));
+
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    return Redirect(returnUrl);
 
                 return RedirectToAction("Index", "DashboardPeserta");
             }
-            
+
             TempData["ErrorMessage"] = "Email atau Password salah!";
             return RedirectToAction("Login");
         }

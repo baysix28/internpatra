@@ -208,6 +208,26 @@
             color: #334155;
         }
 
+        #informasi-tersedia {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        #informasi-tersedia .card-body {
+            padding: 24px;
+        }
+
+        #informasi-tersedia table th {
+            font-weight: 700;
+            color: #0b4f93;
+            white-space: nowrap;
+        }
+
+        #informasi-tersedia table td {
+            vertical-align: middle;
+        }
+
         /* Styling Modal Premium */
         .modal-content { border-radius: 24px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
         .modal-header-premium { background: var(--p-blue); padding: 30px; color: white; position: relative; }
@@ -371,6 +391,9 @@
     <div style="flex-grow: 1;">
         <button onclick="showPage('dashboard')" class="nav-link-custom active" id="nav-dashboard">
             <i class="fa-solid fa-house mr-3"></i> Dashboard
+        </button>
+        <button onclick="showPage('informasi')" class="nav-link-custom" id="nav-informasi">
+            <i class="fa-solid fa-info-circle mr-3"></i> Informasi Tersedia
         </button>
         <button onclick="showPage('riwayat')" class="nav-link-custom" id="nav-riwayat">
             <i class="fa-solid fa-clipboard-list mr-3"></i> Riwayat Magang
@@ -541,6 +564,42 @@
                             </a>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-informasi" class="page-section">
+            <div class="mb-4">
+                <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 5px;">Informasi Tersedia</h4>
+                <p class="text-muted small mb-0">Daftar lokasi magang yang tersedia dan diperbarui berkala.</p>
+            </div>
+
+            <div class="glass-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1">Informasi Tersedia</h5>
+                        <small class="text-muted">Daftar lokasi magang yang tersedia</small>
+                    </div>
+                    <span class="badge badge-primary" id="totalLokasiBadge">0 lokasi</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="tabelInformasiTersedia">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>No</th>
+                                <th>Company</th>
+                                <th>Region</th>
+                                <th>Lokasi Tersedia</th>
+                                <th>Update</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -900,6 +959,63 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    async function loadInformasiTersedia() {
+        const tbody = document.querySelector('#tabelInformasiTersedia tbody');
+        const badge = document.getElementById('totalLokasiBadge');
+
+        try {
+            const response = await fetch('/DashboardPeserta/GetInformasiTersedia');
+            const data = await response.json();
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">Belum ada data lokasi tersedia.</td>
+                    </tr>
+                `;
+                badge.textContent = '0 lokasi';
+                return;
+            }
+
+            tbody.innerHTML = data.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.company ?? '-'}</td>
+                    <td>${item.region ?? '-'}</td>
+                    <td>${item.lokasi ?? '-'}</td>
+                    <td>${formatTanggal(item.createdAt)}</td>
+                </tr>
+            `).join('');
+
+            badge.textContent = `${data.length} lokasi`;
+        } catch (error) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">Gagal memuat data.</td>
+                </tr>
+            `;
+        }
+    }
+
+    function formatTanggal(dateString) {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        return date.toLocaleString('id-ID', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        loadInformasiTersedia();
+
+        // refresh tiap 30 detik
+        setInterval(loadInformasiTersedia, 30000);
+    });
+
     function showReviewDetail(id) {
         $.ajax({
             url: '/PendaftaranMagang/GetDetailMagang/' + id,
@@ -1276,6 +1392,7 @@
 
         const breadcrumbs = {
             'dashboard': 'Panel Peserta / Dashboard',
+            'informasi': 'Panel Peserta / Informasi Tersedia',
             'riwayat': 'Panel Peserta / Riwayat Magang',
             'penelitian': 'Panel Peserta / Riwayat Riset',
             'profil': 'Panel Peserta / Pengaturan Profil'

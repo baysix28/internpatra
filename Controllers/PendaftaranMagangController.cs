@@ -25,7 +25,7 @@ namespace sinta_asp.Controllers
 
         public IActionResult Index() => View();
 
-        [Authorize]
+        [Authorize(AuthenticationSchemes = "PesertaScheme")]
         public IActionResult DataMagang()
         {
             string email = User.Identity!.Name!;
