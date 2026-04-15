@@ -503,7 +503,7 @@
                                 ${deskripsi}
                             </p>
 
-                            <button onclick="pilihPosisi('${item.company}', '${item.region}', '${item.lokasi}')"
+                            <button onclick="pilihPosisi('${item.company}', '${item.region}', '${item.posisi.replace(/'/g, "\'")}')"
                                     class="btn-pilih mt-3">
                                 Pilih Posisi
                             </button>
