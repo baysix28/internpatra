@@ -14,7 +14,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - Admin SINTA</title>
-
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
@@ -33,9 +33,10 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #f8fafc;
             overflow-x: hidden;
+            transition: var(--transition);
         }
 
-        /* Sidebar Styling */
+        /* --- Sidebar Styling --- */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -48,6 +49,7 @@
             padding: 30px 20px;
             display: flex;
             flex-direction: column;
+            transition: var(--transition);
         }
 
         .brand-container { margin-bottom: 50px; padding: 0 10px; }
@@ -84,38 +86,54 @@
             margin-top: auto;
         }
 
-        /* Topbar Styling */
+        /* --- Topbar Styling --- */
         .topbar {
             height: var(--topbar-height);
             position: fixed; top: 0; right: 0; left: var(--sidebar-width);
             background: #fff; border-bottom: 1px solid #e2e8f0;
             z-index: 999; display: flex; align-items: center;
             justify-content: space-between; padding: 0 30px;
+            transition: var(--transition);
         }
 
         .brand-logo-sinta { height: 45px; }
-        .main-content { margin-left: var(--sidebar-width); padding-top: var(--topbar-height); }
-
-        /* NOTIFIKASI UPGRADE */
-        .notif-dropdown-wrapper { position: relative; }
-
-        .notif-btn {
-            background: transparent;
-            border: none;
-            font-size: 1.25rem;
-            color: #64748b;
-            cursor: pointer;
-            padding: 5px;
+        .main-content { 
+            margin-left: var(--sidebar-width); 
+            padding-top: var(--topbar-height); 
             transition: var(--transition);
-            outline: none !important;
         }
 
-        .notif-btn:hover { color: var(--p-blue); }
+        /* --- Sidebar Toggle Logic --- */
+        #sidebarToggle {
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        #sidebarToggle:hover { background: #f1f5f9; color: var(--p-blue) !important; }
 
+        body.sidebar-toggled .sidebar {
+            left: calc(var(--sidebar-width) * -1);
+        }
+        body.sidebar-toggled .topbar {
+            left: 0;
+        }
+        body.sidebar-toggled .main-content {
+            margin-left: 0;
+        }
+
+        /* --- Notifications --- */
+        .notif-dropdown-wrapper { position: relative; }
+        .notif-btn {
+            background: transparent; border: none; font-size: 1.25rem;
+            color: #64748b; cursor: pointer; padding: 5px; transition: var(--transition);
+            outline: none !important;
+        }
+        .notif-btn:hover { color: var(--p-blue); }
         .notif-dropdown-wrapper:hover .notif-dropdown {
             display: block; opacity: 1; visibility: visible; transform: translateY(0);
         }
-
         .notif-dropdown {
             display: block; opacity: 0; visibility: hidden;
             transform: translateY(10px); transition: var(--transition);
@@ -123,60 +141,25 @@
             background: white; border-radius: 16px; border: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 8px 0; z-index: 1001;
         }
-
-        .notif-header {
-            padding: 12px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: #fff;
-        }
-
+        .notif-header { padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; background: #fff; }
         .notif-badge {
-            position: absolute; top: 0px; right: 0px;
-            background: var(--p-red); color: white; font-size: 9px;
-            padding: 1px 5px; border-radius: 50px; border: 1.5px solid #fff;
+            position: absolute; top: 0px; right: 0px; background: var(--p-red); color: white; 
+            font-size: 9px; padding: 1px 5px; border-radius: 50px; border: 1.5px solid #fff;
             min-width: 18px; text-align: center;
         }
-        
-        .notif-item {
-            padding: 12px 20px;
-            display: flex; align-items: center; text-decoration: none !important;
-            transition: 0.2s; border: none;
-        }
+        .notif-item { padding: 12px 20px; display: flex; align-items: center; text-decoration: none !important; transition: 0.2s; }
         .notif-item:hover { background-color: #f8fafc; }
         .notif-item.unread { background-color: rgba(0, 84, 155, 0.03); }
+        .notif-dot { width: 7px; height: 7px; background: var(--p-blue); border-radius: 50%; margin-left: auto; }
+        .notif-icon-circle { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; background: #f1f5f9; font-size: 14px; }
+        .sidebar-notif-bubble { background: var(--p-red); color: white; font-size: 10px; padding: 2px 7px; border-radius: 20px; margin-left: auto; font-weight: 700; }
 
-        .notif-dot {
-            width: 7px; height: 7px; background: var(--p-blue);
-            border-radius: 50%; margin-left: auto; flex-shrink: 0;
-        }
-        
-        .notif-icon-circle {
-            width: 36px; height: 36px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            margin-right: 12px; flex-shrink: 0; background: #f1f5f9; font-size: 14px;
-        }
-
-        /* Sidebar Bubble */
-        .sidebar-notif-bubble {
-            background: var(--p-red); color: white; font-size: 10px;
-            padding: 2px 7px; border-radius: 20px; margin-left: auto; font-weight: 700;
-        }
-
-        /* --- FITUR FLASH HIGHLIGHT --- */
-        .row-highlight-flash {
-            animation: flashHighlight 2s ease-out;
-        }
-
+        /* --- Animations --- */
+        .row-highlight-flash { animation: flashHighlight 2s ease-out; }
         @@keyframes flashHighlight {
             0% { background-color: rgba(0, 84, 155, 0.3) !important; }
             100% { background-color: transparent; }
         }
-
-        /* Row Unread Background (Pale Blue) */
-        .magang-row.unread {
-            background-color: rgba(0, 84, 155, 0.05) !important;
-        }
-
     </style>
 </head>
 <body>
@@ -215,13 +198,12 @@
 
 <header class="topbar">
     <div class="d-flex align-items-center">
-        <i class="fa-solid fa-bars-staggered mr-3 text-muted d-none d-md-block"></i>
-        <span class="font-weight-bold text-muted" style="font-size: 0.9rem;">Panel Administrator</span>
+        @* Tombol Toggle Sidebar *@
+        <i class="fa-solid fa-bars-staggered mr-3 text-muted d-none d-md-block" id="sidebarToggle"></i>
+        <img src="~/images/logo-sinta.png" class="brand-logo-sinta">
     </div>
 
     <div class="d-flex align-items-center">
-        <img src="~/images/logo-sinta.png" class="brand-logo-sinta mr-4">
-
         <div class="notif-dropdown-wrapper mr-3">
             <button class="notif-btn" type="button">
                 <i class="fa-solid fa-bell"></i>
@@ -264,6 +246,7 @@
     </div>
 </main>
 
+@* Modal Notifications *@
 <div class="modal fade" id="modalAllNotifications" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-md" role="document">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
@@ -283,6 +266,12 @@
 
 <script>
     $(document).ready(function () {
+        // Toggle Sidebar Script
+        $("#sidebarToggle").on('click', function() {
+            $("body").toggleClass("sidebar-toggled");
+        });
+
+        // Notifications
         fetchAdminNotifications();
         setInterval(fetchAdminNotifications, 60000);
 
@@ -337,7 +326,6 @@
                 data.forEach(n => {
                     const unreadClass = n.isRead ? '' : 'unread';
                     const iconColor = n.type === 'Baru' ? 'text-primary' : 'text-success';
-
                     const itemHtml = `
                         <a href="javascript:void(0)" class="notif-item ${unreadClass}" onclick="handleNotifClick(${n.id}, ${n.magangId})">
                             <div class="notif-icon-circle ${iconColor}">

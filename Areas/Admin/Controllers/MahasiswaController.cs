@@ -90,6 +90,7 @@ namespace sinta_asp.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(adminNama))
                 return RedirectToAction("Index", "Login", new { area = "Admin" });
 
+            // MENGAMBIL REGION DINAMIS DARI DATABASE ADMIN
             var allRegionsInDb = await _context.Admins
                 .Where(a => !string.IsNullOrEmpty(a.Region) && a.Region.ToLower() != "all")
                 .Select(a => a.Region.Trim()) 
@@ -98,28 +99,28 @@ namespace sinta_asp.Areas.Admin.Controllers
                 .ToListAsync();
 
             ViewBag.AllRegions = allRegionsInDb;
-            var query = _context.PendaftaranMagang.AsNoTracking();
+            var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
 
+            // Logika Filter Berdasarkan Role
             if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
             {
+                // Jika bukan SuperAdmin, paksa filter ke Region milik admin tersebut
                 if (!string.IsNullOrEmpty(adminRegionManaged))
                 {
-                    var region = adminRegionManaged.Trim().ToLower();
-                    query = query.Where(x => x.Region != null && x.Region.Trim().ToLower() == region);
+                    query = query.Where(x => x.Region == adminRegionManaged);
                     ViewBag.SelectedRegion = adminRegionManaged;
                 }
             }
             else
             {
-                // Logic Filter untuk SuperAdmin
-                if (selectedRegion != "all")
+                // Jika SuperAdmin, bisa pilih semua atau region tertentu
+                if (selectedRegion != "all" && !string.IsNullOrEmpty(selectedRegion))
                 {
                     query = query.Where(x => x.Region == selectedRegion);
                     ViewBag.SelectedRegion = selectedRegion;
                 }
                 else
                 {
-                    // Mengubah tampilan label "all" menjadi "Semua Region" untuk UI
                     ViewBag.SelectedRegion = "Semua Region";
                 }
             }
@@ -131,14 +132,14 @@ namespace sinta_asp.Areas.Admin.Controllers
                 AdminName = adminNama,
                 LoginTime = DateTime.Now,
                 DaftarMagang = magang,
-                StatusDiproses = magang.Count(x => x.Status == "Menunggu"),
+                StatusDiproses = magang.Count(x => x.Status == "Menunggu" || x.Status == "Proses Review"),
                 StatusDiterima = magang.Count(x => x.Status == "Diterima"),
                 StatusDitolak = magang.Count(x => x.Status == "Ditolak"),
                 TotalInternAktif = magang.Count(x => x.Status == "Diterima")
             };
 
             ViewBag.AdminRole = adminRole;
-            ViewBag.RawSelectedRegion = selectedRegion; // Disimpan untuk keperluan logic di View jika butuh string asli 'all'
+            ViewBag.RawSelectedRegion = selectedRegion; 
 
             return View(viewModel);
         }
@@ -231,14 +232,13 @@ namespace sinta_asp.Areas.Admin.Controllers
             var adminRole = HttpContext.Session.GetString("AdminRole");
             var adminRegionManaged = HttpContext.Session.GetString("AdminRegion");
 
-            var query = _context.PendaftaranMagang.AsNoTracking();
+            var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
 
             if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
             {
                 if (!string.IsNullOrEmpty(adminRegionManaged))
                 {
-                    var region = adminRegionManaged.Trim().ToLower();
-                    query = query.Where(x => x.Region != null && x.Region.Trim().ToLower() == region);
+                    query = query.Where(x => x.Region == adminRegionManaged);
                 }
             }
             else
@@ -310,10 +310,14 @@ namespace sinta_asp.Areas.Admin.Controllers
                 workbook.SaveAs(stream);
                 stream.Position = 0;
 
-                // Membersihkan nama file dari kata "all"
                 var regionLabel = (selectedRegion == "all" || string.IsNullOrEmpty(selectedRegion)) 
                                   ? "Semua_Region" 
                                   : selectedRegion;
+
+                if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+                {
+                    regionLabel = adminRegionManaged ?? "Region";
+                }
 
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Rekap_Magang_{regionLabel}_{DateTime.Now:yyyyMMdd}.xlsx");
             }
@@ -327,7 +331,7 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
             else
             {
-                var cleanFileName = fileName.Contains("/") ? fileName.Split('/').Last() : fileName;
+                var cleanFileName = Path.GetFileName(fileName);
                 var fullPath = $"{baseUrl}/uploads/{folder}/{cleanFileName}";
                 
                 cell.Value = fullPath;

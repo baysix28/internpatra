@@ -48,6 +48,8 @@ namespace sinta_asp.Models
             set => Region = value; 
         }
 
+        public string? ActivationToken { get; set; }
+        public bool IsActive { get; set; } = false;
         public string? SmtpPassword { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

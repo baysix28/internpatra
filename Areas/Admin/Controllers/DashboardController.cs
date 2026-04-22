@@ -131,6 +131,21 @@ namespace sinta_asp.Areas.Admin.Controllers
             var sessionRegion = HttpContext.Session.GetString("AdminRegion");
             var adminName = HttpContext.Session.GetString("AdminName");
 
+            // --- FITUR DROPDOWN DINAMIS ---
+            // 1. Ambil Region dari Dictionary (Statis)
+            var staticRegions = _masterDataUnit.Keys.ToList();
+            // 2. Ambil Region unik yang benar-benar ada di Database (Dinamis)
+            var dbRegions = await _context.PendaftaranMagang
+                .Select(x => x.Region)
+                .Distinct()
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToListAsync();
+            // 3. Gabungkan dan urutkan agar Dropdown lengkap
+            var allRegionsFromMaster = staticRegions
+                .Union(dbRegions, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(x => x)
+                .ToList();
+
             string activeRegion;
             if (!string.IsNullOrEmpty(region))
             {
@@ -145,7 +160,6 @@ namespace sinta_asp.Areas.Admin.Controllers
                 activeRegion = sessionRegion ?? "All";
             }
 
-            var allRegionsFromMaster = _masterDataUnit.Keys.OrderBy(x => x).ToList();
             var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
 
             if (adminRole != "SuperAdmin")
@@ -198,7 +212,20 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
             else
             {
-                model.LokasiStatLabels = _masterDataUnit.ContainsKey(activeRegion) ? _masterDataUnit[activeRegion] : new List<string>();
+                // Ambil Lokasi/Unit dari master, jika tidak ada (region baru), ambil dari data yang ada di DB
+                if (_masterDataUnit.ContainsKey(activeRegion))
+                {
+                    model.LokasiStatLabels = _masterDataUnit[activeRegion];
+                }
+                else
+                {
+                    model.LokasiStatLabels = data.Where(x => x.Region == activeRegion)
+                                                 .Select(x => x.Lokasi)
+                                                 .Distinct()
+                                                 .Where(l => !string.IsNullOrEmpty(l))
+                                                 .ToList();
+                }
+
                 model.LokasiDiterima = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Diterima")).ToList();
                 model.LokasiMenunggu = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && (x.Status == "Menunggu" || x.Status == "Proses Review"))).ToList();
                 model.LokasiDitolak = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Ditolak")).ToList();
@@ -224,27 +251,31 @@ namespace sinta_asp.Areas.Admin.Controllers
 
             var query = _context.AdminNotifications.AsNoTracking().AsQueryable();
 
-            // Filter berdasarkan Role & Region
             if (adminRole != "SuperAdmin" && !string.IsNullOrEmpty(adminRegion))
             {
                 query = query.Where(n => n.TargetRegion == adminRegion);
             }
 
-            var notifs = await query
+            var notifsRaw = await query
                 .OrderByDescending(n => n.CreatedAt)
                 .Take(15)
-                .Select(n => new {
-                    id = n.Id,
-                    title = n.Title,
-                    message = n.Message,
-                    // Mengecek apakah Admin yang sedang login sudah pernah membaca notif ini
-                    isRead = _context.AdminNotificationReads.Any(r => r.NotificationId == n.Id && r.AdminId == adminId),
-                    timeAgo = n.CreatedAt.ToString("dd MMM yyyy HH:mm"),
-                    magangId = n.MagangId
-                })
                 .ToListAsync();
 
-            return Json(notifs);
+            var readNotifIds = await _context.AdminNotificationReads
+                .Where(r => r.AdminId == adminId)
+                .Select(r => r.NotificationId)
+                .ToListAsync();
+
+            var result = notifsRaw.Select(n => new {
+                id = n.Id,
+                title = n.Title,
+                message = n.Message,
+                isRead = readNotifIds.Contains(n.Id),
+                timeAgo = CalculateTimeAgo(n.CreatedAt),
+                magangId = n.MagangId
+            });
+
+            return Json(result);
         }
 
         [HttpPost]
@@ -255,7 +286,6 @@ namespace sinta_asp.Areas.Admin.Controllers
             
             int adminId = int.Parse(adminIdStr);
 
-            // Cek apakah sudah pernah ditandai baca sebelumnya
             var sudahBaca = await _context.AdminNotificationReads
                 .AnyAsync(r => r.NotificationId == id && r.AdminId == adminId);
 

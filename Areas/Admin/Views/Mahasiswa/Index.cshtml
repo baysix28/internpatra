@@ -1,5 +1,6 @@
 ﻿@using System.Text.Json
 @using Microsoft.AspNetCore.Http
+@using sinta_asp.Models
 @inject IHttpContextAccessor HttpContextAccessor
 @{
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
@@ -9,13 +10,25 @@
     var adminRole = HttpContextAccessor.HttpContext.Session.GetString("AdminRole");
     var adminRegionManaged = HttpContextAccessor.HttpContext.Session.GetString("AdminRegion");
     
-    // PERBAIKAN: Memisahkan nilai mentah untuk logic dan label untuk tampilan
+    // Memisahkan nilai mentah untuk logic dan label untuk tampilan
     var rawSelectedRegion = ViewBag.RawSelectedRegion as string ?? "all"; 
     var displayRegion = ViewBag.SelectedRegion as string ?? "Semua Region";
     
-    // Mengambil data dari Model secara dinamis
-    var daftarMagang = Model.DaftarMagang as IEnumerable<dynamic> ?? new List<dynamic>();
+    // Casting Model ke tipe Magang yang sesuai
+    var daftarMagang = Model.DaftarMagang as IEnumerable<Magang> ?? new List<Magang>();
     var totalPendaftar = daftarMagang.Count();
+
+    // Daftar Region Tetap
+    var staticRegions = new List<string> 
+    { 
+        "Refinery Unit VI Balongan", 
+        "Regional Jatimalinus", 
+        "Regional Jawa Bagian Barat", 
+        "Regional Jawa Bagian Tengah", 
+        "Regional Kalimantan", 
+        "Regional Maluku Papua", 
+        "Regional Sumbagut" 
+    };
 }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -57,7 +70,6 @@
     .stat-value { font-weight: 800; font-size: 1.15rem; color: #1e293b; }
 
     .main-table-card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; position: static !important; }
-
     .filter-toolbar { display: flex; align-items: center; justify-content: space-between; width: 100%; position: static !important; }
     
     .table thead th { background: #f8fafc; font-weight: 700; color: #64748b; font-size: 0.7rem; padding: 12px 15px; text-transform: uppercase; border: none; }
@@ -78,52 +90,63 @@
         transition: var(--transition); background-color: #fff; font-weight: 600; font-size: 0.85rem; color: #475569; outline: none;
     }
 
+    /* --- Hover Dropdown Logic --- */
+    .dropdown:hover > .dropdown-menu-premium {
+        display: block;
+        margin-top: 0; 
+    }
+
     .btn-region-select {
-        min-width: 180px; text-align: left; padding: 8px 12px; font-weight: 700; font-size: 0.8rem;
+        min-width: 220px; text-align: left; padding: 8px 12px; font-weight: 700; font-size: 0.8rem;
         color: var(--p-blue); border: 1.5px solid #e2e8f0; border-radius: 10px; background-color: white;
         display: flex; justify-content: space-between; align-items: center; transition: var(--transition);
     }
-    .btn-region-select:hover { border-color: var(--p-blue); background-color: #f0f7ff; }
-    
-    .dropdown-menu-premium { border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 10px; padding: 5px; min-width: 180px; max-height: 250px; overflow-y: auto; }
+    .dropdown-menu-premium { 
+        border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 10px; padding: 5px; 
+        min-width: 220px; max-height: 350px; overflow-y: auto; 
+    }
     .dropdown-item-premium { font-weight: 600; padding: 8px 12px; color: #475569; border-radius: 6px; transition: 0.2s; font-size: 0.8rem; }
     .dropdown-item-premium:hover { background: #f1f5f9; color: var(--p-blue); }
     .dropdown-item-premium.active { background: var(--p-blue); color: white; }
 
-    @@media (min-width: 992px) {
-        .dropdown:hover .dropdown-menu-premium {
-            display: block;
-            margin-top: 0;
-            animation: fadeIn 0.2s ease-in;
-        }
-    }
-    @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
     .btn-pertamina { background: var(--p-blue); color: white; border: none; font-weight: 700; border-radius: 6px; padding: 8px 16px; font-size: 0.8rem; transition: var(--transition); }
     .user-avatar-list { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
 
-    /* --- MODAL DETAIL --- */
-    .modal-content { border-radius: 28px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-    .modal-header-premium { background: linear-gradient(135deg, #00549B 0%, #003d70 100%); padding: 2.5rem; color: white; position: relative; }
-    .header-flex-container { display: flex; align-items: center; gap: 25px; }
-    .profile-circle-frame { width: 110px; height: 110px; border-radius: 50% !important; object-fit: cover; border: 5px solid rgba(255,255,255,0.2); background: white; flex-shrink: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-    .header-text-info h2 { font-weight: 800; font-size: 1.8rem; margin: 0; letter-spacing: -0.5px; }
-    .status-pill-modal { display: inline-block; width: fit-content; padding: 4px 15px; border-radius: 50px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-top: 5px; }
+    .modal-content { border-radius: 28px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; }
+    .modal-header-premium { background: linear-gradient(135deg, #00549B 0%, #003d70 100%); padding: 1.5rem 2rem; color: white; position: relative; }
+    .header-flex-container { display: flex; align-items: center; gap: 20px; }
+    .profile-circle-frame { width: 90px; height: 90px; border-radius: 50% !important; object-fit: cover; border: 4px solid rgba(255,255,255,0.2); background: white; flex-shrink: 0; }
+    .header-text-info h2 { font-weight: 800; font-size: 1.5rem; margin: 0; letter-spacing: -0.5px; line-height: 1.2; }
+    .status-pill-modal { display: inline-block; width: fit-content; padding: 2px 12px; border-radius: 50px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
 
-    .action-area { background: #f8fafc; padding: 25px 40px; border-top: 1px solid #e2e8f0; }
-    .btn-primary-modern { background: var(--p-blue); color: white; border: none; padding: 10px 25px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2); transition: var(--transition); }
-    .btn-danger-light { background: #fff; color: #dc2626; border: 1.5px solid #fee2e2; padding: 10px 20px; border-radius: 12px; font-size: 0.85rem; font-weight: 700; transition: var(--transition); }
-
-    .detail-body { padding: 40px; background: #fff; }
-    .info-card-premium { background: #f8fafc; border-radius: 16px; padding: 20px; height: 100%; border: 1px solid #eef2f6; }
-    .info-label { color: #94a3b8; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
-    .info-value { color: #1e293b; font-weight: 700; font-size: 0.95rem; margin-bottom: 15px; }
+    .btn-action-standard {
+        padding: 8px 24px; min-width: 130px; font-size: 0.8rem; font-weight: 700; border-radius: 10px; border: none; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
     
-    .doc-link { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: #fff; border-radius: 12px; text-decoration: none !important; color: #1e293b; font-weight: 700; border: 1px solid #e2e8f0; margin-bottom: 12px; transition: 0.2s; }
+    .btn-accept-modern { background: var(--p-blue); color: white; box-shadow: 0 4px 10px rgba(0, 84, 155, 0.15); }
+    .btn-accept-modern:hover { background: #003d70; transform: translateY(-1px); color: white; }
+    
+    .btn-reject-modern { background: var(--p-red); color: white; box-shadow: 0 4px 10px rgba(236, 28, 36, 0.15); }
+    .btn-reject-modern:hover { background: #c1121a; transform: translateY(-1px); color: white; }
+    
+    .detail-body { padding: 30px 40px 100px 40px; background: #fff; position: relative; }
+    .info-card-premium { background: #f8fafc; border-radius: 16px; padding: 18px; height: 100%; border: 1px solid #eef2f6; }
+    
+    .info-label { color: #94a3b8; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; }
+    .info-value { color: #000000 !important; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4; }
+    
+    .highlight-noreg { color: var(--p-orange) !important; font-weight: 800; font-size: 1.1rem; }
+    .highlight-email { color: var(--p-blue) !important; text-decoration: underline; }
+    .highlight-wa { color: var(--p-green) !important; }
+    .highlight-lokasi { color: var(--p-red) !important; font-size: 1rem; }
+
+    .doc-link { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; border-radius: 10px; text-decoration: none !important; color: #000000; font-weight: 700; border: 1px solid #e2e8f0; margin-bottom: 8px; font-size: 0.85rem; transition: 0.2s; }
     .doc-link:hover { border-color: var(--p-blue); background: #f0f7ff; }
+
+    .rekomendasi-box { background: transparent; border: none; padding: 0; }
+    .text-rekomendasi { color: #000000 !important; font-weight: 700; font-size: 0.9rem; line-height: 1.5; }
+
+    .action-wrapper-minimal { position: absolute; bottom: 30px; right: 40px; display: flex; gap: 12px; z-index: 10; }
 
     .magang-row.unread {
         background-color: rgba(0, 84, 155, 0.04) !important;
@@ -141,7 +164,7 @@
                 <span class="ms-1 fw-bold" style="color: var(--p-red);">@adminRegionManaged</span> 
             }</p>
         </div>
-        <button class="btn btn-pertamina shadow-sm" style="background: #10b981;" onclick="exportExcel()">
+        <button class="btn btn-pertamina shadow-sm" style="background: var(--p-green);" onclick="exportExcel()">
             <i class="fas fa-file-excel me-1"></i> Export Excel
         </button>
     </div>
@@ -168,11 +191,20 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-premium shadow-lg">
                             <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == "all" ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('all')">Semua Region</a></li>
+                            
+                            @foreach (var region in staticRegions)
+                            {
+                                <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == region ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
+                            }
+
                             @if (ViewBag.AllRegions != null)
                             {
                                 foreach (var region in (IEnumerable<string>)ViewBag.AllRegions)
                                 {
-                                    <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == region ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
+                                    if (!staticRegions.Contains(region))
+                                    {
+                                        <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == region ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
+                                    }
                                 }
                             }
                         </ul>
@@ -187,22 +219,18 @@
                     <tr>
                         <th class="ps-4">Mahasiswa</th>
                         <th>Institusi</th>
-                        <th>Penempatan</th>
+                        <th>Penempatan & Lokasi</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var m in daftarMagang) {
-                        <tr class="magang-row @(m.Status == "Menunggu" ? "unread" : "")" 
-                            data-status="@m.Status" 
-                            data-region="@m.Region" 
-                            id="row-@m.Id">
+                        <tr class="magang-row @(m.Status == "Menunggu" ? "unread" : "")" data-status="@m.Status" data-region="@m.Region" id="row-@m.Id">
                             <td class="ps-4">
                                 <div class="d-flex align-items-center">
                                     @{
-                                        string fotoProfil = m.FotoProfil;
-                                        var cleanFoto = fotoProfil?.Split('/').Last();
+                                        var cleanFoto = m.FotoProfil?.Split('/').Last();
                                         var fotoPath = string.IsNullOrEmpty(cleanFoto) ? "/img/default-user.png" : "/uploads/foto/" + cleanFoto;
                                     }
                                     <img src="@fotoPath" class="user-avatar-list me-3 shadow-sm">
@@ -213,12 +241,13 @@
                                 </div>
                             </td>
                             <td><div class="fw-600">@m.NamaPerguruanTinggi</div><div class="text-muted small">@m.Jurusan</div></td>
-                            <td><div class="text-primary fw-700">@m.Company</div><div class="text-muted small">@m.Region</div></td>
+                            <td>
+                                <div class="text-primary fw-700">@m.Company</div>
+                                <div class="text-muted small">@m.Region | <span class="fw-bold text-danger">@m.Lokasi</span></div>
+                            </td>
                             <td class="text-center"><span class="badge-status status-@m.Status">@m.Status</span></td>
                             <td class="text-center">
-                                <button class="btn-review" onclick='showDetail(@Html.Raw(JsonSerializer.Serialize(m)))'>
-                                    Review
-                                </button>
+                                <button class="btn-review" onclick='showDetail(@Html.Raw(JsonSerializer.Serialize(m)))'>Review</button>
                             </td>
                         </tr>
                     }
@@ -239,7 +268,7 @@
                     <div class="header-text-info">
                         <div id="d-status-badge-container"></div>
                         <h2 id="d-nama"></h2>
-                        <span class="opacity-75 small"><i class="fas fa-clock me-1"></i> Terdaftar: <span id="d-created-at"></span></span>
+                        <span class="opacity-75 small"><i class="fas fa-calendar-check me-1"></i> Terdaftar: <span id="d-created-at" class="fw-bold"></span></span>
                     </div>
                 </div>
             </div>
@@ -249,27 +278,31 @@
                     <div class="col-md-4">
                         <div class="info-label"><i class="fas fa-id-card me-2"></i>Kontak & Pribadi</div>
                         <div class="info-card-premium">
-                            <div class="info-label">Email</div><div id="d-email" class="info-value"></div>
+                            <div class="info-label">No. Pendaftaran</div>
+                            <div id="d-noreg" class="info-value highlight-noreg"></div>
+                            <div class="info-label">Email Aktif</div>
+                            <div id="d-email" class="info-value highlight-email"></div>
                             <div class="info-label">WhatsApp</div>
                             <div class="info-value">
-                                <a id="d-hp-link" target="_blank" style="color: #1e293b; text-decoration: none;">
-                                    <span id="d-hp"></span>
+                                <a id="d-hp-link" target="_blank" class="highlight-wa text-decoration-none">
+                                    <i class="fab fa-whatsapp me-1"></i><span id="d-hp"></span>
                                 </a>
                             </div>
-                            <div class="info-label">Tempat, Tgl Lahir</div><div class="info-value"><span id="d-tempat"></span>, <span id="d-tgl-lahir"></span></div>
+                            <div class="info-label">Tempat, Tgl Lahir</div><div id="d-ttl" class="info-value"></div>
                             <div class="info-label">Instagram</div>
-                            <div class="info-value">
-                                <a href="#" id="d-ig-link" target="_blank" class="fw-bold" style="text-decoration: underline !important; color: #1e293b;">@@<span id="d-ig-text"></span></a>
-                            </div>
+                            <div class="info-value">@@<span id="d-ig-text"></span></div>
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="info-label"><i class="fas fa-graduation-cap me-2"></i>Akademik & Unit</div>
+                        <div class="info-label"><i class="fas fa-university me-2"></i>Akademik & Unit</div>
                         <div class="info-card-premium">
                             <div class="info-label">Kampus (NIM)</div><div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
                             <div class="info-label">Fakultas / Jurusan</div><div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
-                            <div class="info-label">Penempatan</div><div class="info-value text-primary fw-bold"><span id="d-company"></span> - <span id="d-lokasi"></span></div>
-                            <div class="info-label">Periode Magang</div><div id="d-periode" class="info-value text-danger"></div>
+                            <div class="info-label">Penempatan (Company - Region)</div>
+                            <div id="d-company-region" class="info-value"></div>
+                            <div class="info-label">Lokasi Penugasan</div>
+                            <div id="d-lokasi" class="info-value highlight-lokasi"></div>
+                            <div class="info-label">Periode Magang</div><div id="d-periode" class="info-value"></div>
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -277,26 +310,21 @@
                         <a id="link-cv" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
                         <a id="link-surat" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
                         <a id="link-proposal" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-signature text-success me-2"></i> Proposal Magang</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <div class="info-label mt-4"><i class="fas fa-user-tie me-2"></i>Rekomendasi Pegawai</div>
+                        <div class="rekomendasi-box">
+                            <div id="d-rekomendasi" class="text-rekomendasi"></div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="action-area">
-                <input type="hidden" id="d-id">
-                <div id="detail-actions" class="d-flex justify-content-end align-items-center w-100">
-                    <div id="quick-actions">
-                        @if (adminRole != "SuperAdmin")
-                        {
-                            <button id="btn-tolak-quick" onclick="updateStatus('Ditolak')" class="btn btn-danger-light fw-bold me-2"><i class="fas fa-user-times me-2"></i>Tolak</button>
-                            <button id="btn-terima-quick" onclick="updateStatus('Diterima')" class="btn btn-primary-modern"><i class="fas fa-user-check me-2"></i>Terima Mahasiswa</button>
-                        }
-                        else
-                        {
-                            <div class="text-muted small fw-bold"><i class="fas fa-info-circle me-1"></i> Super Admin Mode: Read-Only</div>
-                        }
-                    </div>
+                <div id="action-area-minimal" class="action-wrapper-minimal">
+                    @if (adminRole != "SuperAdmin")
+                    {
+                        <button onclick="updateStatus('Ditolak')" class="btn-action-standard btn-reject-modern"><i class="fas fa-times"></i> Tolak</button>
+                        <button onclick="updateStatus('Diterima')" class="btn-action-standard btn-accept-modern"><i class="fas fa-check"></i> Terima</button>
+                    }
                 </div>
             </div>
+            <input type="hidden" id="d-id">
         </div>
     </div>
 </div>
@@ -310,14 +338,13 @@
 
     function changeRegion(region) {
         Swal.fire({
-            title: 'Memproses...',
-            text: 'Mengambil data region ' + (region === 'all' ? 'Semua' : region),
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
+            title: 'Memproses...', text: 'Mengambil data region ' + (region === 'all' ? 'Semua' : region),
+            allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }
         });
         window.location.href = `/Admin/Mahasiswa/Index?selectedRegion=${encodeURIComponent(region)}`;
     }
 
+    // Live Search Functionality
     $("#tableSearch").on("keyup", function() {
         applyAllFilters();
     });
@@ -334,14 +361,19 @@
         $(".magang-row").each(function() {
             const rowStatus = $(this).attr("data-status");
             const rowText = $(this).text().toLowerCase();
+            
             const matchSearch = rowText.indexOf(searchText) > -1;
             const matchStatus = currentStatusFilter === 'all' || rowStatus === currentStatusFilter;
-            $(this).toggle(matchSearch && matchStatus);
+            
+            if (matchSearch && matchStatus) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
         });
     }
 
     function exportExcel() {
-        // PERBAIKAN: Mengirim string 'all' ke server agar logic filter tetap jalan
         const currentRegion = "@rawSelectedRegion";
         const activeStatus = currentStatusFilter;
         window.location.href = `/Admin/Mahasiswa/ExportMahasiswa?selectedRegion=${encodeURIComponent(currentRegion)}&status=${encodeURIComponent(activeStatus)}`;
@@ -350,7 +382,15 @@
     function showDetail(data) {
         $("#d-id").val(data.Id || data.id);
         $("#d-nama").text(data.NamaLengkap || data.namaLengkap);
-        $("#d-created-at").text(formatDate(data.CreatedAt || data.createdAt));
+        $("#d-noreg").text(data.NoPendaftaran || data.noPendaftaran || "BELUM TERSEDIA");
+        
+        const createdAt = data.CreatedAt || data.createdAt;
+        if(createdAt) {
+            const date = new Date(createdAt);
+            const formatted = date.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) + 
+                              ' | ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+            $("#d-created-at").text(formatted);
+        }
         
         const st = data.Status || data.status;
         updateModalStatusUI(st);
@@ -361,25 +401,31 @@
         $("#d-foto-link").attr("href", finalFoto);
 
         $("#d-email").text(data.EmailPribadi || data.emailPribadi);
-        const rawHp = data.NoHp || "";
+        const rawHp = data.NoHp || data.noHp || "";
         let cleanHp = rawHp.replace(/\D/g, '');
         if (cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.slice(1);
         $("#d-hp").text(rawHp || "-");
         $("#d-hp-link").attr("href", cleanHp ? `https://wa.me/${cleanHp}` : "#");
 
-        $("#d-tempat").text(data.TempatLahir || "-");
-        $("#d-tgl-lahir").text(formatDate(data.TanggalLahir || data.tanggalLahir));
+        $("#d-ttl").text(`${data.TempatLahir || data.tempatLahir || "-"}, ${formatDate(data.TanggalLahir || data.tanggalLahir)}`);
         
         let rawIg = (data.Instagram || data.instagram || "").replace(/@@/g, '').trim();
         $("#d-ig-text").text(rawIg || "-");
-        $("#d-ig-link").attr("href", rawIg ? `https://instagram.com/${rawIg}` : "#");
         
         $("#d-univ").text(data.NamaPerguruanTinggi || data.namaPerguruanTinggi || "-");
         $("#d-nim").text(data.NIM || data.nim || "-");
         $("#d-fakultas").text(data.Fakultas || data.fakultas || "-");
         $("#d-jurusan").text(data.Jurusan || data.jurusan || "-");
-        $("#d-company").text(data.Company || data.company || "-");
-        $("#d-lokasi").text(data.Region || data.region || "-"); 
+        
+        const comp = data.Company || data.company || "-";
+        const reg = data.Region || data.region || "-";
+        const lok = data.Lokasi || data.lokasi || "-";
+        $("#d-company-region").text(`${comp} - ${reg}`);
+        $("#d-lokasi").text(lok);
+        
+        const rekom = data.RekomendasiPegawai || data.rekomendasiPegawai;
+        $("#d-rekomendasi").text(rekom && rekom !== "-" ? rekom : "Tidak ada rekomendasi pegawai.");
+
         $("#d-periode").text(formatDate(data.MulaiMagang || data.mulaiMagang) + " - " + formatDate(data.SelesaiMagang || data.selesaiMagang));
 
         $("#link-cv").attr("href", "/uploads/cv/" + (data.FileCv || data.fileCv || "").split('/').pop());
@@ -391,11 +437,10 @@
 
     function updateModalStatusUI(st) {
         $("#d-status-badge-container").html(`<span class="status-pill-modal status-${st}">${st}</span>`);
-        const isAdmin = "@adminRole" !== "SuperAdmin";
-        if (st === "Menunggu" && isAdmin) {
-            $("#quick-actions").show();
+        if (st === "Menunggu" && "@adminRole" !== "SuperAdmin") {
+            $("#action-area-minimal").show();
         } else {
-            $("#quick-actions").hide();
+            $("#action-area-minimal").hide();
         }
     }
 
@@ -409,33 +454,23 @@
         const oldStatus = $(`#row-${id}`).attr("data-status");
 
         Swal.fire({
-            title: 'Konfirmasi',
-            text: `Ubah status menjadi ${s}?`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#00549B',
+            title: 'Konfirmasi', text: `Ubah status menjadi ${s}?`, icon: 'question',
+            showCancelButton: true, confirmButtonColor: s === 'Diterima' ? '#00549B' : '#EC1C24',
             confirmButtonText: 'Ya, Simpan'
         }).then((result) => {
             if (result.isConfirmed) {
                 const row = $(`#row-${id}`);
                 row.attr("data-status", s);
                 row.find(".badge-status").attr("class", `badge-status status-${s}`).text(s);
-                
                 row.removeClass("unread");
                 updateModalStatusUI(s);
 
-                if (oldStatus !== s) {
-                    updateStatCount(oldStatus, -1);
-                    updateStatCount(s, 1);
-                }
+                if (oldStatus !== s) { updateStatCount(oldStatus, -1); updateStatCount(s, 1); }
 
                 $("#modalDetail").modal('hide');
                 $.post("/Admin/Mahasiswa/UpdateStatus", { id: id, status: s }, function(res) {
-                    if(!res.success) {
-                        Swal.fire('Error', res.message || 'Gagal update ke server.', 'error');
-                    } else {
-                        Swal.fire('Berhasil', res.message, 'success');
-                    }
+                    if(!res.success) { Swal.fire('Error', res.message || 'Gagal update.', 'error').then(() => location.reload()); }
+                    else { Swal.fire('Berhasil', res.message, 'success'); }
                 });
             }
         });
