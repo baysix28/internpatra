@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration; 
 using sinta_asp.Data;
+using sinta_asp.Models;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Mail;
@@ -59,6 +60,13 @@ namespace sinta_asp.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Email tidak ditemukan" });
             }
 
+            // --- PROTEKSI AKTIVASI (UPDATE: BYPASS UNTUK SUPERADMIN) ---
+            // Jika akun bukan SuperAdmin DAN belum aktif, maka blokir login.
+            if (admin.Role != "SuperAdmin" && !admin.IsActive)
+            {
+                return Json(new { success = false, message = "Akun Anda belum aktif! Silakan cek email untuk aktivasi." });
+            }
+
             var verify = _passwordHasher.VerifyHashedPassword(admin, admin.PasswordHash, Password);
 
             if (verify != PasswordVerificationResult.Success)
@@ -67,14 +75,12 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
 
             // ======================================================
-            // SET SESSION (Update: Ditambahkan Role dan Region)
+            // SET SESSION
             // ======================================================
             HttpContext.Session.SetString("AdminLogin", "true");
             HttpContext.Session.SetString("AdminId", admin.Id.ToString());
             HttpContext.Session.SetString("AdminNama", admin.Nama ?? "Admin");
             HttpContext.Session.SetString("AdminEmail", admin.Email);
-            
-            // Menggunakan .Trim() untuk memastikan tidak ada spasi kosong yang tersimpan
             HttpContext.Session.SetString("AdminRole", (admin.Role ?? "Admin").Trim());
             HttpContext.Session.SetString("AdminRegion", admin.Region ?? "");
 
@@ -85,7 +91,7 @@ namespace sinta_asp.Areas.Admin.Controllers
         // POST: /Admin/Login/Register (PENDAFTARAN)
         // ===============================
         [HttpPost]
-        public async Task<IActionResult> Register(string FullName, string Email, string Password)
+        public async Task<IActionResult> Register(string FullName, string Email, string Password, string Role = "Admin")
         {
             if (string.IsNullOrEmpty(FullName) || string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
             {
@@ -98,11 +104,16 @@ namespace sinta_asp.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Email sudah digunakan oleh akun lain" });
             }
 
+            // --- INISIALISASI AKUN (UPDATE: SUPERADMIN OTOMATIS AKTIF) ---
             var newAdmin = new AdminModel
             {
                 Nama = FullName,
                 Email = Email,
-                RegionManaged = "Pusat"
+                Role = Role,
+                Region = "Pusat",
+                // Jika yang didaftarkan adalah SuperAdmin, maka langsung aktif tanpa token
+                IsActive = (Role == "SuperAdmin"), 
+                ActivationToken = (Role == "SuperAdmin") ? null : Guid.NewGuid().ToString()
             };
 
             newAdmin.PasswordHash = _passwordHasher.HashPassword(newAdmin, Password);
@@ -112,12 +123,40 @@ namespace sinta_asp.Areas.Admin.Controllers
                 _context.Admins.Add(newAdmin);
                 await _context.SaveChangesAsync();
                 
-                return Json(new { success = true, message = "Registrasi berhasil! Silakan login." });
+                string successMessage = (Role == "SuperAdmin") 
+                    ? "Registrasi SuperAdmin berhasil! Silakan langsung login." 
+                    : "Registrasi berhasil! Silakan cek email untuk aktivasi.";
+
+                return Json(new { success = true, message = successMessage });
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                return Json(new { success = false, message = "Terjadi kesalahan saat menyimpan data: " + ex.Message });
+                return Json(new { success = false, message = "Terjadi kesalahan: " + ex.Message });
             }
+        }
+
+        // ==========================================
+        // PROSES AKTIVASI DARI LINK EMAIL
+        // ==========================================
+        [HttpGet]
+        public async Task<IActionResult> ActivateAccount(string token)
+        {
+            if (string.IsNullOrEmpty(token)) return Content("Token tidak valid.");
+
+            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.ActivationToken == token);
+
+            if (admin == null)
+            {
+                return Content("Link aktivasi tidak valid atau sudah digunakan.");
+            }
+
+            admin.IsActive = true;
+            admin.ActivationToken = null; // Hapus token
+            
+            _context.Update(admin);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index", new { message = "Akun berhasil diaktifkan. Silakan login." });
         }
 
         // ==========================================
@@ -126,39 +165,27 @@ namespace sinta_asp.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(string Email)
         {
-            if (string.IsNullOrEmpty(Email))
-            {
-                return Json(new { success = false, message = "Email wajib diisi" });
-            }
+            if (string.IsNullOrEmpty(Email)) return Json(new { success = false, message = "Email wajib diisi" });
 
             var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == Email);
             if (admin == null)
             {
-                return Json(new { success = false, message = "Email tidak terdaftar di sistem kami." });
+                return Json(new { success = false, message = "Email tidak terdaftar." });
             }
 
+            // --- PASSWORD SEMENTARA ---
             string temporaryPassword = Guid.NewGuid().ToString().Substring(0, 8);
             admin.PasswordHash = _passwordHasher.HashPassword(admin, temporaryPassword);
 
             try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                
                 var smtpHost = _config["EmailSettings:Host"];
-                var smtpPortStr = _config["EmailSettings:Port"];
+                var smtpPort = int.Parse(_config["EmailSettings:Port"] ?? "587");
                 var senderEmail = _config["EmailSettings:Email"];
                 var senderPass = _config["EmailSettings:Password"];
 
-                if (string.IsNullOrEmpty(smtpHost) || string.IsNullOrEmpty(smtpPortStr))
+                using (var smtpClient = new SmtpClient(smtpHost, smtpPort))
                 {
-                    return Json(new { success = false, message = "Konfigurasi Email (Host/Port) tidak ditemukan." });
-                }
-
-                int smtpPort = int.Parse(smtpPortStr);
-                
-                using (var smtpClient = new SmtpClient(smtpHost))
-                {
-                    smtpClient.Port = smtpPort;
                     smtpClient.Credentials = new NetworkCredential(senderEmail, senderPass);
                     smtpClient.EnableSsl = true;
 
@@ -166,16 +193,7 @@ namespace sinta_asp.Areas.Admin.Controllers
                     {
                         From = new MailAddress(senderEmail, "SINTA Pertamina Support"),
                         Subject = "Reset Password Admin SINTA",
-                        Body = $@"
-                            <div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;'>
-                                <h2 style='color: #00549B;'>Halo, {admin.Nama}</h2>
-                                <p>Kami telah mereset password akun SINTA Anda.</p>
-                                <p>Gunakan password sementara berikut untuk login:</p>
-                                <div style='background: #f4f4f4; padding: 15px; font-size: 24px; font-weight: bold; color: #E30613; text-align: center;'>
-                                    {temporaryPassword}
-                                </div>
-                                <p>Mohon segera ganti password Anda setelah login demi keamanan.</p>
-                            </div>",
+                        Body = $"<p>Halo {admin.Nama}, password sementara Anda adalah: <b>{temporaryPassword}</b></p>",
                         IsBodyHtml = true,
                     };
                     mailMessage.To.Add(Email);

@@ -1,0 +1,146 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aktivasi Berhasil | SINTA Pertamina</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --p-blue: #00549B;
+            --p-red: #EC1C24;
+            --p-green: #10b981;
+            --p-bg: #F8FAFC;
+        }
+
+        body {
+            background-color: var(--p-bg);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .activation-card {
+            background: #ffffff;
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.07);
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            animation: cardAppear 0.6s ease-out;
+            position: relative;
+        }
+
+        .success-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--p-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+        }
+
+        .success-icon-wrapper::after {
+            content: '';
+            position: absolute;
+            width: 95px;
+            height: 95px;
+            border: 1.5px solid rgba(16, 185, 129, 0.2);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .title-huge {
+            color: var(--p-blue);
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .sub-text {
+            color: #64748b;
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+        }
+
+        .btn-go-login {
+            background: var(--p-blue);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
+            border: none;
+        }
+
+        .btn-go-login:hover {
+            background: #00447a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 84, 155, 0.2);
+            color: white;
+        }
+
+        @@keyframes cardAppear {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @@keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @@keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="activation-card">
+        <div class="success-icon-wrapper">
+            <i class="fas fa-check"></i>
+        </div>
+        
+        <h1 class="title-huge">Aktivasi Berhasil</h1>
+        
+        <p class="sub-text">
+            Akun administrator Anda telah aktif. Silakan masuk untuk mengakses panel kendali.
+        </p>
+
+        <a href="@Url.Action("Index", "Login", new { area = "Admin" })" class="btn-go-login">
+            Masuk Sekarang <i class="fas fa-arrow-right"></i>
+        </a>
+    </div>
+
+</body>
+</html>
