@@ -27,7 +27,7 @@ namespace sinta_asp.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync("PesertaScheme");
-            return RedirectToAction("Login", "Auth"); 
+            return RedirectToAction("Index", "Home"); 
         }
 
         [HttpPost]
