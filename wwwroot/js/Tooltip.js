@@ -12,7 +12,7 @@ const deskripsiPosisi = {
     "Internal Audit": "Audit operasional dan finansial untuk memastikan kepatuhan terhadap regulasi perusahaan.",
     "Kelautan / Perkapalan": "Operasi dan pemeliharaan fasilitas pelabuhan serta transportasi maritim.",
     "Kimia Murni / MIPA": "Analisis laboratorium, kontrol kualitas bahan baku, dan penelitian kimia terapan.",
-    "Konversi Energi / Migas / Kimia Air Bersih / Blanding / Loading": "Optimasi proses produksi, blending produk, dan operasi loading terminal.",
+    "Konversi Energi / Migas / Kimia Air Bersih / Blending / Loading": "Optimasi proses produksi, blending produk, dan operasi loading terminal.",
     "Logistik / Pergudangan / Procurement": "Manajemen rantai pasok, pergudangan, dan pengadaan barang/jasa.",
     "Manajemen / SDM / Psikologi": "Pengembangan SDM, rekrutmen, dan program pengembangan organisasi.",
     "Metalurgi / Material / Dirgantara": "Pengujian material, analisis kegagalan, dan seleksi material teknik.",
@@ -31,123 +31,105 @@ const deskripsiPosisi = {
 // DESKRIPSI PPN BERDASARKAN NAMA
 // ===============================
 function generateDeskripsiPPN(nama) {
-
     if (nama.includes("Integrated Terminal") || nama.startsWith("IT "))
         return "Terminal distribusi energi terintegrasi yang mengelola penyimpanan dan penyaluran BBM/LPG.";
-
-    if (nama.includes("Fuel Terminal") || nama.startsWith("FT "))
+    else if (nama.includes("Fuel Terminal") || nama.startsWith("FT "))
         return "Fasilitas penyimpanan dan distribusi BBM untuk wilayah operasional.";
-
-    if (nama.includes("DPPU") || nama.includes("AFT") || nama.includes("Aviation FT"))
+    else if (nama.includes("DPPU") || nama.includes("AFT") || nama.includes("Aviation FT"))
         return "Unit distribusi avtur untuk mendukung operasional penerbangan.";
-
-    if (nama.includes("Retail") || nama.includes("Sales Area") || nama.includes("SAM") || nama.includes("SA "))
+    else if (nama.includes("Retail") || nama.includes("Sales Area") || nama.includes("SAM") || nama.includes("SA "))
         return "Unit pengelolaan dan pengembangan jaringan SPBU serta penjualan energi ritel.";
-
-    if (nama.includes("Finance"))
+    else if (nama.includes("Finance"))
         return "Unit pengelolaan keuangan, budgeting, dan pelaporan regional.";
-
-    if (nama.includes("HC") || nama.includes("Human Capital"))
+    else if (nama.includes("HC") || nama.includes("Human Capital"))
         return "Unit pengelolaan sumber daya manusia dan pengembangan karyawan.";
-
-    if (nama.includes("HSSE"))
+    else if (nama.includes("HSSE"))
         return "Unit implementasi Health, Safety, Security & Environment.";
-
-    if (nama.includes("Legal Counsel"))
+    else if (nama.includes("Legal Counsel"))
         return "Unit penanganan aspek hukum dan kepatuhan regulasi.";
-
-    if (nama.includes("Medical"))
+    else if (nama.includes("Medical"))
         return "Unit pelayanan kesehatan kerja dan dukungan medis operasional.";
-
-    if (nama.includes("Procurement"))
+    else if (nama.includes("Procurement"))
         return "Unit pengadaan barang dan jasa untuk operasional regional.";
-
-    if (nama.includes("Supply") || nama.includes("S&D"))
+    else if (nama.includes("Supply") || nama.includes("S&D"))
         return "Unit pengelolaan rantai pasok dan distribusi energi.";
-
-    if (nama.includes("Comm") || nama.includes("CSR") || nama.includes("Communication"))
+    else if (nama.includes("Comm") || nama.includes("CSR") || nama.includes("Communication"))
         return "Unit komunikasi korporat dan pelaksanaan program CSR.";
-
-    if (nama.includes("Project Dev") || nama.includes("Reliability"))
+    else if (nama.includes("Project Dev") || nama.includes("Reliability"))
         return "Unit pengembangan proyek dan peningkatan keandalan aset.";
-
-    if (nama.includes("SSC ICT") || nama.includes("SCC ICT"))
+    else if (nama.includes("SSC ICT") || nama.includes("SCC ICT"))
         return "Unit dukungan sistem informasi dan infrastruktur teknologi.";
-
-    if (nama.includes("Marine"))
+    else if (nama.includes("Marine"))
         return "Unit pengelolaan operasional transportasi laut.";
-
-    if (nama.includes("Asset Operation"))
+    else if (nama.includes("Asset Operation"))
         return "Unit pengelolaan aset dan pengawasan fasilitas distribusi energi.";
-
-    if (nama.includes("Corporate Sales"))
+    else if (nama.includes("Corporate Sales"))
         return "Unit penjualan korporat untuk pelanggan industri dan komersial.";
-
-    if (nama.includes("Corp Operation"))
+    else if (nama.includes("Corp Operation"))
         return "Unit koordinasi operasional dan layanan korporat.";
 
     return "Unit operasional pendukung distribusi dan pengelolaan energi regional.";
 }
 
-// // ===============================
-// // Script Tooltip Select2
-// // ===============================
+// ===============================
+// Script Tooltip Select2
+// ===============================
+$(document).ready(function() {
+    // Inisialisasi Select2 pada dropdown lokasi
+    $('#lokasi').select2({
+        placeholder: "Pilih Lokasi",
+        width: '100%'
+    });
 
-// $(document).ready(function() {
-//     // Inisialisasi Select2 pada dropdown lokasi
-//         $('#lokasi').select2({
-//             placeholder: "Pilih Lokasi",
-//             width: '100%'
-//         });
+    const tooltipHover = document.getElementById('tooltipHover');
+    const tTitle = document.getElementById('tooltipHoverTitle');
+    const tDesc = document.getElementById('tooltipHoverDesc');
 
-//         const tooltipHover = document.getElementById('tooltipHover');
-//         const tTitle = document.getElementById('tooltipHoverTitle');
-//         const tDesc = document.getElementById('tooltipHoverDesc');
+    // MENDETEKSI HOVER PADA LIST (SESUAI ARAHAN KURSOR)
+    $(document).on('mouseenter', '.select2-results__option', function() {
+        const text = $(this).text().trim();
+        let deskripsi = null;
 
-//         // MENDETEKSI HOVER PADA LIST (SESUAI ARAHAN KURSOR)
-//         $(document).on('mouseenter', '.select2-results__option', function() {
-//             const text = $(this).text().trim();
+        // 1️⃣ CEK KPI
+        if (deskripsiPosisi[text]) {
+            deskripsi = deskripsiPosisi[text];
+        }
 
-//             let deskripsi = null;
+        // 2️⃣ CEK PPN BERDASARKAN REGIONAL
+        const selectedRegion = $('#region').val();
+        // Pastikan variabel dataPPN sudah didefinisikan di tempat lain atau secara global
+        if (typeof dataPPN !== 'undefined' && selectedRegion && dataPPN[selectedRegion]) {
+            if (dataPPN[selectedRegion].includes(text)) {
+                deskripsi = generateDeskripsiPPN(text);
+            }
+        }
 
-//             // 1️⃣ CEK KPI
-//             if (deskripsiPosisi[text]) {
-//                 deskripsi = deskripsiPosisi[text];
-//             }
+        // 3️⃣ JIKA ADA DESKRIPSI → TAMPILKAN TOOLTIP
+        if (deskripsi) {
+            tTitle.innerText = text;
+            tDesc.innerText = deskripsi;
 
-//             // 2️⃣ CEK PPN BERDASARKAN REGIONAL
-//             const selectedRegion = $('#region').val();
-//             if (selectedRegion && dataPPN[selectedRegion]) {
-//                 if (dataPPN[selectedRegion].includes(text)) {
-//                     deskripsi = generateDeskripsiPPN(text);
-//                 }
-//             }
+            const rect = this.getBoundingClientRect();
 
-//             // 3️⃣ JIKA ADA DESKRIPSI → TAMPILKAN TOOLTIP
-//             if (deskripsi) {
-//                 tTitle.innerText = text;
-//                 tDesc.innerText = deskripsi;
+            // Menggunakan window.scrollY agar posisi tetap akurat saat page di-scroll
+            tooltipHover.style.top = (rect.top + window.scrollY) + 'px';
+            tooltipHover.style.left = (rect.right + 20) + 'px';
+            tooltipHover.classList.add('show');
+        }
+    });
 
-//                 const rect = this.getBoundingClientRect();
+    // SEMBUNYIKAN SAAT KELUAR DARI BARIS TERSEBUT
+    $(document).on('mouseleave', '.select2-results__option', function() {
+        if (tooltipHover) tooltipHover.classList.remove('show');
+    });
 
-//                 tooltipHover.style.top = rect.top + 'px';
-//                 tooltipHover.style.left = (rect.right + 20) + 'px';
-//                 tooltipHover.classList.add('show');
-//             }
-//         });
+    // SEMBUNYIKAN JIKA DROPDOWN TERTUTUP
+    $('#lokasi').on('select2:closing', function() {
+        if (tooltipHover) tooltipHover.classList.remove('show');
+    });
 
-//         // SEMBUNYIKAN SAAT KELUAR DARI BARIS TERSEBUT
-//         $(document).on('mouseleave', '.select2-results__option', function() {
-//             tooltipHover.classList.remove('show');
-//         });
-
-//         // SEMBUNYIKAN JIKA DROPDOWN TERTUTUP
-//         $('#lokasi').on('select2:closing', function() {
-//             tooltipHover.classList.remove('show');
-//         });
-
-//         $('#lokasi').on('select2:select', function (e) {
-//             saveDraft();
-//             cekDataLengkap();
-//         });
-//     });
+    $('#lokasi').on('select2:select', function (e) {
+        if (typeof saveDraft === "function") saveDraft();
+        if (typeof cekDataLengkap === "function") cekDataLengkap();
+    });
+});
