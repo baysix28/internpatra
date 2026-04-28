@@ -228,6 +228,20 @@
             vertical-align: middle;
         }
 
+        .dashboard-clickable-card {
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .dashboard-clickable-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.10) !important;
+        }
+
+        .dashboard-clickable-card:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
         /* Styling Modal Premium */
         .modal-content { border-radius: 24px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
         .modal-header-premium { background: var(--p-blue); padding: 30px; color: white; position: relative; }
@@ -766,41 +780,46 @@
 
             <div class="row">
                 <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="glass-card shadow-sm p-4 dashboard-mini-card" style="border-radius: 18px; background: #fff; border-left: 6px solid #00549B; min-height: 160px; display: flex; flex-direction: column;">
+                    <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
                         onclick="window.location.href='/PendaftaranMagang/DataMagang'"
+                        style="border-radius: 18px; background: #fff; border-left: 6px solid #00549B; min-height: 160px; display: flex; flex-direction: column;">
                         <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.8px;">Pendaftaran</small>
                         <h4 class="font-weight-bold mt-2 mb-3" style="color: #333;">Magang</h4>
 
                         <div class="mt-auto">
-                            <a href="javascript:void(0)" onclick="window.location.href='/PendaftaranMagang/DataMagang'" class="text-primary font-weight-bold" style="font-size: 14px; text-decoration: none;">
+                            <span class="text-primary font-weight-bold" style="font-size: 14px;">
                                 Daftar Sekarang <i class="fa fa-arrow-right ml-1"></i>
-                            </a>
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="glass-card shadow-sm p-4 dashboard-mini-card" style="border-radius: 18px; background: #fff; border-left: 6px solid #00A859; min-height: 160px; display: flex; flex-direction: column;">
+                    <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
+                        onclick="showPage('informasi')"
+                        style="border-radius: 18px; background: #fff; border-left: 6px solid #00A859; min-height: 160px; display: flex; flex-direction: column;">
                         <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.8px;">Informasi</small>
                         <h4 class="font-weight-bold mt-2 mb-3" style="color: #333;">Informasi Tersedia</h4>
 
                         <div class="mt-auto">
-                            <a href="javascript:void(0)" onclick="showPage('informasi')" class="text-success font-weight-bold" style="font-size: 14px; text-decoration: none;">
+                            <span class="text-success font-weight-bold" style="font-size: 14px;">
                                 Lihat informasi tersedia <i class="fa fa-arrow-right ml-1"></i>
-                            </a>
+                            </span>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="glass-card shadow-sm p-4 dashboard-mini-card" style="border-radius: 18px; background: #fff; border-left: 6px solid #ec1c24; min-height: 160px; display: flex; flex-direction: column;">
+                    <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
+                        onclick="showPage('riwayat')"
+                        style="border-radius: 18px; background: #fff; border-left: 6px solid #ec1c24; min-height: 160px; display: flex; flex-direction: column;">
                         <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.8px;">Riwayat</small>
                         <h4 class="font-weight-bold mt-2 mb-3" style="color: #333;">Riwayat Magang</h4>
 
                         <div class="mt-auto">
-                            <a href="javascript:void(0)" onclick="showPage('riwayat')" class="text-danger font-weight-bold" style="font-size: 14px; text-decoration: none;">
+                            <span class="text-danger font-weight-bold" style="font-size: 14px;">
                                 Lihat riwayat pengajuan <i class="fa fa-arrow-right ml-1"></i>
-                            </a>
+                            </span>
                         </div>
                     </div>
                 </div>
