@@ -178,6 +178,8 @@ namespace sinta_asp.Controllers
 
             return View(model);
         }
+
+        
         // 2. TAMPILKAN FORM (GET)
         public IActionResult Daftar()
         {
@@ -188,6 +190,10 @@ namespace sinta_asp.Controllers
         [HttpPost]
         public async Task<IActionResult> SubmitPendaftaran(PendaftaranPenelitianModel model)
         {
+            // Hapus validasi untuk kolom yang diisi otomatis agar ModelState jadi "True"
+            ModelState.Remove("NomorPendaftaran");
+            ModelState.Remove("Status");
+
             if (ModelState.IsValid)
             {
                 // A. Upload File
@@ -233,7 +239,7 @@ namespace sinta_asp.Controllers
                     PathSurat = suratPath,
                     
                     CreatedAt = DateTime.Now,
-                    Status = "Menunggu Review"
+                    Status = "Dalam Proses"
                 };
 
                 // C. Simpan ke Database
@@ -248,6 +254,12 @@ namespace sinta_asp.Controllers
                 return View("Berhasil", pendaftaranBaru);
             }
 
+            var errors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var error in errors) 
+            {
+                Console.WriteLine(error.ErrorMessage); // Error akan muncul di terminal dotnet watch
+            }
+
             return View("Daftar", model);
         }
 
@@ -256,6 +268,33 @@ namespace sinta_asp.Controllers
         {
             return View();
         }
+
+        // 5. CEK STATUS 
+        // 1. Ini untuk menampilkan halaman form saat menu diklik
+        [HttpGet]
+        public IActionResult CekStatus()
+        {
+            return View(); // Mengembalikan halaman kosong tanpa data
+        }
+
+        // 2. Ini untuk memproses saat tombol "PERIKSA" diklik
+        [HttpPost]
+        public IActionResult CekStatus(string noPendaftaran)
+        {
+            // Cari data di database SINTA
+            var data = _context.Pendaftarans.FirstOrDefault(x => x.NomorPendaftaran == noPendaftaran);
+            
+            if (data == null)
+            {
+                // Kirim pesan error kalau nomor tidak ada
+                ViewBag.PesanError = "Nomor Pendaftaran tidak ditemukan. Silakan periksa kembali.";
+            }
+
+            // Kembalikan ke halaman yang SAMA, tapi kali ini bawa 'data' hasil pencarian
+            return View(data); 
+        }
+
+        
 
 
         // --- HELPER FUNCTION: CARA SIMPAN FILE BIAR RAPI ---

@@ -374,6 +374,9 @@
                                         <div class="col-12">
                                             <label class="form-label">Universitas</label>
                                             <input type="text" class="form-control" asp-for="Universitas" required>
+                                            <small class="text-muted mt-1 d-block" style="font-size: 0.8rem;">
+                                                <i class="bi bi-info-circle"></i> Mohon tuliskan nama Universitas secara lengkap (tidak boleh disingkat).
+                                            </small>
                                             <div class="invalid-feedback">Wajib diisi.</div>
                                         </div>
                                         <div class="col-md-6">
@@ -620,7 +623,7 @@
                     } else { if(feedbackDiv) feedbackDiv.textContent = "Wajib diisi."; }
                 }
             }
-            if (!input.checkValidity()) { input.classList.add('is-invalid'); isPaneValid = false; }
+            if (!input.value.trim() || !input.checkValidity()) { input.classList.add('is-invalid'); isPaneValid = false; }
         });
         updateTabVisual(tabBtnId, isPaneValid);
         if (!isPaneValid) { const firstError = pane.querySelector('.is-invalid, :invalid'); if(firstError) firstError.focus(); }

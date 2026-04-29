@@ -75,5 +75,9 @@ namespace sinta_asp.Models
         
         [Required(ErrorMessage = "Surat Pengantar wajib diupload.")]
         public IFormFile FileSurat { get; set; }
+
+        public string? NomorPendaftaran { get; set; }
+
+        public string? Status { get; set; } = "Dalam Proses";
     }
 }
