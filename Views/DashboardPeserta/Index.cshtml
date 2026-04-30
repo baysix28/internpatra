@@ -1,0 +1,1945 @@
+@using Microsoft.AspNetCore.Http
+@using System.Security.Claims
+@using sinta_asp.Models
+@model sinta_asp.Models.UserProfile
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    Layout = null;
+
+    // Ambil Username: Jika Authenticated ambil Name, jika tidak pakai "Guest"
+    // Ditambah .ToString() atau null-coalescing agar tidak dianggap null oleh compiler
+    var namaUser = (User.Identity?.IsAuthenticated == true 
+                   ? (User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? User.Identity.Name) 
+                   : "Guest") ?? "Guest";
+
+    // Ambil Email secara dinamis
+    var userEmail = (User.Identity?.IsAuthenticated == true 
+                    ? (User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.Identity.Name) 
+                    : "belum_login@mail.com") ?? "user@mail.com";
+
+    // Ambil Foto Profil dari Model
+    var fotoUser = Model?.FotoProfil;
+    var avatarUrl = !string.IsNullOrEmpty(fotoUser) 
+                   ? $"/uploads/profile/{fotoUser}" 
+                   : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(namaUser)}&background=00549B&color=fff";
+}
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Peserta | SINTA Pertamina</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --p-blue: #00549B;
+            --p-red: #ec1c24;
+            --p-green: #28a745;
+            --sidebar-width: 280px;
+            --topbar-height: 80px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --p-gray-bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--p-gray-bg);
+            overflow-x: hidden;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width); height: 100vh; position: fixed;
+            left: 0; top: 0; background: #fff; border-right: 1px solid #e2e8f0;
+            z-index: 1000; padding: 30px 20px; display: flex; flex-direction: column;
+        }
+
+        .brand-container { margin-bottom: 50px; padding: 0 10px; }
+        .brand-logo-pertamina { height: 50px; }
+
+        .nav-link-custom {
+            display: flex; align-items: center; padding: 12px 16px; color: #64748b;
+            border-radius: 12px; text-decoration: none !important; margin-bottom: 6px;
+            font-weight: 600; transition: var(--transition); border: none; background: transparent;
+            width: 100%; text-align: left; cursor: pointer;
+        }
+
+        .nav-link-custom:hover { background: rgba(0, 84, 155, 0.05); color: var(--p-blue); transform: translateX(5px); }
+        .nav-link-custom.active { 
+            background: var(--p-blue); color: #fff !important; 
+            box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2); 
+        }
+
+        .nav-link-logout { color: var(--p-red) !important; border: 1px solid #fee2e2; background: #fffafa; margin-top: auto; }
+
+        /* Topbar Styling */
+        .topbar {
+            height: var(--topbar-height); position: fixed; top: 0; right: 0; left: var(--sidebar-width);
+            background: #fff; border-bottom: 1px solid #e2e8f0; z-index: 999;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+        }
+
+        .main-content { margin-left: var(--sidebar-width); padding-top: var(--topbar-height); padding-bottom: 40px; }
+
+        /* Card Styling - Equal Height Fix */
+        .glass-card {
+            background: white; border-radius: 16px; border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 25px;
+            height: 100%; display: flex; flex-direction: column;
+        }
+
+                /* Warna Default (Kuning) */
+        .status-badge.status-review { background: #fff3cd; color: #856404; }
+
+        /* Warna Diterima (Hijau) */
+        .status-badge.status-success { background: #d4edda; color: #155724; }
+
+        /* Warna Ditolak (Merah) */
+        .status-badge.status-danger { background: #f8d7da; color: #721c24; }
+
+        .badge-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ec1c24;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 50%;
+            padding: 2px 6px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .noti-unread {
+            background: #eef6ff;
+            border-left: 4px solid #00549B;
+        }
+
+        .noti-read {
+            background: #f8fafc;
+            opacity: 0.7;
+        }
+
+
+        .status-badge { padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
+        .status-approved { background: #dcfce7; color: #166534; }
+        .status-review { background: #fef9c3; color: #854d0e; }
+
+        .page-section { display: none; }
+        .page-section.active { display: block; animation: slideUp 0.4s ease-out; }
+
+        @@keyframes slideUp { 
+            from { opacity: 0; transform: translateY(15px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Styling tambahan untuk Profil ala Gambar 2 */
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .profile-nav-tabs {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 0 20px;
+        }
+
+        .profile-nav-tabs .nav-link {
+            border: none;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 15px 20px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .profile-nav-tabs .nav-link.active {
+            color: var(--p-blue);
+            border-bottom: 3px solid var(--p-blue);
+            background: transparent;
+        }
+
+        .avatar-box {
+            width: 70px;
+            height: 70px;
+            background-color: var(--p-blue);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 800;
+            border-radius: 12px;
+        }
+
+        .badge-role-peserta {
+            background: #e0efff;
+            color: #00549b;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 5px;
+        }
+
+        .label-custom {
+            font-size: 11px;
+            font-weight: 800;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-custom {
+            background-color: #f8fafc !important;
+            border: none !important;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        #informasi-tersedia {
+            border: none;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        #informasi-tersedia .card-body {
+            padding: 24px;
+        }
+
+        #informasi-tersedia table th {
+            font-weight: 700;
+            color: #0b4f93;
+            white-space: nowrap;
+        }
+
+        #informasi-tersedia table td {
+            vertical-align: middle;
+        }
+
+        .dashboard-clickable-card {
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .dashboard-clickable-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.10) !important;
+        }
+
+        .dashboard-clickable-card:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        /* Styling Modal Premium */
+        .modal-content { border-radius: 24px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .modal-header-premium { background: var(--p-blue); padding: 30px; color: white; position: relative; }
+        .header-flex-container { display: flex; align-items: center; gap: 20px; }
+
+        .profile-circle-frame { 
+            width: 90px; height: 90px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); 
+            object-fit: cover; cursor: pointer; transition: transform 0.3s; background: white;
+        }
+        .profile-circle-frame:hover { transform: scale(1.05); }
+
+        .status-pill-modal {
+            padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; margin-bottom: 8px;
+        }
+        .bg-light-green { background: #d1fae5; color: #065f46; }
+        .bg-light-orange { background: #fef3c7; color: #92400e; }
+        .bg-light-red { background: #fee2e2; color: #991b1b; }
+
+        .detail-body { padding: 30px; background: #f8fafc; }
+        .info-card-premium { 
+            background: white; border-radius: 16px; padding: 20px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); height: 100%;
+        }
+        .info-label { color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; margin-top: 12px; }
+        .info-value { color: #1e293b; font-size: 14px; font-weight: 600; line-height: 1.4; }
+
+        .doc-link {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; background: white; border-radius: 12px; 
+            margin-bottom: 10px; text-decoration: none; color: #334155;
+            border: 1px solid #e2e8f0; transition: all 0.2s;
+        }
+        .doc-link:hover { background: #f1f5f9; border-color: var(--p-blue); transform: translateY(-2px); }
+        .doc-link span { font-size: 13px; font-weight: 600; }
+
+        /* Efek saat input terkunci (readonly) */
+        .input-custom[readonly] {
+            cursor: not-allowed;
+            opacity: 0.7;
+            background-color: #f8fafc !important; /* Warna abu-abu panel */
+        }
+
+        /* Efek saat input aktif */
+        .input-custom:not([readonly]) {
+            background-color: #ffffff !important;
+            border: 1px solid var(--p-blue) !important;
+            box-shadow: 0 0 0 3px rgba(0, 84, 155, 0.1);
+        }
+
+        .notif-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .notif-item:hover {
+            background: #f5f7fa;
+        }
+
+        .notif-unread {
+            background: #eef4ff;
+        }
+
+        .notif-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .notif-msg {
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Notifikasi ala Tokopedia */
+        .notification-btn { position: relative; cursor: pointer; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .notification-btn:hover { background: #f8fafc; }
+        .notification-badge-dot { width: 10px; height: 10px; background: var(--p-red); border-radius: 50%; position: absolute; top: -2px; right: -2px; border: 2px solid white; }
+
+        #notiTab .nav-link { border: none; color: #64748b; font-weight: 700; font-size: 13px; padding: 12px; }
+        #notiTab .nav-link.active { color: var(--p-green); border-bottom: 3px solid var(--p-green) !important; background: transparent; }
+        .dropdown-menu-right {
+            right: 0 !important;
+            left: auto !important;
+        }
+
+        /* Pastikan dropdown tidak menempel terlalu atas */
+        .dropdown-menu {
+            margin-top: 10px !important;
+            display: none; /* Default hidden */
+        }
+
+        /* Saat dropdown terbuka (class show dari bootstrap), jalankan animasi */
+        .dropdown-menu.show {
+            display: block;
+            animation: slideDown 0.2s ease-out forwards;
+        }
+
+        .stat-card {
+            border: none !important;
+            border-radius: 20px; /* Pojokan bulat modern */
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efek membal/3D */
+            position: relative;
+            overflow: hidden;
+            /* Bayangan halus berlapis */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 
+                        0 2px 4px -1px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Efek saat kursor nempel (Hover) */
+        .stat-card:hover {
+            transform: translateY(-8px); /* Melayang ke atas */
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1), 
+                        0 8px 10px -5px rgba(0, 0, 0, 0.04);
+            background: linear-gradient(145deg, #ffffff, #fdfdfd);
+        }
+
+        /* Efek saat diklik (Active) - Seolah ditekan ke bawah */
+        .stat-card:active {
+            transform: translateY(-2px) scale(0.95);
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.1s;
+        }
+
+        /* Gaya Card saat aktif/terpilih */
+        .active-filter {
+            background: #f0f7ff !important;
+            border: 2px solid #00549B !important;
+            box-shadow: 0 5px 15px rgba(0, 84, 155, 0.1) !important;
+        }
+
+        /* Penyesuaian teks di dalam */
+        .stat-card p {
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== Informasi Tersedia - 2 Card KPI & PPN Tanpa Logo ===== */
+        .info-summary-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+            padding: 22px;
+            height: 100%;
+        }
+
+        .info-summary-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: .4px;
+        }
+
+        .info-summary-value {
+            font-size: 34px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .info-summary-desc {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 0;
+        }
+
+        .info-filter-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+            padding: 18px;
+        }
+
+        .info-company-main-card {
+            background: #fff;
+            border: 1px solid #dbe7f3;
+            border-radius: 22px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+            overflow: hidden;
+            height: auto;
+        }
+
+        .info-company-row {
+            align-items: flex-start;
+        }
+
+        .info-company-header {
+            padding: 22px 22px 16px 22px;
+            border-bottom: 1px solid #eef2f7;
+            background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
+        }
+
+        .info-company-label {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .4px;
+            margin-bottom: 8px;
+        }
+
+        .info-company-label.kpi {
+            background: rgba(0, 84, 155, 0.10);
+            color: #00549B;
+        }
+
+        .info-company-label.ppn {
+            background: rgba(0, 168, 89, 0.10);
+            color: #0f8a4b;
+        }
+
+        .info-company-name {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .info-company-code {
+            font-size: 13px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .info-company-stats {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .info-stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid #dbe7f3;
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .info-company-body {
+            padding: 18px;
+        }
+
+        .info-region-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            background: #fff;
+        }
+
+        .info-region-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-region-header {
+            padding: 14px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #eef2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .info-region-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 0;
+        }
+
+        .info-region-count {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .info-lokasi-list {
+            padding: 14px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .info-lokasi-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            transition: .2s ease;
+        }
+
+        .info-lokasi-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+            border-color: #bfd7f2;
+        }
+
+        .info-lokasi-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.4;
+        }
+
+        .info-open-badge {
+            white-space: nowrap;
+            background: #dcfce7;
+            color: #166534;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .info-empty-state {
+            background: #fff;
+            border: 1px dashed #cbd5e1;
+            border-radius: 18px;
+            padding: 36px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        @@media (max-width: 768px) {
+            .info-lokasi-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+        
+        @@keyframes slideDown {
+        from { 
+            opacity: 0; 
+            transform: translateY(0);}
+        to { 
+            opacity: 1; 
+            transform: translateY(10px);}
+        }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <div class="brand-container">
+        <img src="~/images/logo-pertamina.png"
+            class="brand-logo-pertamina
+            alt="Pertamina"
+            onclick="window.location.href='/'">
+    </div>
+
+    <div style="flex-grow: 1;">
+        <button onclick="showPage('dashboard')" class="nav-link-custom active" id="nav-dashboard">
+            <i class="fa-solid fa-house mr-3"></i> Dashboard
+        </button>
+        <button onclick="showPage('informasi')" class="nav-link-custom" id="nav-informasi">
+            <i class="fa-solid fa-info-circle mr-3"></i> Informasi Tersedia
+        </button>
+        <button onclick="showPage('riwayat')" class="nav-link-custom" id="nav-riwayat">
+            <i class="fa-solid fa-clipboard-list mr-3"></i> Riwayat Magang
+        </button>
+        @* <button onclick="showPage('penelitian')" class="nav-link-custom" id="nav-penelitian">
+            <i class="fa-solid fa-flask mr-3"></i> Riwayat Riset
+        </button> *@
+        <button onclick="showPage('profil')" class="nav-link-custom" id="nav-profil">
+            <i class="fa-solid fa-user-gear mr-3"></i> Pengaturan Profil
+        </button>
+    </div>
+
+    @* <button onclick="window.location.href='/'" class="nav-link-custom nav-link-kembali">
+        <i class="fa-solid fa-house mr-3"></i> Kembali ke Home
+    </button> *@
+</nav>
+
+<header class="topbar">
+    <div class="d-flex align-items-center">
+        <i class="fa-solid fa-bars-staggered mr-3 text-muted"></i>
+        <span class="font-weight-bold text-muted" id="page-breadcrumb">Panel Peserta / Dashboard</span>
+    </div>
+
+    <div class="d-flex align-items-center">
+        <img src="~/images/logo-sinta.png" style="height:40px;" class="mr-4">
+        
+        <div class="dropdown mr-3">
+            <div class="notification-btn position-relative" id="notiDropdown" data-toggle="dropdown">
+                <i class="fa-solid fa-bell text-muted"></i>
+                <span id="notifBadge" class="badge badge-danger position-absolute" 
+                    style="top:-5px; right:-5px; font-size:10px;"></span>
+            </div>
+            
+            <div class="dropdown-menu dropdown-menu-right shadow border-0 p-0" style="width: 360px;">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 font-weight-bold">Notifikasi</h6>
+                </div>
+                
+                <div class="tab-content" style="max-height: 400px; overflow-y: auto;">
+                    <div class="tab-pane fade show active" id="pendaftaran">
+                        <div class="list-group list-group-flush" id="notifList">
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade p-4 text-center" id="update">
+                        <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-state-2130362-1800923.png" width="100" class="mb-2 opacity-50">
+                    </div>
+                </div>
+
+                <div class="p-2 border-top text-center bg-light">
+                    <a href="#" id="markAllReadBtn" class="small font-weight-bold text-success" style="text-decoration:none;">
+                        Tandai semua dibaca
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-right mr-3 border-left pl-3">
+            <div class="small font-weight-bold">@namaUser</div>
+            <small class="text-success font-weight-bold">
+                <i class="fa-solid fa-circle text-success mr-1" style="font-size: 8px;"></i> Online
+            </small>
+        </div>
+
+        <div class="dropdown">
+        <div style="cursor: pointer;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <img src="@avatarUrl" id="navbarAvatar" class="rounded-circle shadow-sm border" width="45">
+        </div>
+        
+        <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius: 12px; min-width: 200px;">
+            <div class="dropdown-header font-weight-bold text-dark">Menu Akun</div>
+            
+            <a class="dropdown-item py-2" href="javascript:void(0)" onclick="showPage('profil')">
+                <i class="fa-solid fa-user-gear mr-2 text-muted"></i> Kelola Akun
+            </a>
+            
+            <div class="dropdown-divider"></div>
+            
+            <a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="handleLogout()">
+                <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="main-content">
+    <div class="container-fluid py-4">
+        
+        <div id="page-dashboard" class="page-section active">
+            <div class="mb-4">
+                <h3 style="font-weight: 800; color: #00549B; margin-bottom: 0;">
+                    Selamat Datang, @namaUser!
+                </h3>
+                <p class="subtitle-portal" style="font-size: 14px; color: #64748b; margin-top: 2px;">
+                    Portal SINTA Pertamina Panel Peserta
+                </p>
+            </div>
+
+            @if (ViewBag.MagangAktif != null)
+            {
+                // --- KONDISI 1: BIRU PERTAMINA (SEDANG AKTIF) ---
+                var aktif = (sinta_asp.Models.Magang)ViewBag.MagangAktif;
+                var sisaHari = (aktif.SelesaiMagang - DateTime.Now).Days;
+                var warnaBadge = sisaHari <= 7 ? "#dc3545" : "#FFC107";
+                var warnaTeks = sisaHari <= 7 ? "white" : "#212529";
+
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px; background: linear-gradient(135deg, #00549B 0%, #00a8e8 100%); color: white;">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="badge badge-pill badge-light mb-2" style="color: #00549B; font-weight: bold; padding: 5px 15px;">
+                                    <i class="fa fa-check-circle mr-1"></i> SEDANG AKTIF MAGANG
+                                </div>
+                                <h4 class="font-weight-bold mb-1">@aktif.Company</h4>
+                                <p class="mb-2 opacity-90" style="font-size: 14px;">
+                                    <i class="fa fa-map-marker-alt mr-2"></i> Penempatan: <strong>@aktif.Region</strong> (@aktif.Lokasi)
+                                </p>
+                                <div class="p-2 px-3 d-inline-block" style="background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+                                    <p class="mb-0" style="font-size: 13px;">
+                                        <i class="fa fa-calendar-alt mr-2"></i> Periode: 
+                                        <strong>@aktif.MulaiMagang.ToString("dd MMM yyyy")</strong> — <strong>@aktif.SelesaiMagang.ToString("dd MMM yyyy")</strong>
+                                    </p>
+                                </div>
+                                <div class="mt-3">
+                                    <span class="badge shadow-sm" style="background: @warnaBadge; color: @warnaTeks; border-radius: 8px; padding: 6px 12px; font-weight: 700;">
+                                        ⌛ @(sisaHari > 0 ? sisaHari + " Hari Tersisa" : "Masa Magang Berakhir")
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-right d-none d-md-block">
+                                <i class="fa fa-id-card" style="font-size: 80px; opacity: 0.15;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                // --- KONDISI 2: TIDAK ADA MAGANG AKTIF (MENUNGGU/DITOLAK/BELUM DAFTAR) ---
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px; background: linear-gradient(135deg, #8e9eab 0%, #eef2f3 100%); color: #4b5563;">
+                    <div class="card-body p-4 text-center text-md-left">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="badge badge-pill badge-secondary mb-2" style="font-weight: bold; padding: 5px 15px;">
+                                    <i class="fa fa-times-circle mr-1"></i> SEDANG TIDAK AKTIF MAGANG
+                                </div>
+                                <h4 class="font-weight-bold mb-1" style="color: #1f2937;">Status Magang: Tidak Aktif</h4>
+                                <p class="mb-0 opacity-80" style="font-size: 14px;">
+                                    Anda belum terdaftar dalam program magang aktif. Silakan lakukan pendaftaran atau pantau riwayat lamaran Anda.
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-right d-none d-md-block">
+                                <i class="fa fa-user-slash" style="font-size: 80px; opacity: 0.1;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="row">
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
+                        onclick="window.location.href='/PendaftaranMagang/DataMagang'"
+                        style="border-radius: 18px; background: #fff; border-left: 6px solid #00549B; min-height: 160px; display: flex; flex-direction: column;">
+                        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.8px;">Pendaftaran</small>
+                        <h4 class="font-weight-bold mt-2 mb-3" style="color: #333;">Magang</h4>
+
+                        <div class="mt-auto">
+                            <span class="text-primary font-weight-bold" style="font-size: 14px;">
+                                Daftar Sekarang <i class="fa fa-arrow-right ml-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
+                        onclick="showPage('informasi')"
+                        style="border-radius: 18px; background: #fff; border-left: 6px solid #00A859; min-height: 160px; display: flex; flex-direction: column;">
+                        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.8px;">Informasi</small>
+                        <h4 class="font-weight-bold mt-2 mb-3" style="color: #333;">Informasi Tersedia</h4>
+
+                        <div class="mt-auto">
+                            <span class="text-success font-weight-bold" style="font-size: 14px;">
+                                Lihat informasi tersedia <i class="fa fa-arrow-right ml-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
+                        onclick="showPage('riwayat')"
+                        style="border-radius: 18px; background: #fff; border-left: 6px solid #ec1c24; min-height: 160px; display: flex; flex-direction: column;">
+                        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.8px;">Riwayat</small>
+                        <h4 class="font-weight-bold mt-2 mb-3" style="color: #333;">Riwayat Magang</h4>
+
+                        <div class="mt-auto">
+                            <span class="text-danger font-weight-bold" style="font-size: 14px;">
+                                Lihat riwayat pengajuan <i class="fa fa-arrow-right ml-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-informasi" class="page-section">
+            <div class="mb-4">
+                <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 5px;">
+                    Lokasi Magang Tersedia
+                </h4>
+                <p class="text-muted small mb-0">
+                    Daftar unit/lokasi magang yang saat ini membuka pendaftaran berdasarkan data magang yang tersedia.
+                </p>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="info-summary-card text-center">
+                        <div class="info-summary-title">Total Unit / Lokasi</div>
+                        <div class="info-summary-value" id="summaryTotalLokasi">0</div>
+                        <p class="info-summary-desc">Lokasi magang yang bisa dipilih peserta</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="info-summary-card text-center">
+                        <div class="info-summary-title">Total Company</div>
+                        <div class="info-summary-value" id="summaryTotalCompany">0</div>
+                        <p class="info-summary-desc">Entitas perusahaan yang membuka pendaftaran</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="info-summary-card text-center">
+                        <div class="info-summary-title">Total Regional</div>
+                        <div class="info-summary-value" id="summaryTotalRegion">0</div>
+                        <p class="info-summary-desc">Sebaran wilayah penempatan magang</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-filter-card mb-4">
+                <div class="row align-items-end">
+                    <div class="col-md-5 mb-2">
+                        <label class="small font-weight-bold text-muted mb-2">Cari lokasi / unit</label>
+                        <input type="text" id="filterSearchInformasi" class="form-control" placeholder="Contoh: Balongan, Teknik Informatika, Kalimantan...">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="small font-weight-bold text-muted mb-2">Company</label>
+                        <select id="filterCompanyInformasi" class="form-control">
+                            <option value="">Semua Company</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="small font-weight-bold text-muted mb-2">Regional</label>
+                        <select id="filterRegionInformasi" class="form-control" disabled>
+                            <option value="">Pilih company terlebih dahulu</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 mb-2">
+                        <button type="button" class="btn btn-light border w-100" onclick="resetInformasiFilter()" title="Reset filter">
+                            <i class="fa fa-rotate-left"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="informasiGroupedContainer"></div>
+        </div>
+
+        <div id="page-riwayat" class="page-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 5px;">Riwayat Pengajuan Magang</h4>
+                    <p class="text-muted small mb-0">Pantau status pengajuan magang industri Anda.</p>
+                </div>
+                <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue); font-size: 14px;" onclick="window.location.href='/PendaftaranMagang/DataMagang'">
+                    <i class="fa fa-plus mr-2"></i> Daftar Magang Baru
+                </button>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card shadow-sm text-center p-3" onclick="filterTabel('Semua', this)">
+                        <p class="text-muted mb-1" style="font-size: 13px;">📝 Total Magang</p>
+                        <h3 class="font-weight-bold mb-0">@ViewBag.TotalMagang</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card shadow-sm text-center p-3" onclick="filterTabel('Menunggu', this)">
+                        <p class="text-muted mb-1" style="font-size: 13px;">⏳ Menunggu</p>
+                        <h3 class="font-weight-bold text-warning mb-0">@ViewBag.Menunggu</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card shadow-sm text-center p-3" onclick="filterTabel('Diterima', this)">
+                        <p class="text-muted mb-1" style="font-size: 13px;">✔️ Diterima</p>
+                        <h3 class="font-weight-bold text-success mb-0">@ViewBag.Diterima</h3>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card stat-card shadow-sm text-center p-3" onclick="filterTabel('Ditolak', this)">
+                        <p class="text-muted mb-1" style="font-size: 13px;">❌ Ditolak</p>
+                        <h3 class="font-weight-bold text-danger mb-0">@ViewBag.Ditolak</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-0 overflow-hidden">
+                <table class="table table-hover mb-0" style="table-layout: fixed; font-size: 13.5px;">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 px-4 text-secondary" style="width: 10%; font-weight: 600;">Company</th>
+                            <th class="border-0 text-secondary" style="width: 25%; font-weight: 600;">Region</th>
+                            <th class="border-0 text-secondary" style="width: 25%; font-weight: 600;">Posisi</th>
+                            <th class="border-0 text-secondary text-center" style="width: 15%; font-weight: 600;">Tanggal</th>
+                            <th class="border-0 text-secondary text-center" style="width: 15%; font-weight: 600;">Status</th>
+                            <th class="border-0 text-secondary text-center" style="width: 10%; font-weight: 600;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelBodyRiwayat">
+                        @if (ViewBag.RiwayatMagang != null && ((List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang).Count > 0) 
+                        {
+                            foreach (var item in (List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang) 
+                            {
+                                <tr class="baris-magang" data-status="@item.Status">
+                                    <td class="px-4 font-weight-bold" style="color: var(--p-blue);">@item.Company</td>
+                                    <td style="color: #333;">@item.Region</td>
+                                    <td style="color: #333;">@item.Lokasi</td>
+                                    <td class="text-center" style="color: #333;">@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                                    <td class="text-center">
+                                        @{
+                                            var statusClass = item.Status == "Diterima" ? "status-success" : 
+                                                            item.Status == "Ditolak" ? "status-danger" : 
+                                                            "status-review";
+                                        }
+                                        <span class="status-badge @statusClass" style="display: inline-block; min-width: 80px; font-size: 11px; padding: 3px 8px; font-weight: 600;">
+                                            @item.Status
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-primary" style="border-radius: 8px; font-size: 11px; font-weight: bold; padding: 2px 10px;" onclick="showReviewDetail('@item.Id')">
+                                            Review
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            @* Blok ini sekarang akan muncul jika list null ATAU list kosong *@
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="py-4">
+                                        <i class="fa fa-folder-open mb-3" style="font-size: 50px; color: #dee2e6;"></i>
+                                        <h6 class="font-weight-bold text-muted">Tidak terdapat riwayat magang</h6>
+                                        <p class="small text-muted">Anda belum pernah melakukan pengajuan magang.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalDetail" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header-premium">
+                        <div class="header-flex-container">
+                            <img id="d-foto" src="/img/default-user.png" class="profile-circle-frame" title="Klik untuk lihat foto asli" onclick="window.open(this.src, '_blank')">
+                            <div class="header-text-info">
+                                <div id="d-status-badge-container"></div>
+                                <h2 id="d-nama" class="mb-1 fw-bold"></h2>
+                                <span class="opacity-75 small"><i class="fas fa-clock me-1"></i> Terdaftar: <span id="d-created-at"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;"><i class="fas fa-id-card me-2"></i>KONTAK & PRIBADI</div>
+                                <div class="info-card-premium">
+                                    <div class="info-label">Email</div><div id="d-email" class="info-value"></div>
+                                    <div class="info-label">WhatsApp</div><div class="info-value"><a id="d-hp-link" target="_blank" class="text-decoration-none"></a></div>
+                                    <div class="info-label">Instagram</div><div class="info-value"><a id="d-ig-link" target="_blank" class="text-decoration-none" style="color: var(--p-blue);"></a></div>
+                                    <div class="info-label">Tempat, Tgl Lahir</div><div class="info-value"><span id="d-tempat"></span>, <span id="d-tgl-lahir"></span></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;"><i class="fas fa-graduation-cap me-2"></i>AKADEMIK & PENEMPATAN</div>
+                                <div class="info-card-premium">
+                                    <div class="info-label">Kampus (NIM)</div><div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
+                                    <div class="info-label">Fakultas / Jurusan</div><div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
+                                    <div class="info-label">Unit Penempatan</div><div class="info-value text-primary fw-bold"><span id="d-company"></span> - <span id="d-lokasi"></span></div>
+                                    <div class="info-label">Periode Magang</div><div id="d-periode" class="info-value text-danger"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;"><i class="fas fa-file-alt me-2"></i>BERKAS DIGITAL</div>
+                                <a id="link-cv" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                                <a id="link-surat" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                                <a id="link-proposal" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-lines text-warning me-2"></i> Proposal Magang</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        @* <div id="page-penelitian" class="page-section">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="font-weight-bold" style="color: var(--p-blue);">Riwayat Pengajuan Riset</h4>
+                    <p class="text-muted small">Pantau status pengajuan riset Anda secara real-time.</p>
+                </div>
+                <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue);" onclick="window.location.href='/Penelitian/Daftar'">
+                    <i class="fa fa-plus mr-2"></i> Ajukan Riset Baru
+                </button>
+            </div>
+            <div class="glass-card p-0 overflow-hidden">
+                <table class="table mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="border-0 px-4">Judul Riset</th>
+                            <th class="border-0">Instansi</th>
+                            <th class="border-0">Tanggal</th>
+                            <th class="border-0">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.RiwayatRiset != null) {
+                            foreach (var item in ViewBag.RiwayatRiset) {
+                                <tr>
+                                    <td class="px-4 font-weight-bold">@item.JudulPenelitian</td>
+                                    <td>@item.Instansi</td>
+                                    <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                                    <td><span class="status-badge status-review">@item.Status</span></td>
+                                </tr>
+                            }
+                        } else {
+                            <tr><td colspan="4" class="text-center py-5">Belum ada data.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div> *@
+        <div id="page-profil" class="page-section">
+    <div class="mb-4">
+        <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 0;">Pengaturan Akun</h4>
+        <p class="subtitle-portal" style="font-size: 14px; color: #64748b; margin-top: 4px;">
+            Kelola informasi kredensial dan keamanan <span class="text-danger">@namaUser</span>
+        </p>
+    </div>
+
+    <div class="profile-card">
+        <div class="profile-nav-tabs">
+            <ul class="nav" id="profileTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="data-tab" data-toggle="tab" href="#tab-data" role="tab">
+                        <i class="fa-solid fa-address-card mr-2"></i> Profil Saya
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="security-tab" data-toggle="tab" href="#tab-security" role="tab">
+                        <i class="fa-solid fa-shield-halved mr-2"></i> Keamanan
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content" id="profileTabContent">
+            
+            <div class="tab-pane fade show active" id="tab-data" role="tabpanel">
+                <div class="p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="position-relative">
+                            <div class="dropdown">
+                                <input type="file" id="fileInputFoto" hidden accept="image/*" onchange="uploadFoto(this)">
+
+                                <div id="avatarContainer" class="avatar-box mr-3 shadow-sm"
+                                    style="cursor: pointer; overflow: hidden; width: 80px; height: 80px; border: 2px solid #e2e8f0;"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
+                                    @if (Model != null && !string.IsNullOrEmpty(Model.FotoProfil))
+                                    {
+                                        <img src="/uploads/profile/@Model.FotoProfil" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">
+                                    }
+                                    else
+                                    {
+                                        <span id="initialsText">
+                                            @{
+                                                var inisial = "??";
+                                                if (!string.IsNullOrEmpty(namaUser))
+                                                {
+                                                    inisial = namaUser.Length >= 2 ? namaUser.Substring(0, 2).ToUpper() : namaUser.ToUpper();
+                                                }
+                                            }
+                                            @inisial
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="dropdown-menu shadow border-0" style="border-radius: 12px; font-size: 14px; min-width: 160px; margin-top: 10px;">
+                                    <a class="dropdown-item py-2" href="javascript:void(0)" onclick="document.getElementById('fileInputFoto').click()">
+                                        <i class="fa-solid fa-file-import mr-2 text-muted"></i> Pilih Foto
+                                    </a>
+                                    <a class="dropdown-item py-2" href="javascript:void(0)" onclick="viewPhoto()">
+                                        <i class="fa-solid fa-image mr-2 text-muted"></i> Lihat Foto
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="deletePhoto()">
+                                        <i class="fa-solid fa-trash-can mr-2"></i> Hapus Foto
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h5 class="font-weight-bold mb-1">@namaUser</h5>
+                            <div class="d-flex align-items-center">
+                                <span class="badge-role-peserta mr-2">PESERTA MAGANG</span>
+                                <a href="javascript:void(0)" id="btnEditInfo" class="small text-muted font-weight-bold" onclick="enableEdit()">
+                                    <i class="fa-solid fa-pencil mr-1"></i> Edit Informasi
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4 opacity-50">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label class="label-custom">NAMA LENGKAP PESERTA</label>
+                            <input type="text" id="inputNama" class="form-control input-custom" value="@Model?.NamaLengkap" placeholder="Nama Lengkap" readonly>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="label-custom">USERNAME / EMAIL</label>
+                            <input type="email" id="inputEmail" class="form-control input-custom" value="@userEmail" readonly>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="label-custom">NOMOR HANDPHONE</label>
+                            <input type="text" id="inputNoHP" class="form-control input-custom" value="@Model?.NoHP" placeholder="Contoh: 0888..." readonly>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="label-custom">INSTANSI / PERGURUAN TINGGI</label>
+                            <input type="text" id="inputUniv" class="form-control input-custom" value="@Model?.NamaPerguruanTinggi" placeholder="Nama Perguruan Tinggi" readonly>
+                        </div>
+                    </div>
+
+                    <div class="text-right mt-2">
+                        <button type="button" class="btn btn-primary" id="btnSimpan" onclick="saveProfile()" disabled>Simpan Perubahan</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="tab-security" role="tabpanel">
+                <div class="p-4">
+                    <div class="mb-4">
+                        <h5 class="font-weight-bold">Keamanan Akun</h5>
+                        <p class="text-muted small">Disarankan untuk mengganti kata sandi secara berkala untuk menjaga keamanan akun Anda.</p>
+                    </div>
+
+                    <form id="securityForm" onsubmit="updatePassword(event)" style="max-width: 500px;">
+                        <div class="mb-4">
+                            <label class="label-custom">KATA SANDI SAAT INI</label>
+                            <div class="input-group">
+                                <input type="password" id="oldPass" class="form-control input-custom" placeholder="Masukkan password lama" required>
+                                <div class="input-group-append">
+                                    <span class="input-group-text bg-light border-0" onclick="togglePassword('oldPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                                        <i class="fa-solid fa-eye" id="icon-oldPass"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="label-custom">KATA SANDI BARU</label>
+                                <div class="input-group">
+                                    <input type="password" id="newPass" class="form-control input-custom" placeholder="Min 6 karakter" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text bg-light border-0" onclick="togglePassword('newPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                                            <i class="fa-solid fa-eye" id="icon-newPass"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="label-custom">KONFIRMASI PASSWORD</label>
+                                <div class="input-group">
+                                    <input type="password" id="confirmPass" class="form-control input-custom" placeholder="Ulangi password baru" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text bg-light border-0" onclick="togglePassword('confirmPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                                            <i class="fa-solid fa-eye" id="icon-confirmPass"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0 shadow-sm" style="border-radius: 10px; background: #e0efff; color: #00549b;">
+                            <i class="fa-solid fa-circle-info mr-2"></i>
+                            <small>Password harus minimal 6 karakter kombinasi huruf dan angka.</small>
+                        </div>
+
+                        <div class="text-right mt-4">
+                            <button type="submit" class="btn btn-danger px-5 py-2 font-weight-bold shadow-sm" style="border-radius:8px; background: var(--p-red); border: none;">
+                                Perbarui Kata Sandi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let informasiData = [];
+
+    async function loadInformasiTersedia() {
+        const container = document.getElementById('informasiGroupedContainer');
+
+        try {
+            const response = await fetch('/DashboardPeserta/GetInformasiTersedia');
+            let data = await response.json();
+
+            // Normalisasi data:
+            // KPI hanya punya 1 regional = Refinery Unit VI Balongan
+            // selain itu masuk PPN
+            informasiData = (data || []).map(item => {
+                const isKPI = (item.region || '').trim() === 'Refinery Unit VI Balongan';
+
+                return {
+                    ...item,
+                    companyCode: isKPI ? 'KPI' : 'PPN',
+                    companyName: isKPI
+                        ? 'PT Kilang Pertamina Internasional'
+                        : 'PT Pertamina Patra Niaga'
+                };
+            });
+
+            updateSummary(informasiData);
+            populateCompanyFilter(informasiData);
+            populateRegionFilter(informasiData);
+            renderGroupedInformasi(informasiData);
+            bindInformasiFilterEvents();
+        } catch (error) {
+            container.innerHTML = `
+                <div class="info-empty-state">
+                    <i class="fa fa-circle-exclamation mb-3" style="font-size:32px;"></i>
+                    <div class="font-weight-bold mb-1">Gagal memuat data lokasi magang</div>
+                    <div class="small">Silakan coba beberapa saat lagi.</div>
+                </div>
+            `;
+            console.error(error);
+        }
+    }
+
+    function updateSummary(data) {
+        document.getElementById('summaryTotalLokasi').textContent = data.length;
+        document.getElementById('summaryTotalCompany').textContent = 2;
+        document.getElementById('summaryTotalRegion').textContent = new Set(data.map(x => x.region)).size;
+    }
+
+    function populateCompanyFilter(data) {
+        const companySelect = document.getElementById('filterCompanyInformasi');
+        const selectedCompany = companySelect.value;
+
+        const companies = [...new Set(data.map(x => x.companyName))].sort();
+
+        companySelect.innerHTML = `<option value="">Semua Company</option>` +
+            companies.map(x => `<option value="${x}">${x}</option>`).join('');
+
+        companySelect.value = selectedCompany;
+    }
+
+    function populateRegionFilter(data) {
+        const companySelect = document.getElementById('filterCompanyInformasi');
+        const regionSelect = document.getElementById('filterRegionInformasi');
+        const selectedCompany = companySelect.value;
+        const previousRegion = regionSelect.value;
+
+        if (!selectedCompany) {
+            regionSelect.innerHTML = `<option value="">Pilih company terlebih dahulu</option>`;
+            regionSelect.value = '';
+            regionSelect.disabled = true;
+            return;
+        }
+
+        const filteredByCompany = data.filter(item => item.companyName === selectedCompany);
+        const regions = [...new Set(filteredByCompany.map(x => x.region))].sort();
+
+        regionSelect.disabled = false;
+        regionSelect.innerHTML = `<option value="">Semua Regional</option>` +
+            regions.map(x => `<option value="${x}">${x}</option>`).join('');
+
+        if (regions.includes(previousRegion)) {
+            regionSelect.value = previousRegion;
+        } else {
+            regionSelect.value = '';
+        }
+    }
+
+    function resetInformasiFilter() {
+        document.getElementById('filterSearchInformasi').value = '';
+        document.getElementById('filterCompanyInformasi').value = '';
+        populateRegionFilter(informasiData);
+        renderGroupedInformasi(informasiData);
+    }
+
+    function renderGroupedInformasi(data) {
+        const container = document.getElementById('informasiGroupedContainer');
+        const search = document.getElementById('filterSearchInformasi').value.toLowerCase().trim();
+        const company = document.getElementById('filterCompanyInformasi').value;
+        const region = document.getElementById('filterRegionInformasi').value;
+
+        const filtered = data.filter(item => {
+            const companyName = (item.companyName || '').toLowerCase();
+            const regionName = (item.region || '').toLowerCase();
+            const lokasiName = (item.lokasi || '').toLowerCase();
+
+            const matchSearch =
+                lokasiName.includes(search) ||
+                regionName.includes(search) ||
+                companyName.includes(search);
+
+            const matchCompany = !company || item.companyName === company;
+            const matchRegion = !region || item.region === region;
+
+            return matchSearch && matchCompany && matchRegion;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="info-empty-state">
+                    <i class="fa fa-folder-open mb-3" style="font-size:32px;"></i>
+                    <div class="font-weight-bold mb-1">Data tidak ditemukan</div>
+                    <div class="small">Coba ubah kata kunci pencarian atau filter yang dipilih.</div>
+                </div>
+            `;
+            return;
+        }
+
+        const grouped = {
+            KPI: [],
+            PPN: []
+        };
+
+        filtered.forEach(item => {
+            if (item.companyCode === 'KPI') grouped.KPI.push(item);
+            else grouped.PPN.push(item);
+        });
+
+        const companyMeta = {
+            KPI: {
+                code: 'KPI',
+                name: 'PT Kilang Pertamina Internasional',
+                labelClass: 'kpi'
+            },
+            PPN: {
+                code: 'PPN',
+                name: 'PT Pertamina Patra Niaga',
+                labelClass: 'ppn'
+            }
+        };
+
+        function groupByRegion(items) {
+            const regionMap = {};
+            items.forEach(item => {
+                if (!regionMap[item.region]) regionMap[item.region] = [];
+                regionMap[item.region].push(item);
+            });
+            return regionMap;
+        }
+
+        function renderCompanyCard(companyCode, items) {
+            if (!items.length) {
+                return `
+                    <div class="col-lg-6 mb-4">
+                        <div class="info-company-main-card">
+                            <div class="info-company-header">
+                                <span class="info-company-label ${companyMeta[companyCode].labelClass}">
+                                    ${companyCode}
+                                </span>
+                                <div class="info-company-name">${companyMeta[companyCode].name}</div>
+                                <div class="info-company-code">Lokasi magang yang tersedia</div>
+                            </div>
+                            <div class="info-company-body">
+                                <div class="info-empty-state">
+                                    Belum ada data lokasi yang tampil untuk filter ini.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const byRegion = groupByRegion(items);
+            const totalLokasi = items.length;
+            const totalRegional = Object.keys(byRegion).length;
+
+            let regionHtml = '';
+            Object.keys(byRegion).sort().forEach(regionName => {
+                const lokasiItems = byRegion[regionName];
+
+                regionHtml += `
+                    <div class="info-region-card">
+                        <div class="info-region-header">
+                            <div class="info-region-title">${regionName}</div>
+                            <div class="info-region-count">${lokasiItems.length} lokasi / unit</div>
+                        </div>
+                        <div class="info-lokasi-list">
+                            ${lokasiItems.map(item => `
+                                <div class="info-lokasi-item">
+                                    <div class="info-lokasi-name">${item.lokasi}</div>
+                                    <span class="info-open-badge">Membuka Pendaftaran</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            return `
+                <div class="col-lg-6 mb-4">
+                    <div class="info-company-main-card">
+                        <div class="info-company-header">
+                            <span class="info-company-label ${companyMeta[companyCode].labelClass}">
+                                ${companyCode}
+                            </span>
+                            <div class="info-company-name">${companyMeta[companyCode].name}</div>
+                            <div class="info-company-code">Daftar lokasi magang yang sedang membuka pendaftaran</div>
+
+                            <div class="info-company-stats">
+                                <span class="info-stat-pill">
+                                    <i class="fa fa-location-dot"></i> ${totalLokasi} lokasi / unit
+                                </span>
+                                <span class="info-stat-pill">
+                                    <i class="fa fa-map"></i> ${totalRegional} regional
+                                </span>
+                                <span class="info-stat-pill">
+                                    <i class="fa fa-circle-check"></i> Membuka pendaftaran
+                                </span>
+                            </div>
+                        </div>
+                        <div class="info-company-body">
+                            ${regionHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = `
+            <div class="row info-company-row">
+                ${renderCompanyCard('KPI', grouped.KPI)}
+                ${renderCompanyCard('PPN', grouped.PPN)}
+            </div>
+        `;
+    }
+
+    function bindInformasiFilterEvents() {
+        const searchInput = document.getElementById('filterSearchInformasi');
+        const companySelect = document.getElementById('filterCompanyInformasi');
+        const regionSelect = document.getElementById('filterRegionInformasi');
+
+        if (!searchInput || !companySelect || !regionSelect) return;
+
+        searchInput.oninput = function () {
+            renderGroupedInformasi(informasiData);
+        };
+
+        companySelect.onchange = function () {
+            populateRegionFilter(informasiData);
+            renderGroupedInformasi(informasiData);
+        };
+
+        regionSelect.onchange = function () {
+            renderGroupedInformasi(informasiData);
+        };
+    }
+
+    loadInformasiTersedia();
+    bindInformasiFilterEvents();
+
+    function showReviewDetail(id) {
+        $.ajax({
+            url: '/PendaftaranMagang/GetDetailMagang/' + id,
+            type: 'GET',
+            success: function (m) {
+                // Mapping data dasar
+                document.getElementById('d-nama').innerText = m.nama || '-';
+                document.getElementById('d-email').innerText = m.email || '-';
+                
+                // WhatsApp Link (Ganti template literals ke string biasa)
+                const hpElem = document.getElementById('d-hp-link');
+                if(m.wa) {
+                    var cleanWa = m.wa.replace(/[^0-9]/g, '');
+                    hpElem.innerText = m.wa;
+                    hpElem.href = 'https://wa.me/' + cleanWa;
+                } else {
+                    hpElem.innerText = '-';
+                }
+
+                // Instagram Link
+                const igElem = document.getElementById('d-ig-link');
+                if(m.instagram) {
+                    var cleanIg = m.instagram.replace('@@', ''); 
+                    igElem.innerText = m.instagram;
+                    igElem.href = 'https://instagram.com/' + cleanIg;
+                } else {
+                    igElem.innerText = '-';
+                }
+
+                document.getElementById('d-univ').innerText = m.univ || '-';
+                document.getElementById('d-nim').innerText = m.nim || '-';
+                document.getElementById('d-jurusan').innerText = m.jurusan || '-';
+                document.getElementById('d-fakultas').innerText = m.fakultas || '-';
+                document.getElementById('d-company').innerText = m.company || '-';
+                document.getElementById('d-lokasi').innerText = m.lokasi || '-';
+                document.getElementById('d-tempat').innerText = m.tempatLahir || '-';
+                document.getElementById('d-tgl-lahir').innerText = m.tglLahir || '-';
+                document.getElementById('d-created-at').innerText = m.createdAtFormatted || '-';
+                
+                // Gabungkan string tanpa backtick
+                document.getElementById('d-periode').innerText = m.tglMulai + ' s/d ' + m.tglSelesai;
+                
+                // Files & Photo
+                document.getElementById('d-foto').src = m.fotoProfil || '/img/default-user.png';
+                document.getElementById('link-cv').href = m.pathCV || '#';
+                document.getElementById('link-surat').href = m.pathSurat || '#';
+                document.getElementById('link-proposal').href = m.pathProposal || '#';
+
+                // Status Badge (Hindari backtick di sini)
+                const sClass = m.status === 'Diterima' ? 'bg-light-green' : (m.status === 'Ditolak' ? 'bg-light-red' : 'bg-light-orange');
+                document.getElementById('d-status-badge-container').innerHTML = '<span class="status-pill-modal ' + sClass + '">' + m.status + '</span>';
+                
+                // Show Modal
+                var myModal = new bootstrap.Modal(document.getElementById('modalDetail'));
+                myModal.show();
+            },
+            error: function() {
+                alert('Data tidak ditemukan');
+            }
+        });
+    }
+
+    function loadNotifications() {
+        $.get('/Notification/GetUserNotifications', function (data) {
+
+            let html = '';
+
+            if (data.length === 0) {
+                html = `<div class="p-3 text-center text-muted">Tidak ada notifikasi</div>`;
+            }
+
+            data.forEach(n => {
+
+                let cls = n.isRead ? '' : 'notif-unread';
+
+                html += `
+                    <a href="/Notification/GoTo/${n.id}" class="notif-item ${cls} d-block">
+                        <div class="notif-title">${n.title}</div>
+                        <div class="notif-msg">${n.message}</div>
+                    </a>
+                `;
+            });
+
+            $('#notifList').html(html);
+        });
+    }
+
+    loadNotifications();
+
+    $('#markAllReadBtn').click(function (e) {
+        e.preventDefault();
+
+        $('#notifBadge').hide(); // langsung sembunyikan badge
+
+        $.post('/Notification/MarkAllRead', function () {
+            loadNotifications();
+            loadUnreadCount();
+        });
+    });
+
+    function loadUnreadCount() {
+        $.get('/Notification/UnreadCount', function (count) {
+            if (count > 0)
+                $('#notifBadge').text(count).show();
+            else
+                $('#notifBadge').hide();
+        });
+    }
+
+    loadUnreadCount();
+
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById('icon-' + inputId);
+        
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    $(document).ready(function() {
+        loadNotifications();
+        loadUnreadCount();
+
+        setInterval(function(){
+            loadUnreadCount();
+        }, 5000); // cek setiap 5 detik
+
+        const params = new URLSearchParams(window.location.search);
+        const tabFromNotif = params.get('tab');
+
+        if (tabFromNotif) {
+            showPage(tabFromNotif);
+            localStorage.setItem('lastOpenedPage', tabFromNotif);
+        }
+
+        const lastPage = localStorage.getItem('lastOpenedPage') || 'dashboard';
+        showPage(lastPage);
+
+        const activeTab = localStorage.getItem('activeProfileTab');
+        if (activeTab) {
+            // Aktifkan tab berdasarkan ID link-nya
+            $(`#${activeTab}`).tab('show');
+        }
+
+        // 2. Simpan tab ke LocalStorage setiap kali tab diklik
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            const tabId = $(e.target).attr('id');
+            localStorage.setItem('activeProfileTab', tabId);
+        });
+
+        // Fungsi ketika tombol Edit Informasi diklik
+        $('#btnEditInfo').on('click', function() {
+            const isReadOnly = $('#inputNama').prop('readonly');
+
+            if (isReadOnly) {
+                // AKTIFKAN MODE EDIT
+                $('.input-custom').prop('readonly', false); // Lepas status readonly
+                $('#btnSimpan').prop('disabled', false); 
+                $('.input-custom').css('background-color', '#fff'); // Ubah background jadi putih agar kontras
+                $('.input-custom').first().focus(); // Fokuskan ke input pertama
+                
+                $(this).html('<i class="fa-solid fa-xmark mr-1"></i> Batal Edit'); // Ganti teks tombol
+                $(this).removeClass('text-muted').addClass('text-danger');
+            } else {
+                // KEMBALI KE MODE LOCK (Batal)
+                $('.input-custom').prop('readonly', true);
+                $('#btnSimpan').prop('disabled', true);
+                $('.input-custom').css('background-color', '#f8fafc'); // Kembalikan warna abu-abu
+                
+                $(this).html('<i class="fa-solid fa-pencil mr-1"></i> Edit Informasi');
+                $(this).removeClass('text-danger').addClass('text-muted');
+            }
+        });
+    });
+
+    function showPhotoOptions() {
+        Swal.fire({
+            title: 'Foto Profil',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Unggah Foto Baru',
+            denyButtonText: 'Hapus Foto',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#00549B',
+            denyButtonColor: '#ec1c24',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#fileInput').click();
+            } else if (result.isDenied) {
+                deletePhoto();
+            }
+        });
+    }
+
+    function uploadFoto(input) {
+        if (!input.files || !input.files[0]) return;
+
+        const file = input.files[0];
+
+        if (file.size > 2 * 1024 * 1024) {
+            Swal.fire('Opps!', 'Ukuran file terlalu besar (Max 2MB)', 'error');
+            input.value = '';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('fotoProfil', file);
+
+        $.ajax({
+            url: '/DashboardPeserta/UpdateFoto',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (res.success) {
+                    const newPath = res.filePath + '?t=' + new Date().getTime();
+
+                    if ($('#imgPreview').length) {
+                        $('#imgPreview').attr('src', newPath);
+                    } else {
+                        $('#avatarContainer').html(
+                            '<img src="' + newPath + '" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">'
+                        );
+                    }
+
+                    $('#navbarAvatar').attr('src', newPath);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Foto profil diperbarui.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Gagal!', res.message, 'error');
+                }
+            },
+            error: function () {
+                Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
+            }
+        });
+    }
+
+    function deletePhoto() {
+        Swal.fire({
+            title: 'Hapus foto?',
+            text: 'Foto profil akan dihapus.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post('/DashboardPeserta/DeleteFoto', function(res) {
+                    if (res.success) {
+                        location.reload();
+                    }
+                });
+            }
+        });
+    }
+
+    // --- FUNGSI LIHAT FOTO ---
+    function viewPhoto() {
+        const photoUrl = $('#imgPreview').attr('src');
+
+        if (!photoUrl) {
+            Swal.fire('Info', 'Anda belum mengunggah foto profil.', 'info');
+            return;
+        }
+
+        Swal.fire({
+            imageUrl: photoUrl,
+            imageAlt: 'Foto Profil',
+            showCloseButton: true,
+            showConfirmButton: false,
+            background: '#fff'
+        });
+    }
+
+    // --- FUNGSI PILIH FOTO ---
+    function selectPhoto() {
+        $('#fileInputFoto').click(); // Trigger klik pada input file tersembunyi
+    }
+
+    function updatePassword(e) {
+        e.preventDefault(); 
+
+        const oldP = $('#oldPass').val();
+        const newP = $('#newPass').val();
+        const confirmP = $('#confirmPass').val();
+
+        if (!oldP || !newP || !confirmP) {
+            Swal.fire('Opps!', 'Semua kolom password wajib diisi.', 'warning');
+            return;
+        }
+
+        if (newP !== confirmP) {
+            Swal.fire('Error', 'Konfirmasi password tidak cocok!', 'error');
+            return;
+        }
+
+        Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+        $.ajax({
+            url: '/DashboardPeserta/UpdatePassword',
+            type: 'POST',
+            data: { 
+                oldPass: oldP, 
+                newPass: newP,
+                // Token keamanan ASP.NET Core
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() 
+            },
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire('Berhasil!', 'Password diperbarui.', 'success');
+                    $('#securityForm')[0].reset(); 
+                } else {
+                    Swal.fire('Gagal!', res.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+                Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
+            }
+        });
+    }
+
+    function showPage(pageId) {
+        $('.page-section').removeClass('active');
+        $('#page-' + pageId).addClass('active');
+        $('.nav-link-custom').removeClass('active');
+        $('#nav-' + pageId).addClass('active');
+
+        const breadcrumbs = {
+            'dashboard': 'Panel Peserta / Dashboard',
+            'informasi': 'Panel Peserta / Informasi Tersedia',
+            'riwayat': 'Panel Peserta / Riwayat Magang',
+            'penelitian': 'Panel Peserta / Riwayat Riset',
+            'profil': 'Panel Peserta / Pengaturan Profil'
+        };
+        $('#page-breadcrumb').text(breadcrumbs[pageId]);
+
+        localStorage.setItem('lastOpenedPage', pageId);
+    }
+
+    function saveProfile() {
+        // Tampilkan loading
+        Swal.fire({ 
+            title: 'Menyimpan...', 
+            allowOutsideClick: false, 
+            didOpen: () => { Swal.showLoading() } 
+        });
+
+        $.ajax({
+            url: '/DashboardPeserta/UpdateProfil',
+            type: 'POST',
+            data: {
+                nama: $('#inputNama').val(),
+                noHp: $('#inputNoHP').val(),
+                univ: $('#inputUniv').val()
+            },
+            success: function(res) {
+                if(res.success) {
+                    Swal.fire('Berhasil', 'Profil diperbarui!', 'success').then(() => {
+                        // Hanya mengunci input yang ada di tab profil
+                        $('#tab-data .input-custom').prop('readonly', true);
+                        
+                        // Kembalikan tombol edit ke mode normal
+                        $('#btnEditInfo').html('<i class="fa-solid fa-pencil mr-1"></i> Edit Informasi');
+                        $('#btnEditInfo').removeClass('text-danger');
+                        
+                        // Update nama di header agar sinkron
+                        $('.font-weight-bold.mb-1').text($('#inputNama').val());
+                    });
+                } else {
+                    Swal.fire('Gagal', res.message, 'error');
+                }
+            }, // Tutup success
+            error: function() {
+                Swal.fire('Error', 'Gagal tersambung ke server', 'error');
+            }
+        }); // Tutup $.ajax
+    }
+
+    function handleLogout() {
+        Swal.fire({
+            title: 'Keluar?',
+            text: "Sesi akan berakhir",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ec1c24',
+            confirmButtonText: 'Logout'
+        }).then((r) => { 
+            if (r.isConfirmed) {
+                // Hapus draft spesifik dan bersihkan semuanya
+                localStorage.removeItem('form_magang_draft'); 
+                localStorage.clear();
+                sessionStorage.clear();
+
+                window.location.href = '/Auth/Logout'; 
+            }
+        });
+    }
+
+    function filterTabel(status, element) {
+        // 1. Hapus class 'active-filter' dari semua card dulu
+        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
+        // 2. Tambah class 'active-filter' ke card yang barusan diklik
+        element.classList.add('active-filter');
+
+        // 3. Logika Filter Tabel (Sama seperti sebelumnya)
+        const baris = document.querySelectorAll('#tabelBodyRiwayat .baris-magang');
+        baris.forEach(row => {
+            const statusBaris = row.getAttribute('data-status');
+            if (status === 'Semua') {
+                row.style.display = '';
+            } else {
+                row.style.display = (statusBaris === status) ? '' : 'none';
+            }
+        });
+    }
+</script>
+</body>
+</html>

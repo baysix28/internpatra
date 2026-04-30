@@ -1,0 +1,423 @@
+@model IEnumerable<sinta_asp.Models.Admin>
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Manajemen Akses Administrator";
+    
+    var adminRole = HttpContextAccessor.HttpContext.Session.GetString("AdminRole");
+    var currentAdminId = HttpContextAccessor.HttpContext.Session.GetString("AdminId");
+}
+
+@if (adminRole != "SuperAdmin")
+{
+    <script>window.location.href = '@Url.Action("Index", "Dashboard")';</script>
+}
+else
+{
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root { 
+            --p-blue: #00549B; --p-red: #EC1C24; --p-green: #10b981; --p-bg: #F8FAFC;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body { background-color: var(--p-bg); font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; }
+        .dashboard-wrapper { padding: 1.2rem 1.8rem; margin-top: -20px; }
+        .title-bold { font-weight: 800; color: var(--p-blue); letter-spacing: -0.8px; font-size: 1.5rem; }
+
+        .stat-card {
+            background: #fff; border-radius: 12px; padding: 0.85rem 1rem; border: 1px solid #e2e8f0;
+            transition: var(--transition); display: flex; align-items: center; height: 100%;
+            cursor: pointer; position: relative; overflow: hidden;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .stat-card.active-all { border: 2.5px solid var(--p-blue); background: rgba(0, 84, 155, 0.03); }
+        .stat-card.active-SuperAdmin { border: 2.5px solid var(--p-red); background: rgba(236, 28, 36, 0.03); }
+        .stat-card.active-AdminRegion { border: 2.5px solid var(--p-green); background: rgba(16, 185, 129, 0.03); }
+
+        .icon-box {
+            width: 42px; height: 42px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1.1rem;
+        }
+        .bg-light-blue { background: rgba(0, 84, 155, 0.1); color: var(--p-blue); }
+        .bg-light-red { background: rgba(236, 28, 36, 0.1); color: var(--p-red); }
+        .bg-light-green { background: rgba(16, 185, 129, 0.1); color: var(--p-green); }
+
+        .stat-label { color: #64748b; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-weight: 800; font-size: 1.2rem; color: #1e293b; }
+
+        .search-container {
+            display: flex; align-items: center; background: #fff; border: 1.5px solid #e2e8f0;
+            border-radius: 12px; padding: 2px 15px; transition: var(--transition); width: 100%; max-width: 400px;
+        }
+        .search-container input {
+            border: none; box-shadow: none !important; padding: 10px 10px; font-size: 0.85rem;
+            font-weight: 600; color: #475569; width: 100%; outline: none; background: transparent;
+        }
+
+        .main-table-card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .table thead th { background: #f8fafc; font-weight: 700; color: #64748b; font-size: 0.7rem; padding: 12px 15px; text-transform: uppercase; border: none; }
+        .table tbody td { padding: 12px 15px; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; }
+
+        .badge-role { padding: 5px 12px; border-radius: 50px; font-weight: 800; font-size: 0.65rem; text-transform: uppercase; }
+        .role-SuperAdmin { background: #fee2e2; color: #991b1b; }
+        .role-AdminRegion { background: #e0f2fe; color: #075985; }
+
+        .btn-pertamina { background: var(--p-blue); color: white; border: none; font-weight: 700; border-radius: 8px; padding: 8px 18px; font-size: 0.8rem; transition: var(--transition); }
+        .btn-action { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; transition: var(--transition); border: 1px solid #e2e8f0; background: white; color: #64748b; }
+        
+        .modal-content { border-radius: 20px; border: none; }
+        .form-control-modern { 
+            border-radius: 10px; 
+            padding: 10px 14px; 
+            border: 1px solid #e2e8f0; 
+            font-size: 0.9rem; 
+            background-color: #fff; 
+            width: 100%;
+            height: auto !important; 
+            line-height: 1.5; 
+            transition: border-color 0.2s;
+        }
+
+        .form-control-modern.is-invalid {
+            border: 1.5px solid var(--p-red) !important;
+            background-color: #fffafa !important;
+        }
+
+        .password-group { position: relative; }
+        .password-toggle { 
+            cursor: pointer; 
+            position: absolute; 
+            right: 15px; 
+            top: 40px; 
+            color: #94a3b8; 
+            display: none; 
+            z-index: 10;
+        }
+
+        /* Styling Ikon Guide Baru */
+        .guide-icon {
+            font-size: 0.9rem;
+            color: #94a3b8; /* Default Abu-abu */
+            transition: var(--transition);
+            cursor: help;
+            text-decoration: none;
+        }
+        .guide-icon:hover {
+            color: var(--p-blue); /* Jadi Biru saat disentuh */
+            transform: scale(1.2);
+        }
+    </style>
+
+    <div class="dashboard-wrapper">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="title-bold mb-0">Manajemen Administrator</h3>
+                <p class="text-muted small mb-0">Pengaturan Hak Akses <span class="fw-bold text-danger">SINTA Pertamina</span></p>
+            </div>
+            <button class="btn btn-pertamina" onclick="openModalTambah()">
+                <i class="fas fa-plus-circle me-2"></i> Tambah Admin Region
+            </button>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4" onclick="filterByRole('all')">
+                <div class="stat-card active-all" id="card-all">
+                    <div class="icon-box bg-light-blue"><i class="fas fa-user-shield"></i></div>
+                    <div>
+                        <div class="stat-label">Total Akun</div>
+                        <div class="stat-value">@Model.Count()</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" onclick="filterByRole('SuperAdmin')">
+                <div class="stat-card" id="card-SuperAdmin">
+                    <div class="icon-box bg-light-red"><i class="fas fa-crown"></i></div>
+                    <div>
+                        <div class="stat-label">Super Admin</div>
+                        <div class="stat-value">@Model.Count(x => x.Role == "SuperAdmin")</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4" onclick="filterByRole('AdminRegion')">
+                <div class="stat-card" id="card-AdminRegion">
+                    <div class="icon-box bg-light-green"><i class="fas fa-map-location-dot"></i></div>
+                    <div>
+                        <div class="stat-label">Regional Admin</div>
+                        <div class="stat-value">@Model.Count(x => x.Role == "AdminRegion")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-table-card">
+            <div class="p-3 border-bottom bg-white">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="tableSearch" placeholder="Cari admin...">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-hover">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Profil Administrator</th>
+                            <th>Role Access</th>
+                            <th>Wilayah Tugas</th>
+                            <th class="text-end pe-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model) {
+                            <tr class="admin-row" data-role="@item.Role">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(item.Nama)&background=00549B&color=fff&bold=true" class="rounded-circle me-3 shadow-sm" width="40">
+                                        <div>
+                                            <div class="fw-800 text-dark">@item.Nama</div>
+                                            <div class="text-muted small">@item.Email</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge-role role-@item.Role">@item.Role</span></td>
+                                <td>
+                                    <div class="fw-600 text-muted small">
+                                        <i class="fas fa-location-dot me-1 text-primary"></i> @(item.Region ?? "Seluruh Indonesia")
+                                    </div>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn-action me-1" onclick="editAdmin('@item.Id', '@item.Nama', '@item.Email', '@item.Role', '@item.Region', '@item.SmtpPassword')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    @if(item.Role != "SuperAdmin" && item.Id.ToString() != currentAdminId) {
+                                        <button class="btn-action btn-delete" onclick="deleteAdmin(@item.Id)">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* Modal *@
+    <div class="modal fade" id="modalAdmin" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content shadow-lg">
+                <form id="formAdmin" novalidate>
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="title-bold" id="modalTitle">Tambah Admin Region</h5>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="Id" id="adminId">
+                        <input type="hidden" name="Role" id="adminRole" value="AdminRegion">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-600 small">Nama Lengkap</label>
+                            <input type="text" name="Nama" id="adminNama" class="form-control form-control-modern" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-600 small">Email</label>
+                            <input type="email" name="Email" id="adminEmail" class="form-control form-control-modern" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-600 small">Region</label>
+                            <select id="regionSelect" class="form-control form-control-modern" required onchange="checkRegionLainnya(this.value)">
+                                <option value="">-- Pilih Region --</option>
+                                <option value="Refinery Unit VI Balongan">Refinery Unit VI Balongan</option>
+                                <option value="Regional Jatimbalinus">Regional Jatimbalinus</option>
+                                <option value="Regional Jawa Bagian Barat">Regional Jawa Bagian Barat</option>
+                                <option value="Regional Jawa Bagian Tengah">Regional Jawa Bagian Tengah</option>
+                                <option value="Regional Kalimantan">Regional Kalimantan</option>
+                                <option value="Regional Maluku Papua">Regional Maluku Papua</option>
+                                <option value="Regional Sumbagut">Regional Sumbagut</option>
+                                <option value="Lainnya">Lainnya...</option>
+                            </select>
+                            <input type="text" name="Region" id="adminRegion" class="form-control form-control-modern mt-2" style="display:none;" placeholder="Masukkan wilayah...">
+                        </div>
+
+                        <div class="mb-3 password-group">
+                            <label class="form-label fw-600 small">Password Akun</label>
+                            <input type="password" name="NewPassword" id="adminPass" class="form-control form-control-modern password-input" required>
+                            <i class="fas fa-eye password-toggle" onclick="togglePasswordVisibility('adminPass', this)"></i>
+                        </div>
+
+                        <div class="mb-0 password-group">
+                            <div class="d-flex align-items-center mb-1">
+                                <label class="form-label fw-600 small mb-0">SMTP Password</label>
+                                <a href="~/guides/PANDUAN MEMBUAT SMTP PASSWORD (APP PASSWORD).pdf" 
+                                   target="_blank" 
+                                   class="ms-2 guide-icon" 
+                                   title="Bantuan: Cara mendapatkan SMTP App Password">
+                                    <i class="fas fa-question-circle"></i>
+                                </a>
+                            </div>
+                            <input type="password" name="SmtpPassword" id="adminSmtp" class="form-control form-control-modern password-input" required>
+                            <i class="fas fa-eye password-toggle" onclick="togglePasswordVisibility('adminSmtp', this)"></i>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn fw-bold text-muted me-auto" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnSubmitAdmin" class="btn btn-pertamina px-4">Simpan Akun</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            $("#tableSearch").on("keyup", function() {
+                applyTableFilters();
+            });
+        });
+
+        function filterByRole(role) {
+            $(".stat-card").removeClass("active-all active-SuperAdmin active-AdminRegion");
+            if(role === 'all') { 
+                $("#card-all").addClass("active-all"); 
+            } else { 
+                $(`#card-${role}`).addClass(`active-${role}`);
+            }
+            applyTableFilters();
+        }
+
+        function applyTableFilters() {
+            var searchTerm = $("#tableSearch").val().toLowerCase();
+            var activeCard = $(".stat-card.active-SuperAdmin, .stat-card.active-AdminRegion").attr('id');
+            var roleFilter = activeCard ? activeCard.replace('card-', '') : 'all';
+
+            $(".admin-row").each(function() {
+                var text = $(this).text().toLowerCase();
+                var role = $(this).data('role');
+                var isMatchSearch = text.indexOf(searchTerm) > -1;
+                var isMatchRole = (roleFilter === 'all' || role === roleFilter);
+                if (isMatchSearch && isMatchRole) $(this).show(); else $(this).hide();
+            });
+        }
+
+        $(document).on('input', '.password-input', function() {
+            const eyeIcon = $(this).siblings('.password-toggle');
+            if ($(this).val().length > 0) eyeIcon.fadeIn(200); else eyeIcon.fadeOut(200);
+        });
+
+        function togglePasswordVisibility(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                $(iconElement).removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.type = "password";
+                $(iconElement).removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        }
+
+        $(document).on('input change', '.form-control-modern', function() {
+            $(this).removeClass('is-invalid');
+        });
+
+        function checkRegionLainnya(val) {
+            const inputManual = $('#adminRegion');
+            if (val === "Lainnya") {
+                inputManual.show().val('').focus().prop('required', true);
+            } else {
+                inputManual.hide().val(val).prop('required', false).removeClass('is-invalid');
+            }
+        }
+
+        function openModalTambah() {
+            $('#formAdmin')[0].reset();
+            $('#adminId').val('');
+            $('.form-control-modern').removeClass('is-invalid');
+            $('.password-toggle').hide(); 
+            $('#adminPass').prop('required', true);
+            $('#adminSmtp').prop('required', true);
+            $('#modalTitle').text('Tambah Admin Region');
+            $('#btnSubmitAdmin').text('Tambahkan Akun').prop('disabled', false);
+            $('#adminRegion').hide();
+            $('#modalAdmin').modal('show');
+        }
+
+        function editAdmin(id, nama, email, role, region, smtp) {
+            $('#adminId').val(id);
+            $('#adminNama').val(nama);
+            $('#adminEmail').val(email);
+            $('#adminSmtp').val(smtp === "null" ? "" : smtp);
+            $('.form-control-modern').removeClass('is-invalid');
+            
+            if($('#adminSmtp').val().length > 0) $('#adminSmtp').siblings('.password-toggle').show();
+            else $('#adminSmtp').siblings('.password-toggle').hide();
+            $('#adminPass').siblings('.password-toggle').hide();
+            $('#adminPass').prop('required', false);
+            $('#adminSmtp').prop('required', false);
+
+            const rVal = (region === "null" || region === "") ? "" : region;
+            const hasOption = $(`#regionSelect option[value='${rVal}']`).length > 0;
+            if (rVal === "" || hasOption) {
+                $('#regionSelect').val(rVal);
+                $('#adminRegion').hide().val(rVal);
+            } else {
+                $('#regionSelect').val('Lainnya');
+                $('#adminRegion').show().val(rVal).prop('required', true);
+            }
+
+            $('#modalTitle').text('Update Akses Admin');
+            $('#btnSubmitAdmin').text('Simpan Perubahan').prop('disabled', false);
+            $('#modalAdmin').modal('show');
+        }
+
+        $('#formAdmin').on('submit', function (e) {
+            e.preventDefault();
+            let isValid = true;
+            $(this).find('input[required], select[required]').each(function() {
+                if (!$(this).val() || $(this).val().trim() === "") {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) return;
+            const btn = $('#btnSubmitAdmin');
+            const originalText = btn.text();
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Memproses...');
+
+            $.ajax({
+                url: $('#adminId').val() ? '/Admin/Admins/Edit' : '/Admin/Admins/Create',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function (res) {
+                    if (res.success) {
+                        Swal.fire({ icon: 'success', title: 'Berhasil', timer: 1500, showConfirmButton: false }).then(() => location.reload());
+                    } else {
+                        Swal.fire('Gagal', res.message, 'error');
+                        btn.prop('disabled', false).text(originalText);
+                    }
+                },
+                error: function () {
+                    btn.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+
+        function deleteAdmin(id) {
+            Swal.fire({ title: 'Hapus Akses?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#EC1C24', confirmButtonText: 'Ya, Hapus' })
+            .then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Admins/Delete', { id: id }, (res) => { if (res.success) location.reload(); });
+                }
+            });
+        }
+    </script>
+}

@@ -1,88 +1,98 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - sinta_asp</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/sinta_asp.styles.css" asp-append-version="true" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewData["Title"] - SINTA Pertamina</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        .top-bar {
+            border-bottom: 40px solid #e30613;
+            padding: 15px 20px;
+            background: white;
+        }
+
+        /* Membuat dropdown muncul saat hover */
+        .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0; /* Menghilangkan celah agar tidak kedip saat kursor pindah ke menu */
+        }
+
+        /* Opsional: Memberi sedikit transisi agar lebih halus */
+        .dropdown-menu {
+            transition: all 0.3s ease;
+            opacity: 0;
+            display: block;
+            visibility: hidden;
+        }
+
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .logo-link {
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+
+        .logo-link:hover {
+            transform: scale(1.05);
+        }
+
+        main {
+            flex: 1 0 auto;
+        }
+
+        footer {
+            flex-shrink: 0;
+            border-top: 1px solid #ddd;
+            padding: 10px;
+            font-size: 15px;
+            text-align: center;
+            color: #555;
+            background: #f1f1f1;
+        }
+    </style>
 </head>
 <body>
-    <partial name="_Header" />
 
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+<div class="top-bar d-flex justify-content-between align-items-center">
+    <a asp-controller="Home" asp-action="Index" class="logo-link">
+        <img src="~/img/logo-pertaminaa.png" height="40" alt="Pertamina Logo">
+    </a>
 
-    <footer style="background-color: #002B49; color: #ffffff; padding-top: 40px; padding-bottom: 20px; font-size: 0.9rem;">
-        <div class="container">
-            <div class="row">
-                
-                <div class="col-md-5 mb-4">
-                    <img src="https://pertaminapatraniaga.com/images/pertamina-white.svg" 
-                         alt="Pertamina Patra Niaga" 
-                         style="height: 60px; width: auto; margin-bottom: 20px;" />
+    <a asp-controller="Home" asp-action="Index" class="logo-link">
+        <img src="~/img/logo-sinta.png" height="40" alt="SINTA Logo">
+    </a>
+</div>
 
-                    <p style="opacity: 0.9; line-height: 1.6;">
-                        Jl. Pemuda No. 114, Sekayu<br>
-                        Semarang Tengah, Kota Semarang, Jawa Tengah 50132
-                    </p>
+<main role="main">
+    @RenderBody()
+</main>
 
-                    <div style="margin-top: 15px;">
-                        <p class="mb-1">Telepon: 135</p>
-                        <p>Email: pcc135@pertamina.com</p>
-                    </div>
-                </div>
+<footer>
+    <p style="margin: 0;">&copy; 2026 PT. Pertamina (Persero) | All Rights Reserved. | Contact Us : 135</p>
+</footer>
 
-                <div class="col-md-3 mb-4">
-                    <h6 style="font-weight: 700; text-transform: uppercase; margin-bottom: 20px;">Tautan</h6>
-                    <ul class="list-unstyled" style="padding-left: 0;">
-                        <li class="mb-2"><a asp-controller="Home" asp-action="Index" style="color: #fff; text-decoration: none; opacity: 0.8;">Beranda</a></li>
-                        <li class="mb-2"><a href="#" style="color: #fff; text-decoration: none; opacity: 0.8;">Tentang SINTA</a></li>
-                        <li class="mb-2"><a href="#" style="color: #fff; text-decoration: none; opacity: 0.8;">Kebijakan Privasi</a></li>
-                    </ul>
-                </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+@RenderSection("Scripts", required: false)
 
-                <div class="col-md-4 mb-4 text-md-end">
-                    <img src="https://pertaminapatraniaga.com/images/call-center-pertamina.webp" 
-                         alt="Pertamina Call Center 135" 
-                         style="height: 80px; width: auto;" />
-                </div>
-
-            </div>
-
-            <div class="row mt-4 pt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
-                <div class="col-md-6 text-center text-md-start">
-                    <small>&copy; 2026 Pertamina Patra Niaga. All Rights Reserved.</small>
-                </div>
-                <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
-                    <span style="font-family: 'Brush Script MT', 'Comic Sans MS', cursive; font-size: 1.4rem; font-style: italic;">
-                        Energizing Your Journey
-                    </span>
-                </div>
-            </div>
-        </div>
-    </footer>
-    <div style="
-        height: 12px;
-        width: 100%;
-        background: linear-gradient(to right, 
-            #00529C 0%,    
-            #00529C 33%,   
-            #9CCB3B 33%,   
-            #9CCB3B 66%,
-            #E31B23 66%,   
-            #E31B23 100%
-        );
-    "></div>
-
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

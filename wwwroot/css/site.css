@@ -18,6 +18,7 @@ html {
 }
 
 body {
+<<<<<<< HEAD
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
   min-height: 100vh;
@@ -28,6 +29,9 @@ body {
 body > .container, 
 main[role="main"] {
     flex: 1;
+=======
+  margin-bottom: 60px;
+>>>>>>> fix-web
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -37,6 +41,7 @@ main[role="main"] {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
+<<<<<<< HEAD
 }
 
 /* =======================================================
@@ -241,4 +246,6 @@ main[role="main"] {
 /* Saat class 'scrolled' aktif, garis merah jadi 0px (Hilang) */
 .header-utama.scrolled .header-red-bar {
   height: 0px; 
+=======
+>>>>>>> fix-web
 }
