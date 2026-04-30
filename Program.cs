@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore; // <-- Pastikan ada di paling atas
 using sinta_asp.Data; // <-- Ini bakal merah sebentar, abaikan dulu
+using Microsoft.AspNetCore.Authentication.Cookies;
+using sinta_asp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +18,19 @@ builder.Services.AddControllersWithViews();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddTransient<IEmailService, EmailService>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = "PesertaScheme";
+})
+.AddCookie("PesertaScheme", options =>
+{
+    // Sesuaikan path ini dengan URL halaman login buatan temanmu
+    options.LoginPath = "/Login"; 
+    options.AccessDeniedPath = "/Home/AccessDenied";
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -29,6 +44,10 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+// 1. Authentication (Cek identitas / KTP) WAJIB LEBIH DULU
+app.UseAuthentication(); 
+
+// 2. Authorization (Cek hak akses / Tiket)
 app.UseAuthorization();
 
 app.UseStaticFiles();
@@ -39,10 +58,6 @@ app.MapControllerRoute(
 
 
 app.Run();
-using Microsoft.EntityFrameworkCore;
-using sinta_asp.Data;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using sinta_asp.Services;
 
 
 // MVC

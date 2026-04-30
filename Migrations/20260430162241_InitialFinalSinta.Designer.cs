@@ -12,8 +12,8 @@ using sinta_asp.Data;
 namespace sinta_asp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260428163609_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260430162241_InitialFinalSinta")]
+    partial class InitialFinalSinta
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -132,6 +132,38 @@ namespace sinta_asp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AdminNotificationReads");
+                });
+
+            modelBuilder.Entity("sinta_asp.Models.Lowongan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Company")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Region")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lowongan");
                 });
 
             modelBuilder.Entity("sinta_asp.Models.Magang", b =>
@@ -381,7 +413,13 @@ namespace sinta_asp.Migrations
                     b.Property<string>("NoHp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NomorPendaftaran")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PathCV")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PathFoto3x4")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PathProposal")
