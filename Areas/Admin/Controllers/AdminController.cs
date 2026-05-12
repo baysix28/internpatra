@@ -10,13 +10,14 @@ using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
-// ALIAS MODEL ADMIN agar tidak bentrok dengan namespace lain
 using AdminModel = sinta_asp.Models.Admin;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
     public class AdminsController : Controller
     {
         private readonly AppDbContext _context;
@@ -30,22 +31,18 @@ namespace sinta_asp.Areas.Admin.Controllers
             _passwordHasher = new PasswordHasher<AdminModel>();
         }
 
-        // Helper untuk cek apakah yang login adalah SuperAdmin
         private bool IsSuperAdmin()
         {
             return HttpContext.Session.GetString("AdminRole") == "SuperAdmin";
         }
 
-        // Menampilkan Daftar Admin
         public async Task<IActionResult> Index()
         {
             if (!IsSuperAdmin()) return RedirectToAction("Index", "Dashboard");
-            
             var listAdmin = await _context.Admins.OrderBy(a => a.Role).ToListAsync();
             return View(listAdmin);
         }
 
-        // Halaman Sukses setelah aktivasi (opsional)
         public IActionResult Success()
         {
             return View("~/Areas/Admin/Views/Aktivasi/Index.cshtml");
@@ -59,73 +56,72 @@ namespace sinta_asp.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(NewPassword))
                 return Json(new { success = false, message = "Password wajib diisi" });
 
-            // 1. CEK DUPLIKASI EMAIL
+            // CEK DUPLIKASI EMAIL
             var existing = await _context.Admins.FirstOrDefaultAsync(a => a.Email == model.Email);
             if (existing != null)
             {
-                // Jika sudah ada tapi belum aktif, kirim ulang email aktivasi saja
                 if (!existing.IsActive)
                 {
-                    try {
+                    try
+                    {
                         await SendActivationEmail(existing);
                         return Json(new { success = true, message = "Email aktivasi telah dikirim ulang ke alamat tersebut." });
-                    } catch (Exception ex) {
+                    }
+                    catch (Exception ex)
+                    {
                         return Json(new { success = false, message = "Gagal mengirim ulang email: " + ex.Message });
                     }
                 }
                 return Json(new { success = false, message = "Email sudah terdaftar dan sudah aktif." });
             }
 
-            // Gunakan Transaction agar jika Email gagal kirim, Data Admin tidak tersimpan di DB
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            // FIX: Gunakan CreateExecutionStrategy agar kompatibel dengan EnableRetryOnFailure
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
             {
-                try 
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
                 {
-                    // Persiapan data model
-                    model.Region = Region ?? model.Region; 
+                    model.Region = Region ?? model.Region;
                     model.PasswordHash = _passwordHasher.HashPassword(model, NewPassword);
                     model.CreatedAt = DateTime.Now;
 
-                    // ===========================================================================
-                    // UPDATE LOGIKA: SuperAdmin langsung aktif, Role lain wajib aktivasi
-                    // ===========================================================================
                     if (model.Role == "SuperAdmin")
                     {
-                        model.IsActive = true; // Langsung aktif
-                        model.ActivationToken = null; // Tidak butuh token
+                        model.IsActive = true;
+                        model.ActivationToken = null;
                     }
                     else
                     {
-                        model.IsActive = false; // Akun dikunci sampai diaktivasi via email
+                        model.IsActive = false;
                         model.ActivationToken = Guid.NewGuid().ToString();
                     }
 
                     _context.Admins.Add(model);
                     await _context.SaveChangesAsync();
 
-                    // 2. Kirim Email Aktivasi (HANYA jika bukan SuperAdmin / IsActive masih false)
                     if (!model.IsActive)
                     {
                         await SendActivationEmail(model);
                     }
-                    
+
                     await transaction.CommitAsync();
 
-                    string successMsg = model.IsActive 
-                        ? "Akun SuperAdmin berhasil dibuat dan langsung aktif tanpa aktivasi email." 
+                    string successMsg = model.IsActive
+                        ? "Akun SuperAdmin berhasil dibuat dan langsung aktif tanpa aktivasi email."
                         : "Akun berhasil dibuat. Instruksi aktivasi telah dikirim ke " + model.Email;
 
                     return Json(new { success = true, message = successMsg });
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     await transaction.RollbackAsync();
                     return Json(new { success = false, message = "Gagal mendaftar: " + (ex.InnerException?.Message ?? ex.Message) });
                 }
-            }
+            });
         }
 
-        // Fungsi Private untuk mengirim Email menggunakan SMTP
         private async Task SendActivationEmail(AdminModel admin)
         {
             var host = _config["EmailSettings:Host"];
@@ -136,14 +132,12 @@ namespace sinta_asp.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(senderEmail) || string.IsNullOrEmpty(senderPass))
                 throw new Exception("Konfigurasi SMTP di appsettings.json belum lengkap.");
 
-            // Link mengarah ke AccountController atau LoginController bagian ActivateAccount
             var activationLink = $"{Request.Scheme}://{Request.Host}/Admin/Login/ActivateAccount?token={admin.ActivationToken}";
 
             var message = new MailMessage();
             message.To.Add(new MailAddress(admin.Email));
             message.From = new MailAddress(senderEmail, "SINTA Pertamina");
             message.Subject = "Aktivasi Akun Administrator SINTA";
-            
             message.Body = $@"
                 <html>
                 <body style='font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px;'>
@@ -166,33 +160,30 @@ namespace sinta_asp.Areas.Admin.Controllers
                 </html>";
             message.IsBodyHtml = true;
 
-            using (var client = new SmtpClient(host, port))
-            {
-                client.Credentials = new NetworkCredential(senderEmail, senderPass);
-                client.EnableSsl = true;
-                client.Timeout = 20000; 
-                await client.SendMailAsync(message);
-            }
+            using var client = new SmtpClient(host, port);
+            client.Credentials = new NetworkCredential(senderEmail, senderPass);
+            client.EnableSsl = true;
+            client.Timeout = 20000;
+            await client.SendMailAsync(message);
         }
 
         [HttpPost]
         public async Task<IActionResult> Edit(AdminModel model, string NewPassword, string Region)
         {
             if (!IsSuperAdmin()) return Json(new { success = false });
-            
+
             var admin = await _context.Admins.FindAsync(model.Id);
             if (admin == null) return Json(new { success = false, message = "Data tidak ditemukan" });
 
-            try 
+            try
             {
                 admin.Nama = model.Nama;
                 admin.Email = model.Email;
                 admin.Role = model.Role;
                 admin.Region = Region ?? model.Region;
                 admin.SmtpPassword = model.SmtpPassword;
-                
-                // Jika password baru diisi, maka update password lama
-                if (!string.IsNullOrEmpty(NewPassword)) 
+
+                if (!string.IsNullOrEmpty(NewPassword))
                     admin.PasswordHash = _passwordHasher.HashPassword(admin, NewPassword);
 
                 _context.Update(admin);
@@ -209,7 +200,7 @@ namespace sinta_asp.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             if (!IsSuperAdmin()) return Json(new { success = false });
-            
+
             var admin = await _context.Admins.FindAsync(id);
             if (admin == null) return Json(new { success = false, message = "Data tidak ditemukan" });
 

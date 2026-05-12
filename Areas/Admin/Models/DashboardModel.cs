@@ -8,13 +8,11 @@ namespace sinta_asp.Areas.Admin.Models
     {
         public string? AdminName { get; set; }
         public DateTime LoginTime { get; set; }
-
+        public int StatusRevisi { get; set; }
         // Properti Identitas & Filter
         public string? AdminRole { get; set; }
         public string? AdminRegion { get; set; }
-        
-        // Tambahkan ini untuk menampung daftar region (master data) 
-        // yang akan ditampilkan di dropdown filter View
+
         public List<string> Regions { get; set; } = new();
 
         public List<Magang> DaftarMagang { get; set; } = new();
@@ -48,5 +46,8 @@ namespace sinta_asp.Areas.Admin.Models
         public List<int> LokasiDiterima { get; set; } = new();
         public List<int> LokasiDitolak { get; set; } = new();
         public List<int> LokasiMenunggu { get; set; } = new();
+        // Tambahkan di bawah public List<int> LokasiMenunggu { get; set; } = new();
+
+        public List<int> LokasiRevisi { get; set; } = new();
     }
 }

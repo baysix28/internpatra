@@ -9,6 +9,7 @@ using System;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Mail;
+using Microsoft.AspNetCore.Authorization;
 
 // ALIAS MODEL ADMIN (Pastikan namespace model Admin Anda benar)
 using AdminModel = sinta_asp.Models.Admin;
@@ -16,6 +17,8 @@ using AdminModel = sinta_asp.Models.Admin;
 namespace sinta_asp.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+
     public class AccountController : Controller
     {
         private readonly AppDbContext _context;
@@ -175,6 +178,7 @@ namespace sinta_asp.Areas.Admin.Controllers
             admin.PasswordHash = _passwordHasher.HashPassword(admin, NewPassword);
             admin.ResetToken = null;
             admin.ResetTokenExpiry = null;
+            admin.IsActive = true;
             
             await _context.SaveChangesAsync();
 
@@ -198,7 +202,7 @@ namespace sinta_asp.Areas.Admin.Controllers
         {
             var host = _config["EmailSettings:Host"];
             var port = int.Parse(_config["EmailSettings:Port"] ?? "587");
-            var senderEmail = _config["EmailSettings:Email"];
+            var senderEmail = _config["EmailSettings:Email"] ?? "";
             var senderPass = _config["EmailSettings:Password"];
 
             using (var client = new SmtpClient(host, port))

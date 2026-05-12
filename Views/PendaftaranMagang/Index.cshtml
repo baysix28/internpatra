@@ -241,7 +241,7 @@
 </div>
 
 <script>
-      const dataKPI = {
+    const dataKPI = {
         "Refinery Unit VI Balongan": [
             "Akuntansi / Ekonomi & Bisnis",
             "Elektro (Arus Kuat)",
@@ -268,7 +268,7 @@
             "Teknik Sipil"
         ]};
 
-        const dataPPN = {
+    const dataPPN = {
         "Regional Jatimbalinus": [
             "Asset Operation MOR V","Bitumen Plant Gresik","C&T IA Jatimbalinus","Comm, Rel, & CSR MOR V",
             "Corporate Operation & Service Region V","Corporate Sales Region V","DPPU BIL","DPPU Eltari Group",
@@ -375,23 +375,17 @@
     const emptyState = document.getElementById('emptyState');
     const searchInput = document.getElementById('searchPosisi');
 
-    function getDefaultCards(limit = 8) {
+    // Hapus fungsi getDefaultCards lama, ganti ini:
+    function getAllCards() {
         const cards = [];
-
         Object.keys(dataMagang).forEach(company => {
             Object.keys(dataMagang[company]).forEach(region => {
                 dataMagang[company][region].forEach(pos => {
-                    cards.push({
-                        company,
-                        region,
-                        lokasi: region,
-                        posisi: pos
-                    });
+                    cards.push({ company, region, lokasi: region, posisi: pos });
                 });
             });
         });
-
-        return cards.slice(0, limit);
+        return cards;
     }
 
     function renderCards() {
@@ -401,36 +395,20 @@
         const search = searchInput.value.toLowerCase().trim();
 
         container.innerHTML = '';
-
         let itemsToRender = [];
 
-        // Kondisi awal: belum pilih filter apapun -> tampilkan card default
         if (!company && !region && !lokasi && !search) {
             emptyState.style.display = 'none';
-            itemsToRender = getDefaultCards(8);
+            itemsToRender = getAllCards();
         } else {
-            // Filter dinamis
             Object.keys(dataMagang).forEach(comp => {
-                // filter company
                 if (company && comp !== company) return;
-
                 Object.keys(dataMagang[comp]).forEach(reg => {
-                    // filter region
                     if (region && reg !== region) return;
-
                     dataMagang[comp][reg].forEach(pos => {
-                        // filter lokasi
                         if (lokasi && reg !== lokasi) return;
-
-                        // filter search
                         if (search && !pos.toLowerCase().includes(search)) return;
-
-                        itemsToRender.push({
-                            company: comp,
-                            region: reg,
-                            lokasi: reg,
-                            posisi: pos
-                        });
+                        itemsToRender.push({ company: comp, region: reg, lokasi: reg, posisi: pos });
                     });
                 });
             });
@@ -449,13 +427,11 @@
 
         itemsToRender.forEach(item => {
             let deskripsi = "";
-
             if (item.company === "KPI") {
                 deskripsi = typeof deskripsiPosisi !== "undefined" && deskripsiPosisi[item.posisi]
                     ? deskripsiPosisi[item.posisi]
                     : "Mendukung operasional unit kerja sesuai fungsi dan standar perusahaan.";
             }
-
             if (item.company === "PPN") {
                 deskripsi = typeof generateDeskripsiPPN === "function"
                     ? generateDeskripsiPPN(item.posisi)
@@ -465,27 +441,21 @@
             const card = `
                 <div class="flip-card animate__animated animate__fadeInUp">
                     <div class="flip-card-inner">
-
                         <div class="flip-card-front shadow-sm">
                             <div class="wadah-ikon-sm">
                                 <i class="${getIcon(item.posisi)}"></i>
                             </div>
-
                             <div class="judul-posisi">${item.posisi}</div>
-
                             <small class="text-muted d-block mb-2">
                                 <i class="fas fa-building me-1 text-primary"></i>${item.company}
                             </small>
-
                             <small class="text-muted d-block mb-3">
                                 <i class="fas fa-map-marker-alt me-1 text-danger"></i>${item.lokasi}
                             </small>
-
                             <div class="syarat-dokumen mb-2">
                                 <small class="fw-bold text-muted d-block mb-1">Dokumen:</small>
                                 <small class="text-muted">CV, Proposal, Surat Kampus</small>
                             </div>
-
                             <div class="mt-auto pt-2 border-top">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fw-bold text-muted" style="font-size: 11px;">KUOTA</span>
@@ -493,17 +463,10 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="flip-card-back shadow-lg">
-                            <h6 class="fw-bold mb-2" style="font-size: 13px;">
-                                Fungsi Bidang
-                            </h6>
-
-                            <p style="font-size: 11px; line-height: 1.4; opacity: 0.9;">
-                                ${deskripsi}
-                            </p>
-
-                            <button onclick="pilihPosisi('${item.company}', '${item.region}', '${item.posisi.replace(/'/g, "\'")}')"
+                            <h6 class="fw-bold mb-2" style="font-size: 13px;">Fungsi Bidang</h6>
+                            <p style="font-size: 11px; line-height: 1.4; opacity: 0.9;">${deskripsi}</p>
+                            <button onclick="pilihPosisi('${item.company}', '${item.region}', '${item.posisi.replace(/'/g, "\\'")}')"
                                     class="btn-pilih mt-3">
                                 Pilih Posisi
                             </button>
@@ -538,25 +501,22 @@
         } else {
             regionSelect.disabled = true;
         }
-
         renderCards();
     });
 
     regionSelect.addEventListener('change', function() {
         lokasiSelect.innerHTML = '<option value="">Pilih</option>';
-
         if (this.value) {
             lokasiSelect.disabled = false;
             lokasiSelect.innerHTML += `<option value="${this.value}">${this.value}</option>`;
         } else {
             lokasiSelect.disabled = true;
         }
-
         renderCards();
     });
 
-    // 1. Ambil status login dari C# (PASTIKAN INI DI DALAM .cshtml)
-    const currentUser = "@(Context.User.Identity?.IsAuthenticated == true ? Context.User.Identity.Name : "Guest")";
+    // ✅ PERBAIKAN: gunakan boolean agar tidak ada risiko escaping string
+    const isLoggedIn = @(Context.User.Identity?.IsAuthenticated == true ? "true" : "false");
 
     function showLoginWarning() {
         Swal.fire({
@@ -564,22 +524,22 @@
             text: 'Silakan login untuk mengakses formulir pendaftaran magang.',
             icon: 'info',
             iconColor: '#003B76',
-            width: '340px', 
+            width: '340px',
             showCancelButton: true,
             confirmButtonText: 'Login Sekarang',
             cancelButtonText: 'Kembali',
-            confirmButtonColor: '#003B76', // Biru Navy Pertamina
-            cancelButtonColor: '#6c757d',  // Abu-abu elegan untuk tombol 'Kembali'
+            confirmButtonColor: '#003B76',
+            cancelButtonColor: '#6c757d',
             reverseButtons: true,
             padding: '1.5rem',
             customClass: {
                 popup: 'rounded-3 shadow',
                 title: 'fs-5 fw-bold text-dark',
                 htmlContainer: 'small text-muted',
-                confirmButton: 'btn btn-primary btn-sm px-3 py-2', 
-                cancelButton: 'btn btn-link btn-sm text-decoration-none text-muted' 
+                confirmButton: 'btn btn-primary btn-sm px-3 py-2',
+                cancelButton: 'btn btn-link btn-sm text-decoration-none text-muted'
             },
-            buttonsStyling: true, // Menggunakan styling asli Swal agar warna confirmButtonColor muncul
+            buttonsStyling: true,
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = '/Auth/Login';
@@ -587,8 +547,13 @@
         });
     }
 
-    // Pastikan fungsi ini ada dan bisa diakses global
     function pilihPosisi(company, region, lokasi) {
+        // ✅ Cek login sebelum redirect ke formulir
+        if (!isLoggedIn) {
+            showLoginWarning();
+            return;
+        }
+
         localStorage.setItem('magang_company', company);
         localStorage.setItem('magang_region', region);
         localStorage.setItem('magang_lokasi', lokasi);
@@ -597,30 +562,19 @@
         window.location.href = '/PendaftaranMagang/DataMagang';
     }
 
-    // 3. Tambahkan juga proteksi pada tombol "Mulai Pendaftaran" di Hero Section
     function handleMulaiDaftar() {
-        console.log("Status User Saat Ini:", currentUser);
-        
-        if (currentUser === "Guest" || currentUser === "") {
+        // ✅ Cek login sebelum redirect ke formulir
+        if (!isLoggedIn) {
             showLoginWarning();
         } else {
-            const section = document.getElementById('filterSection');
-            if (section) {
-                section.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                console.error("Error: Element dengan ID 'filterSection' tidak ditemukan!");
-                // Fallback jika scroll gagal: langsung arahkan ke halaman data
-                window.location.href = '/PendaftaranMagang/DataMagang';
-            }
+            window.location.href = '/PendaftaranMagang/DataMagang';
         }
     }
 
-    // Event Listeners (Tetap)
     lokasiSelect.addEventListener('change', renderCards);
     searchInput.addEventListener('input', renderCards);
 
     document.addEventListener('DOMContentLoaded', function () {
         renderCards();
     });
-
 </script>

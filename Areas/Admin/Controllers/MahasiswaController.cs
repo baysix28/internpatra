@@ -8,10 +8,12 @@ using System.Globalization;
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
     public class MahasiswaController : Controller
     {
         private readonly AppDbContext _context;
@@ -104,7 +106,6 @@ namespace sinta_asp.Areas.Admin.Controllers
             // Logika Filter Berdasarkan Role
             if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
             {
-                // Jika bukan SuperAdmin, paksa filter ke Region milik admin tersebut
                 if (!string.IsNullOrEmpty(adminRegionManaged))
                 {
                     query = query.Where(x => x.Region == adminRegionManaged);
@@ -113,7 +114,6 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
             else
             {
-                // Jika SuperAdmin, bisa pilih semua atau region tertentu
                 if (selectedRegion != "all" && !string.IsNullOrEmpty(selectedRegion))
                 {
                     query = query.Where(x => x.Region == selectedRegion);
@@ -135,7 +135,8 @@ namespace sinta_asp.Areas.Admin.Controllers
                 StatusDiproses = magang.Count(x => x.Status == "Menunggu" || x.Status == "Proses Review"),
                 StatusDiterima = magang.Count(x => x.Status == "Diterima"),
                 StatusDitolak = magang.Count(x => x.Status == "Ditolak"),
-                TotalInternAktif = magang.Count(x => x.Status == "Diterima")
+                TotalInternAktif = magang.Count(x => x.Status == "Diterima"),
+                StatusRevisi = magang.Count(x => x.Status == "Revisi"),
             };
 
             ViewBag.AdminRole = adminRole;
@@ -144,8 +145,80 @@ namespace sinta_asp.Areas.Admin.Controllers
             return View(viewModel);
         }
 
+        private Task SimpanNotifikasiPeserta(Magang mhs, string status)
+        {
+            string title = "";
+            string message = "";
+            string type = "";
+
+            if (status == "Diterima")
+            {
+                title = "Selamat! Lamaran Diterima";
+                message = $"Selamat {mhs.NamaLengkap}! Pengajuan magang kamu di {mhs.Company} ({mhs.Region}) telah DITERIMA.";
+                type = "success";
+            }
+            else if (status == "Ditolak")
+            {
+                title = "Pengajuan Ditolak";
+                message = $"Mohon maaf {mhs.NamaLengkap}, pengajuan magang di {mhs.Company} ({mhs.Region}) tidak dapat kami terima saat ini.";
+                type = "error";
+            }
+            else if (status == "Revisi")
+            {
+                title = "Instruksi Revisi Data";
+                message = $"Halo {mhs.NamaLengkap}, terdapat beberapa data pendaftaran yang perlu diperbaiki. Silakan cek email Anda untuk detail instruksi.";
+                type = "warning";
+            }
+            else
+            {
+                title = "Update Status Magang";
+                message = $"Status pengajuan magang kamu di {mhs.Company} diperbarui menjadi: {status}.";
+                type = "info";
+            }
+
+            var notif = new Notification
+            {
+                Nama = mhs.NamaLengkap,
+                Lokasi = mhs.Region,
+                Type = type,
+                UserEmail = mhs.EmailPribadi,
+                Title = title,
+                Message = message,
+                Url = "/DashboardPeserta#riwayat",
+                CreatedAt = DateTime.Now,
+                IsRead = false,
+                ExternalId = mhs.Id.ToString()
+            };
+
+            _context.Notifications.Add(notif);
+            return Task.CompletedTask;
+        }
+
+        private Task SimpanNotifikasiAdmin(Magang mhs, string status)
+        {
+            string title = status == "Diterima" ? "Peserta Diterima" : 
+                          status == "Ditolak" ? "Peserta Ditolak" : 
+                          status == "Revisi" ? "Permintaan Revisi" : "Update Status";
+            
+            string message = $"{mhs.NamaLengkap} statusnya diperbarui menjadi {status} di {mhs.Region}.";
+
+            var notif = new AdminNotification
+            {
+                Title = title,
+                Message = message,
+                Type = status,
+                TargetRegion = mhs.Region,
+                CreatedAt = DateTime.Now,
+                IsRead = false,
+                MagangId = mhs.Id
+            };
+
+            _context.AdminNotifications.Add(notif);
+            return Task.CompletedTask;
+        }
+
         [HttpPost]
-        public async Task<IActionResult> UpdateStatus(int id, string status)
+        public async Task<IActionResult> UpdateStatus(int id, string status, string catatan = "")
         {
             var rawRole = HttpContext.Session.GetString("AdminRole") ?? "";
             var adminRole = rawRole.Trim();
@@ -161,28 +234,42 @@ namespace sinta_asp.Areas.Admin.Controllers
                 if (data == null)
                     return Json(new { success = false, message = "Data mahasiswa tidak ditemukan." });
 
-                if (data.Status == status)
-                    return Json(new { success = true, message = "Status sudah sesuai." });
-
                 data.Status = status;
-                await _context.SaveChangesAsync();
 
-                if (status == "Diterima" || status == "Ditolak")
+                if (status == "Revisi" && !string.IsNullOrEmpty(catatan))
                 {
-                    try 
-                    {
-                        await KirimEmailNotifikasi(data, status);
-                    }
-                    catch (Exception emailEx)
-                    {
-                        return Json(new { 
-                            success = true, 
-                            message = "Status terupdate, tapi EMAIL GAGAL: " + emailEx.Message 
-                        });
-                    }
+                    var parts = catatan.Split(" | Pesan: ", 2, StringSplitOptions.None);
+                    data.RevisiFields  = parts[0].Trim();
+                    data.CatatanRevisi = parts.Length > 1 ? parts[1].Trim() : null;
+                }
+                else if (status == "Menunggu")
+                {
+                    data.RevisiFields  = null;
+                    data.CatatanRevisi = null;
                 }
 
-                return Json(new { success = true, message = "Status diperbarui dan email terkirim." });
+                _context.PendaftaranMagang.Update(data);
+
+                await SimpanNotifikasiPeserta(data, status);
+                await SimpanNotifikasiAdmin(data, status);
+                await _context.SaveChangesAsync();
+
+                // ✅ PERBAIKAN: tangkap error email secara terpisah
+                // agar status tetap tersimpan meski email gagal,
+                // dan pesan error email bisa diketahui
+                string emailInfo = "";
+                try
+                {
+                    await KirimEmailNotifikasi(data, status, catatan);
+                    emailInfo = "dan email notifikasi berhasil dikirim.";
+                }
+                catch (Exception exEmail)
+                {
+                    emailInfo = $"namun email gagal dikirim: {exEmail.Message}";
+                    Console.WriteLine($"[EMAIL ERROR] UpdateStatus id={id}: {exEmail}");
+                }
+
+                return Json(new { success = true, message = $"Status diperbarui {emailInfo}" });
             }
             catch (Exception ex)
             {
@@ -190,39 +277,64 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
         }
 
-        private async Task KirimEmailNotifikasi(Magang mhs, string status)
+        private async Task KirimEmailNotifikasi(Magang mhs, string status, string catatanRevisi = "")
         {
+            // ✅ PERBAIKAN: hanya proses status yang punya template email
+            var validStatuses = new[] { "Diterima", "Ditolak", "Revisi" };
+            if (!validStatuses.Contains(status))
+            {
+                Console.WriteLine($"[EMAIL SKIP] Status '{status}' tidak memiliki template email.");
+                return;
+            }
+
             var admin = await _context.Admins.FirstOrDefaultAsync(a => 
                 a.Region != null && mhs.Region != null &&
                 a.Region.ToLower().Trim() == mhs.Region.ToLower().Trim());
 
-            if (admin == null) 
-                throw new Exception($"Admin untuk region '{mhs.Region}' tidak ditemukan.");
-
             string root = _env.WebRootPath;
-            string pathHtml = Path.Combine(root, "templates", status == "Diterima" ? "EmailDiterima.html" : "EmailDitolak.html");
-            string pathTxt = Path.Combine(root, "templates", "raw", status == "Diterima" ? "Diterima.txt" : "Ditolak.txt");
+            
+            string templateFileName = status == "Diterima" ? "EmailDiterima.html" : 
+                                     status == "Ditolak" ? "EmailDitolak.html" : "EmailRevisi.html";
+            
+            string rawFileName = status == "Diterima" ? "Diterima.txt" : 
+                                status == "Ditolak" ? "Ditolak.txt" : "Revisi.txt";
 
-            if (!System.IO.File.Exists(pathHtml) || !System.IO.File.Exists(pathTxt))
-                throw new Exception("File template email (HTML/TXT) tidak ditemukan.");
+            string pathHtml = Path.Combine(root, "templates", templateFileName);
+            string pathTxt = Path.Combine(root, "templates", "raw", rawFileName);
+
+            // ✅ PERBAIKAN: lempar exception agar bisa ditangkap di UpdateStatus
+            if (!System.IO.File.Exists(pathHtml))
+                throw new FileNotFoundException($"Template HTML tidak ditemukan: {pathHtml}");
+
+            if (!System.IO.File.Exists(pathTxt))
+                throw new FileNotFoundException($"Template TXT tidak ditemukan: {pathTxt}");
 
             var culture = new CultureInfo("id-ID");
             string isiPesan = await System.IO.File.ReadAllTextAsync(pathTxt);
+            
             isiPesan = isiPesan.Replace("{Nama}", mhs.NamaLengkap)
                                .Replace("{Region}", mhs.Region)
                                .Replace("{Unit}", mhs.Jurusan ?? "-")
                                .Replace("{TanggalMulai}", mhs.MulaiMagang.ToString("dd MMMM yyyy", culture))
                                .Replace("{TanggalSelesai}", mhs.SelesaiMagang.ToString("dd MMMM yyyy", culture));
 
+            if (status == "Revisi")
+            {
+                isiPesan = isiPesan.Replace("{KomentarRevisi}", catatanRevisi);
+            }
+
             string htmlBody = await System.IO.File.ReadAllTextAsync(pathHtml);
             htmlBody = htmlBody.Replace("{IsiPesan}", isiPesan)
                                .Replace("{Tahun}", DateTime.Now.Year.ToString());
 
+            string subject = status == "Diterima" ? "Selamat! Seleksi Magang Diterima" : 
+                            status == "Revisi" ? "Instruksi Revisi Data Pendaftaran" : "Informasi Seleksi Magang";
+
             await _emailService.SendWithCourierAsync(
                 mhs.EmailPribadi, 
-                status == "Diterima" ? "Selamat! Seleksi Magang Diterima" : "Informasi Seleksi Magang",
+                subject,
                 htmlBody,
-                "HC Pertamina - " + admin.Region
+                "HC Pertamina - " + (admin?.Region ?? mhs.Region)
             );
         }
 
@@ -311,8 +423,7 @@ namespace sinta_asp.Areas.Admin.Controllers
                 stream.Position = 0;
 
                 var regionLabel = (selectedRegion == "all" || string.IsNullOrEmpty(selectedRegion)) 
-                                  ? "Semua_Region" 
-                                  : selectedRegion;
+                                  ? "Semua_Region" : selectedRegion;
 
                 if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
                 {
@@ -334,7 +445,7 @@ namespace sinta_asp.Areas.Admin.Controllers
                 var cleanFileName = Path.GetFileName(fileName);
                 var fullPath = $"{baseUrl}/uploads/{folder}/{cleanFileName}";
                 
-                cell.Value = fullPath;
+                cell.Value = "Lihat Dokumen";
                 cell.GetHyperlink().ExternalAddress = new Uri(fullPath);
                 
                 cell.Style.Font.FontColor = XLColor.Blue;

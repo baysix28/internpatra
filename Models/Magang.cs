@@ -41,12 +41,15 @@ namespace sinta_asp.Models
         public string? FileSuratPengantar { get; set; }
         public string? FileProposal { get; set; }
 
-        [Required]
-
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public string Status { get; set; } = "Proses Review";
 
         public string? NoPendaftaran { get; set; }
+
+        // ✅ TAMBAHAN BARU
+        public string? UserId { get; set; }         // link ke user yang daftar
+        public string? RevisiFields { get; set; }   // "CV, Surat Pengantar, Data Akademik"
+        public string? CatatanRevisi { get; set; }  // pesan dari admin
     }
 }

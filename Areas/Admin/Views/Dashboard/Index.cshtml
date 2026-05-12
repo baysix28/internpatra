@@ -4,14 +4,14 @@
 @{
     ViewData["Title"] = "Dashboard Performance";
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
-    
+
     var sebaranTitle = ViewBag.SebaranTitle ?? "Rekap Sebaran";
-    var subTitle = ViewBag.SubTitle ?? "Unit Kerja";
-    var totalSemua = ViewBag.TotalSemua ?? 0;
+    var subTitle     = ViewBag.SubTitle ?? "Unit Kerja";
+    var totalSemua   = ViewBag.TotalSemua ?? 0;
 
     var weeklyTooltip = ViewBag.WeeklyTooltip as List<string> ?? new List<string>();
-    var listRegion = Model.Regions ?? new List<string>();
-    
+    var listRegion    = Model.Regions ?? new List<string>();
+
     var displayRegion = "Seluruh Indonesia (Nasional)";
     if (Model.AdminRegion != "All" && Model.AdminRegion != "Semua Region" && !string.IsNullOrEmpty(Model.AdminRegion))
     {
@@ -24,16 +24,16 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-    :root { 
+    :root {
         --p-blue: #00549B; --p-red: #EF4444; --p-green: #10B981; --p-orange: #F59E0B; --p-bg: #F8FAFC;
         --transition: all 0.2s ease;
     }
     body { background-color: var(--p-bg); font-family: 'Plus Jakarta Sans', sans-serif; color: #334155; }
     .dashboard-wrapper { padding: 1.2rem 1.8rem; margin-top: -20px; }
     .title-bold { font-weight: 800; color: var(--p-blue); letter-spacing: -0.8px; font-size: 1.5rem; }
-    
+
     .dropdown:hover .dropdown-menu { display: block; margin-top: 0; }
-    .dropdown-menu { border: 1px solid #E2E8F0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-radius: 12px; font-size: 0.8rem; max-height: 400px; overflow-y: auto; }
+    .dropdown-menu { border: 1px solid #E2E8F0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-radius: 12px; font-size: 0.8rem; max-height: 400px; overflow-y: auto; }
     .dropdown-item { font-weight: 600; padding: 8px 16px; color: #475569; }
     .dropdown-item.active { background-color: var(--p-blue) !important; color: white !important; }
     .dropdown-item:hover { background-color: #f1f5f9; color: var(--p-blue); }
@@ -45,21 +45,21 @@
     }
     .btn-region-dropdown:hover { border-color: var(--p-blue); background-color: #f1f5f9; }
 
-    .main-table-card { 
-        background: #fff; border-radius: 16px; border: 1px solid #E2E8F0; padding: 1.2rem; 
-        height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02); position: relative; 
+    .main-table-card {
+        background: #fff; border-radius: 16px; border: 1px solid #E2E8F0; padding: 1.2rem;
+        height: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.02); position: relative;
     }
-    
+
     .sebaran-container { position: relative; height: 400px; overflow: hidden; display: flex; flex-direction: column; }
     .scroll-box-sebaran { overflow-y: auto; overflow-x: hidden; flex: 1; padding-right: 10px; }
     .scroll-box-sebaran::-webkit-scrollbar { width: 6px; }
     .scroll-box-sebaran::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-    
+
     .status-legend-minimal { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 15px; }
-    .legend-simple { 
-        display: flex; align-items: center; font-size: 0.7rem; font-weight: 700; color: #64748b; 
-        background: #f8fafc; padding: 5px 8px; border-radius: 8px; border: 1px solid #f1f5f9; 
-        flex: 0 0 calc(50% - 8px); justify-content: center; 
+    .legend-simple {
+        display: flex; align-items: center; font-size: 0.7rem; font-weight: 700; color: #64748b;
+        background: #f8fafc; padding: 5px 8px; border-radius: 8px; border: 1px solid #f1f5f9;
+        flex: 0 0 calc(50% - 8px); justify-content: center;
     }
     .legend-simple.full-width { flex: 0 0 60%; margin-top: 2px; }
     .dot { width: 10px; height: 10px; border-radius: 4px; margin-right: 6px; }
@@ -68,9 +68,9 @@
     .toggle-group { background: #f1f5f9; padding: 4px; border-radius: 10px; display: inline-flex; }
     .toggle-group .btn-t { border: none; background: none; padding: 4px 10px; font-size: 0.65rem; font-weight: 700; color: #64748b; border-radius: 8px; cursor: pointer; transition: var(--transition); }
     .toggle-group .btn-t.active { background: #fff; color: var(--p-blue); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    
-    /* Premium Detail Modal Styling */
-    .modal-header-premium { background: linear-gradient(135deg, #00549B 0%, #003d70 100%); padding: 2.5rem; color: white; position: relative; border-radius: 20px 20px 0 0;}
+
+    /* Modal Premium */
+    .modal-header-premium { background: linear-gradient(135deg, #00549B 0%, #003d70 100%); padding: 2.5rem; color: white; position: relative; border-radius: 20px 20px 0 0; }
     .profile-circle-frame { width: 110px; height: 110px; border-radius: 50% !important; object-fit: cover; border: 4px solid rgba(255,255,255,0.2); background: white; flex-shrink: 0; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .header-info-content { margin-left: 15px; display: flex; flex-direction: column; }
     .status-pill-modal { display: inline-block; padding: 2px 12px; border-radius: 50px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 8px !important; width: fit-content; }
@@ -82,21 +82,26 @@
     .info-label-premium { color: #94a3b8; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
     .info-value-premium { color: #1e293b; font-weight: 700; font-size: 0.95rem; line-height: 1.4; }
 
-    .bg-light-green { background: #10B981; color: white; }
+    .bg-light-green  { background: #10B981; color: white; }
     .bg-light-orange { background: #F59E0B; color: white; }
-    .bg-light-red { background: #EF4444; color: white; }
+    .bg-light-red    { background: #EF4444; color: white; }
+    .bg-light-revisi { background: #6366F1; color: white; }
 
-    .doc-link-premium { 
-        display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; 
-        background: white; border: 1px solid #e2e8f0; border-radius: 12px; 
+    .doc-link-premium {
+        display: flex; align-items: center; justify-content: space-between; padding: 14px 18px;
+        background: white; border: 1px solid #e2e8f0; border-radius: 12px;
         text-decoration: none !important; color: #334155; font-weight: 700; font-size: 0.8rem; margin-bottom: 12px;
         transition: var(--transition);
     }
     .doc-link-premium:hover { background: #f8fafc; border-color: var(--p-blue); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
-    .student-list-item:hover { background-color: #f8fafc !important; transform: translateX(5px); border-color: var(--p-blue) !important; transition: var(--transition); }
+    /* Loading overlay untuk modal list */
+    .modal-loading { text-align: center; padding: 2.5rem 1rem; }
+    .modal-loading p { margin-top: 0.75rem; color: #94a3b8; font-size: 0.8rem; font-weight: 600; }
 
-    @@media print { .btn-t, .dropdown, .badge, .btn-close, .header-actions { display: none !important; } }
+    .student-list-item { cursor: pointer; border-radius: 12px; border: 1px solid #f1f5f9; background: #fff; margin-bottom: 8px; transition: var(--transition); }
+    .student-list-item:hover { background-color: #f8fafc !important; transform: translateX(5px); border-color: var(--p-blue) !important; }
+
 </style>
 
 <div class="dashboard-wrapper">
@@ -104,7 +109,7 @@
         <div>
             <h3 class="title-bold mb-0">Dashboard Performance</h3>
             <p class="text-muted small mb-0">
-                Role: <span style="color:var(--p-blue); font-weight:800;">@Model.AdminRole</span> | 
+                Role: <span style="color:var(--p-blue); font-weight:800;">@Model.AdminRole</span> |
                 Wilayah Terpilih: <b id="currentRegionText" style="color:var(--p-red);">@displayRegion</b>
             </p>
         </div>
@@ -117,7 +122,8 @@
                     </button>
                     <ul class="dropdown-menu shadow" aria-labelledby="regionDropdown">
                         <li>
-                            <a class="dropdown-item @(Model.AdminRegion == "All" || Model.AdminRegion == "Semua Region" ? "active" : "")" href="@Url.Action("Index", "Dashboard", new { region = "All" })">
+                            <a class="dropdown-item @(Model.AdminRegion == "All" || Model.AdminRegion == "Semua Region" ? "active" : "")"
+                               href="@Url.Action("Index", "Dashboard", new { region = "All" })">
                                 Seluruh Indonesia (Nasional)
                             </a>
                         </li>
@@ -125,7 +131,8 @@
                         @foreach (var reg in listRegion)
                         {
                             <li>
-                                <a class="dropdown-item @(Model.AdminRegion == reg ? "active" : "")" href="@Url.Action("Index", "Dashboard", new { region = reg })">
+                                <a class="dropdown-item @(Model.AdminRegion == reg ? "active" : "")"
+                                   href="@Url.Action("Index", "Dashboard", new { region = reg })">
                                     @reg
                                 </a>
                             </li>
@@ -165,7 +172,8 @@
                 <div class="status-legend-minimal">
                     <div class="legend-simple"><div class="dot" style="background: var(--p-orange);"></div> Menunggu</div>
                     <div class="legend-simple"><div class="dot" style="background: var(--p-green);"></div> Diterima</div>
-                    <div class="legend-simple full-width"><div class="dot" style="background: var(--p-red);"></div> Ditolak</div>
+                    <div class="legend-simple"><div class="dot" style="background: #6366f1;"></div> Revisi</div> <!-- TAMBAHKAN INI -->
+                    <div class="legend-simple"><div class="dot" style="background: var(--p-red);"></div> Ditolak</div>
                 </div>
             </div>
         </div>
@@ -204,13 +212,12 @@
     </div>
 </div>
 
-@* MODAL LIST PESERTA (BUBBLE) *@
+@* MODAL LIST PESERTA *@
 <div class="modal fade" id="bubbleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-md">
         <div class="modal-content shadow-lg border-0" style="border-radius: 15px;">
             <div class="modal-header border-0 pb-0">
                 <h6 class="modal-title fw-800 text-primary" id="modalTitle">Detail Peserta</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.7rem;"></button>
             </div>
             <div class="modal-body">
                 <div id="modalContent" class="list-group list-group-flush"></div>
@@ -219,22 +226,24 @@
     </div>
 </div>
 
-@* MODAL DETAIL PREMIUM (FULL INFO) *@
+@* MODAL DETAIL PREMIUM *@
 <div class="modal fade" id="modalDetail" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden;">
-            <div class="modal-header-premium">                
+            <div class="modal-header-premium">
                 <div class="d-flex align-items-start gap-4">
-                    <img id="d-foto" src="/images/default-avatar.png" class="profile-circle-frame" onerror="this.src='/images/default-avatar.png'">
-                    <div class="header-info-content"> 
+                    <img id="d-foto"
+                        src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff"
+                        class="profile-circle-frame">
+                    <div class="header-info-content">
                         <div id="d-status-badge-container"></div>
-                        <h2 id="d-nama" class="mb-0 text-white" style="font-size: 2rem; font-weight: 800; letter-spacing: -1px;"></h2> 
+                        <h2 id="d-nama" class="mb-0 text-white" style="font-size: 2rem; font-weight: 800; letter-spacing: -1px;"></h2>
                         <div class="text-white opacity-75 small">
-                            <i class="far fa-calendar-alt me-1"></i> Terdaftar Pada: <span id="d-tanggal-daftar"></span> 
+                            <i class="far fa-calendar-alt me-1"></i> Terdaftar Pada: <span id="d-tanggal-daftar"></span>
                         </div>
                     </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white position-absolute end-0 top-0 m-4" data-bs-dismiss="modal" aria-label="Close"></button>
+
             </div>
             <div class="detail-body">
                 <div class="row g-4">
@@ -254,8 +263,8 @@
                     </div>
                     <div class="col-md-4">
                         <div class="section-title-premium"><i class="fas fa-file-alt"></i> Berkas Pendukung</div>
-                        <a id="link-cv" href="#" target="_blank" class="doc-link-premium"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV / Curriculum Vitae</span><i class="fas fa-chevron-right fa-xs"></i></a>
-                        <a id="link-surat" href="#" target="_blank" class="doc-link-premium"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar Kampus</span><i class="fas fa-chevron-right fa-xs"></i></a>
+                        <a id="link-cv"       href="#" target="_blank" class="doc-link-premium"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV / Curriculum Vitae</span><i class="fas fa-chevron-right fa-xs"></i></a>
+                        <a id="link-surat"    href="#" target="_blank" class="doc-link-premium"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar Kampus</span><i class="fas fa-chevron-right fa-xs"></i></a>
                         <a id="link-proposal" href="#" target="_blank" class="doc-link-premium"><span><i class="fas fa-file-signature text-success me-2"></i> Proposal Kegiatan</span><i class="fas fa-chevron-right fa-xs"></i></a>
                         <div class="mt-3 p-3 bg-light rounded-3">
                             <div class="info-label-premium">Rekomendasi Pegawai</div>
@@ -269,34 +278,38 @@
 </div>
 
 <script>
-    // Global State
+    // ── Global State ────────────────────────────────────────────────────────────
     let trendChart, statusChart, lokasiChart, kampusChart;
     let listModal, detailModal;
-    let currentTrendType = 'weekly';
-    let selectedRegion = "@(Model.AdminRegion ?? "All")";
+    let currentTrendType  = 'weekly';
+    let selectedRegion = "@(Html.Raw(!string.IsNullOrEmpty(Model.AdminRegion) && Model.AdminRegion != "All" ? Model.AdminRegion : "All"))";
+
+    let currentFetchCtrl  = null; // FIX: AbortController tracker
 
     const rawData = {
-        status: [@Model.StatusDiproses, @Model.StatusDiterima, @Model.StatusDitolak],
+        status: [@Model.StatusDiproses, @Model.StatusDiterima, @Model.StatusRevisi, @Model.StatusDitolak],
         trend: {
-            weekly: { xAxis: @Html.Raw(Json.Serialize(Model.WeeklyLabels)), tooltip: @Html.Raw(Json.Serialize(weeklyTooltip)), values: @Html.Raw(Json.Serialize(Model.WeeklyCounts)) },
-            monthly: { xAxis: @Html.Raw(Json.Serialize(Model.MonthlyLabels)), tooltip: @Html.Raw(Json.Serialize(Model.MonthlyLabels)), values: @Html.Raw(Json.Serialize(Model.MonthlyCounts)) },
-            yearly: { xAxis: @Html.Raw(Json.Serialize(Model.YearlyLabels)), tooltip: @Html.Raw(Json.Serialize(Model.YearlyLabels)), values: @Html.Raw(Json.Serialize(Model.YearlyCounts)) }
+            weekly:  { xAxis: @Html.Raw(Json.Serialize(Model.WeeklyLabels)),  tooltip: @Html.Raw(Json.Serialize(weeklyTooltip)),         values: @Html.Raw(Json.Serialize(Model.WeeklyCounts))  },
+            monthly: { xAxis: @Html.Raw(Json.Serialize(Model.MonthlyLabels)), tooltip: @Html.Raw(Json.Serialize(Model.MonthlyLabels)),    values: @Html.Raw(Json.Serialize(Model.MonthlyCounts)) },
+            yearly:  { xAxis: @Html.Raw(Json.Serialize(Model.YearlyLabels)),  tooltip: @Html.Raw(Json.Serialize(Model.YearlyLabels)),     values: @Html.Raw(Json.Serialize(Model.YearlyCounts))  }
         },
-        lokasi: { 
-            labels: @Html.Raw(Json.Serialize(Model.LokasiStatLabels)), 
-            diterima: @Html.Raw(Json.Serialize(Model.LokasiDiterima)), 
-            menunggu: @Html.Raw(Json.Serialize(Model.LokasiMenunggu)), 
-            ditolak: @Html.Raw(Json.Serialize(Model.LokasiDitolak)) 
+        lokasi: {
+            labels:   @Html.Raw(Json.Serialize(Model.LokasiStatLabels)),
+            diterima: @Html.Raw(Json.Serialize(Model.LokasiDiterima)),
+            menunggu: @Html.Raw(Json.Serialize(Model.LokasiMenunggu)),
+            revisi:  @Html.Raw(Json.Serialize(Model.LokasiRevisi)),
+            ditolak:  @Html.Raw(Json.Serialize(Model.LokasiDitolak))
+
         },
-        kampus: { 
-            labels: @Html.Raw(Json.Serialize(Model.KampusLabels)), 
-            values: @Html.Raw(Json.Serialize(Model.KampusCounts)) 
+        kampus: {
+            labels: @Html.Raw(Json.Serialize(Model.KampusLabels)),
+            values: @Html.Raw(Json.Serialize(Model.KampusCounts))
         }
     };
 
     document.addEventListener("DOMContentLoaded", () => {
         // Init Modals
-        listModal = new bootstrap.Modal(document.getElementById('bubbleModal'));
+        listModal   = new bootstrap.Modal(document.getElementById('bubbleModal'));
         detailModal = new bootstrap.Modal(document.getElementById('modalDetail'));
 
         // Chart.js Default Font
@@ -306,39 +319,55 @@
         trendChart = new Chart(document.getElementById('trenLineChart'), {
             type: 'line',
             data: {
-                labels: rawData.trend.weekly.xAxis, 
-                datasets: [{ 
-                    data: rawData.trend.weekly.values, 
-                    borderColor: '#00549c', tension: 0.4, fill: true, backgroundColor: 'rgba(0, 84, 156, 0.05)',
-                    pointRadius: 4, pointHoverRadius: 6, pointBackgroundColor: '#fff', pointBorderWidth: 2
+                labels: rawData.trend.weekly.xAxis,
+                datasets: [{
+                    data: rawData.trend.weekly.values,
+                    borderColor: '#00549c', tension: 0.4, fill: true,
+                    backgroundColor: 'rgba(0, 84, 156, 0.05)',
+                    pointRadius: 4, pointHoverRadius: 6,
+                    pointBackgroundColor: '#fff', pointBorderWidth: 2
                 }]
             },
-            options: { 
-                responsive: true, maintainAspectRatio: false, 
-                scales: { 
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
                     y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } },
                     x: { ticks: { font: { size: 10, weight: '600' } } }
-                }, 
-                plugins: { 
-                    legend: { display: false }, 
-                    tooltip: { 
-                        callbacks: { 
-                            title: (context) => rawData.trend[currentTrendType].tooltip[context[0].dataIndex] || context[0].label, 
-                            label: (ctx) => ` ${ctx.raw} Mahasiswa` 
-                        } 
-                    } 
-                } 
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            // FIX: Gunakan tooltip array yang berisi nama hari lengkap
+                            title: (context) => rawData.trend[currentTrendType].tooltip[context[0].dataIndex] || context[0].label,
+                            label: (ctx) => ` ${ctx.raw} Mahasiswa`
+                        }
+                    }
+                }
             }
         });
 
-        // 2. STATUS CHART
+        // 2. STATUS DOUGHNUT CHART
         statusChart = new Chart(document.getElementById('statusDoughnutChart'), {
             type: 'doughnut',
-            data: { labels: ['Menunggu', 'Diterima', 'Ditolak'], datasets: [{ data: rawData.status, backgroundColor: ['#F59E0B', '#10B981', '#EF4444'], borderWidth: 2, hoverOffset: 15 }] },
-            options: { cutout: '78%', maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw} Orang` } } } }
+            data: {
+                labels: ['Menunggu', 'Diterima', 'Revisi','Ditolak'],
+                datasets: [{
+                    data: rawData.status,
+                    backgroundColor: ['#F59E0B', '#10B981','#6366f1', '#EF4444'],
+                    borderWidth: 2, hoverOffset: 15
+                }]
+            },
+            options: {
+                cutout: '78%', maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw} Orang` } }
+                }
+            }
         });
 
-        // 3. LOKASI CHART (Stacked Horizontal)
+        // 3. SEBARAN STACKED CHART
         const unitCount = rawData.lokasi.labels.length;
         document.getElementById('dynamicWrapper').style.height = Math.max(350, unitCount * 45) + "px";
 
@@ -349,44 +378,53 @@
                 datasets: [
                     { label: 'Diterima', data: rawData.lokasi.diterima, backgroundColor: '#10B981', borderRadius: 4 },
                     { label: 'Menunggu', data: rawData.lokasi.menunggu, backgroundColor: '#F59E0B', borderRadius: 4 },
-                    { label: 'Ditolak', data: rawData.lokasi.ditolak, backgroundColor: '#EF4444', borderRadius: 4 }
+                    { label: 'Revisi',   data: rawData.lokasi.revisi,   backgroundColor: '#6366f1', borderRadius: 4 }, // Ganti ini
+                    { label: 'Ditolak',  data: rawData.lokasi.ditolak,  backgroundColor: '#EF4444', borderRadius: 4 }
                 ]
             },
-            options: { 
-                indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
-                scales: { 
-                    x: { stacked: true, grid: { display: false }, ticks: { stepSize: 1 } }, 
-                    y: { stacked: true, ticks: { font: { size: 10, weight: '700' }, color: '#475569' } } 
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, grid: { display: false }, ticks: { stepSize: 1 } },
+                    y: { stacked: true, ticks: { font: { size: 10, weight: '700' }, color: '#475569' } }
                 },
-                plugins: { 
-                    legend: { display: false }, 
-                    tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw} Orang` } } 
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw} Orang` } }
                 },
-                onClick: (e, activeEls) => { 
+                onClick: (e, activeEls) => {
                     if (activeEls.length > 0) {
-                        const idx = activeEls[0].index;
-                        const dsIdx = activeEls[0].datasetIndex;
-                        const statusArr = ["Diterima", "Menunggu", "Ditolak"];
+                        const idx    = activeEls[0].index;
+                        const dsIdx  = activeEls[0].datasetIndex;
+                        const statusArr = ["Diterima", "Menunggu", "Revisi", "Ditolak"];
                         const status = statusArr[dsIdx];
-                        const label = lokasiChart.data.labels[idx];
-                        showList(label, `/Admin/Dashboard/GetMahasiswaByUnit?unit=${encodeURIComponent(label)}&status=${status}&region=${encodeURIComponent(selectedRegion)}`);
+                        const label  = lokasiChart.data.labels[idx];
+                        showList(label, `/Admin/Dashboard/GetMahasiswaByUnit?unit=${encodeURIComponent(label)}&status=${encodeURIComponent(status)}&region=${encodeURIComponent(selectedRegion)}`);
                     }
                 }
             }
         });
 
-        // 4. KAMPUS CHART
+        // 4. KAMPUS BAR CHART
         kampusChart = new Chart(document.getElementById('kampusBarChart'), {
             type: 'bar',
-            data: { labels: rawData.kampus.labels, datasets: [{ data: rawData.kampus.values, backgroundColor: '#00549c', borderRadius: 5 }] },
-            options: { 
-                indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
-                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { ticks: { font: { size: 10, weight: '600' } } } }, 
-                plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Pendaftar` } } },
+            data: {
+                labels: rawData.kampus.labels,
+                datasets: [{ data: rawData.kampus.values, backgroundColor: '#00549c', borderRadius: 5 }]
+            },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { beginAtZero: true, ticks: { stepSize: 1 } },
+                    y: { ticks: { font: { size: 10, weight: '600' } } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} Pendaftar` } }
+                },
                 onClick: (e, activeEls) => {
                     if (activeEls.length > 0) {
-                        const idx = activeEls[0].index;
-                        const label = kampusChart.data.labels[idx];
+                        const label = kampusChart.data.labels[activeEls[0].index];
                         showList(label, `/Admin/Dashboard/GetMahasiswaByKampus?kampus=${encodeURIComponent(label)}&region=${encodeURIComponent(selectedRegion)}`);
                     }
                 }
@@ -394,91 +432,151 @@
         });
     });
 
-    // --- Helper Functions ---
-
+    // ── Helper: Update Trend ────────────────────────────────────────────────────
     function updateTrend(type, btn) {
         currentTrendType = type;
         if (btn) {
             document.querySelectorAll('.btn-t').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
-        trendChart.data.labels = rawData.trend[type].xAxis;
-        trendChart.data.datasets[0].data = rawData.trend[type].values;
+        trendChart.data.labels                = rawData.trend[type].xAxis;
+        trendChart.data.datasets[0].data      = rawData.trend[type].values;
         trendChart.update();
     }
 
+    // ── Helper: showList — dengan AbortController & timeout ────────────────────
     async function showList(title, url) {
+        // Batalkan request sebelumnya jika masih pending
+        if (currentFetchCtrl) currentFetchCtrl.abort();
+        currentFetchCtrl = new AbortController();
+        const signal     = currentFetchCtrl.signal;
+
         document.getElementById('modalTitle').innerText = title;
         const content = document.getElementById('modalContent');
-        content.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-3 text-muted small">Sinkronisasi data...</p></div>';
+        content.innerHTML = `
+            <div class="modal-loading">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p>Sinkronisasi data...</p>
+            </div>`;
         listModal.show();
-        
+
+        // Timeout 15 detik
+        const timeoutId = setTimeout(() => {
+            if (currentFetchCtrl) currentFetchCtrl.abort();
+        }, 15000);
+
         try {
-            const res = await fetch(url);
+            const res  = await fetch(url, { signal });
+            clearTimeout(timeoutId);
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
             const data = await res.json();
+
             if (!data || data.length === 0) {
-                content.innerHTML = '<div class="text-center p-5"><i class="fas fa-folder-open fa-3x text-light mb-3"></i><p class="text-muted">Data pendaftar tidak ditemukan.</p></div>';
+                content.innerHTML = `
+                    <div class="text-center p-5">
+                        <i class="fas fa-folder-open fa-3x text-secondary mb-3"></i>
+                        <p class="text-muted small">Data pendaftar tidak ditemukan.</p>
+                    </div>`;
                 return;
             }
+
             content.innerHTML = data.map(m => `
-                <div class="list-group-item student-list-item d-flex justify-content-between align-items-center p-3 mb-2" 
-                     style="cursor:pointer; border-radius:12px; border:1px solid #f1f5f9; background: #fff;" onclick="fetchAndOpenDetail(${m.id})">
+                <div class="list-group-item student-list-item d-flex justify-content-between align-items-center p-3"
+                     onclick="fetchAndOpenDetail(${m.id})">
                     <div style="flex:1">
-                        <h6 class="mb-0 fw-800" style="font-size: 0.85rem; color: var(--p-blue);">${m.namaLengkap}</h6>
-                        <small class="text-muted" style="font-size:0.7rem;"><i class="fas fa-university me-1"></i>${m.namaPerguruanTinggi || '-'}</small>
+                        <h6 class="mb-0 fw-800" style="font-size:0.85rem; color:var(--p-blue);">${escHtml(m.namaLengkap)}</h6>
+                        <small class="text-muted" style="font-size:0.7rem;"><i class="fas fa-university me-1"></i>${escHtml(m.namaPerguruanTinggi || '-')}</small>
                     </div>
-                    <span class="badge ${m.status === 'Diterima' ? 'bg-success' : (m.status === 'Ditolak' ? 'bg-danger' : 'bg-warning')} rounded-pill" style="font-size: 0.6rem;">${m.status}</span>
+                    <span class="badge ${m.status === 'Diterima' ? 'bg-success' : m.status === 'Ditolak' ? 'bg-danger' : m.status === 'Revisi' ? 'bg-indigo': 'bg-warning'} rounded-pill" style="font-size:0.6rem;">${escHtml(m.status)}</span>
                 </div>`).join('');
-        } catch (err) { 
-            content.innerHTML = '<div class="alert alert-danger m-3 small">Terjadi kesalahan saat memuat data.</div>'; 
+
+        } catch (err) {
+            clearTimeout(timeoutId);
+            if (err.name === 'AbortError') {
+                content.innerHTML = `<div class="alert alert-warning m-3 small"><i class="fas fa-clock me-2"></i>Request timeout. Silakan coba lagi.</div>`;
+            } else {
+                content.innerHTML = `<div class="alert alert-danger m-3 small"><i class="fas fa-exclamation-circle me-2"></i>Terjadi kesalahan saat memuat data.</div>`;
+                console.error('[showList]', err);
+            }
         }
     }
 
+    // ── Helper: fetchAndOpenDetail ──────────────────────────────────────────────
     async function fetchAndOpenDetail(id) {
-        // Efek transisi antar modal
+        // Sembunyikan modal list, tapi tunggu data dulu baru tampilkan detail
         listModal.hide();
-        
+
         try {
             const res = await fetch(`/Admin/Dashboard/GetDetailMahasiswa/${id}`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
             const m = await res.json();
-            
-            // Textual Data
-            document.getElementById('d-nama').innerText = m.namaLengkap;
-            document.getElementById('d-nim').innerText = m.nim || 'N/A';
-            document.getElementById('d-tanggal-daftar').innerText = m.tanggalDaftar;
-            document.getElementById('d-email').innerText = m.emailPribadi;
-            document.getElementById('d-hp').innerText = m.noHp || '-';
-            document.getElementById('d-ig').innerText = m.instagram ? '@@' + m.instagram : '-';
-            document.getElementById('d-univ').innerText = m.namaPerguruanTinggi;
-            document.getElementById('d-fak-jur').innerText = (m.fakultas || '-') + ' / ' + (m.jurusan || '-');
-            document.getElementById('d-unit').innerText = m.lokasi;
-            document.getElementById('d-rekomendasi').innerText = m.rekomendasiPegawai || '-';
-            document.getElementById('d-ttl').innerText = (m.tempatLahir || '-') + ', ' + (m.tanggalLahir || '-');
-            document.getElementById('d-periode').innerText = (m.mulaiMagang || '-') + ' s/d ' + (m.selesaiMagang || '-');
-            
-            // Image Handling
-            const imgFoto = document.getElementById('d-foto');
-            imgFoto.src = (m.fotoProfil && m.fotoProfil !== "") ? m.fotoProfil : '/images/default-avatar.png';
 
-            // Document Links
-            const setupLink = (id, path) => {
-                const el = document.getElementById(id);
-                if(path && path !== "") { el.href = path; el.style.display = 'flex'; }
-                else { el.style.display = 'none'; }
-            };
-            setupLink('link-cv', m.fileCv);
-            setupLink('link-surat', m.fileSuratPengantar);
-            setupLink('link-proposal', m.fileProposal);
+            // Isi data teks
+            document.getElementById('d-nama').innerText         = m.namaLengkap  || '-';
+            document.getElementById('d-nim').innerText          = m.nim          || 'N/A';
+            document.getElementById('d-tanggal-daftar').innerText = m.tanggalDaftar || '-';
+            document.getElementById('d-email').innerText        = m.emailPribadi || '-';
+            document.getElementById('d-hp').innerText           = m.noHp         || '-';
+            document.getElementById('d-ig').innerText           = m.instagram ? '@@' + m.instagram : '-';
+            document.getElementById('d-univ').innerText         = m.namaPerguruanTinggi || '-';
+            document.getElementById('d-fak-jur').innerText      = (m.fakultas || '-') + ' / ' + (m.jurusan || '-');
+            document.getElementById('d-unit').innerText         = m.lokasi       || '-';
+            document.getElementById('d-rekomendasi').innerText  = m.rekomendasiPegawai || '-';
+            document.getElementById('d-ttl').innerText          = (m.tempatLahir || '-') + ', ' + (m.tanggalLahir || '-');
+            document.getElementById('d-periode').innerText      = (m.mulaiMagang || '-') + ' s/d ' + (m.selesaiMagang || '-');
 
-            // Status Badge
-            const sClass = m.status === 'Diterima' ? 'bg-light-green' : (m.status === 'Ditolak' ? 'bg-light-red' : 'bg-light-orange');
-            document.getElementById('d-status-badge-container').innerHTML = `<span class="status-pill-modal ${sClass}">${m.status}</span>`;
+            // Foto profil
+            const nama = m.namaLengkap || "User";
 
-            // Tunggu modal sebelumnya benar-benar tertutup
-            setTimeout(() => { detailModal.show(); }, 350);
-        } catch(e) { 
-            console.error(e);
-            alert("Sistem gagal memuat detail mahasiswa."); 
+            document.getElementById('d-foto').src =
+                (m.fotoProfil && m.fotoProfil !== '')
+                    ? m.fotoProfil
+                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=0D8ABC&color=fff`;
+            // Link dokumen — sembunyikan jika tidak ada
+            setupDocLink('link-cv',       m.fileCv);
+            setupDocLink('link-surat',    m.fileSuratPengantar);
+            setupDocLink('link-proposal', m.fileProposal);
+
+            // Cari baris sClass di dalam fungsi fetchAndOpenDetail
+            const sClass = m.status === 'Diterima' ? 'bg-light-green' : 
+                        m.status === 'Ditolak' ? 'bg-light-red' : 
+                        m.status === 'Revisi' ? 'bg-light-revisi' : 'bg-light-orange';
+            document.getElementById('d-status-badge-container').innerHTML =
+                `<span class="status-pill-modal ${sClass}">${escHtml(m.status)}</span>`;
+
+            // Tampilkan detail modal setelah list modal selesai menutup
+            setTimeout(() => detailModal.show(), 350);
+
+        } catch (e) {
+            console.error('[fetchAndOpenDetail]', e);
+            // Buka kembali list modal agar user tidak terjebak di layar kosong
+            setTimeout(() => listModal.show(), 350);
+            alert("Sistem gagal memuat detail mahasiswa. Silakan coba lagi.");
         }
+    }
+
+    // ── Utility ────────────────────────────────────────────────────────────────
+
+    function setupDocLink(elId, path) {
+        const el = document.getElementById(elId);
+        if (path && path !== '') {
+            el.href           = path;
+            el.style.display  = 'flex';
+        } else {
+            el.style.display  = 'none';
+        }
+    }
+
+    // Sanitasi string agar aman ditaruh di innerHTML
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 </script>

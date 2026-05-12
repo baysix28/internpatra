@@ -6,10 +6,12 @@ using sinta_asp.Data;
 using System;
 using System.Threading.Tasks;
 using AdminModel = sinta_asp.Models.Admin;
+using Microsoft.AspNetCore.Authorization;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
     public class SettingsController : Controller
     {
         private readonly AppDbContext _context;

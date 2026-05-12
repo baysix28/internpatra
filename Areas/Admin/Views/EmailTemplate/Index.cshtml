@@ -43,7 +43,7 @@
     .btn-edit:hover { background: #e2e8f0; color: #1e293b; }
     .btn-save-blue { background: var(--p-blue); color: white; display: none; }
     .btn-save-red { background: var(--p-red); color: white; display: none; }
-
+    .btn-save-revisi { background: #6366f1; color: white; display: none; }
     .var-pill { background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
     
     /* Tambahan agar judul benar-benar bold */
@@ -61,7 +61,7 @@
     <div class="editor-card">
         <div class="card-header-premium">
             <div class="d-flex align-items-center gap-2">
-                <span class="fw-800 text-uppercase small letter-spacing-1" style="color: var(--p-blue);">Email Penerimaan (Diterima)</span>
+                <span class="fw-800 text-uppercase small letter-spacing-1" style="color: var(--p-green);">Email Penerimaan (Diterima)</span>
             </div>
             <div class="d-flex gap-2">
                 <button id="btnEditDiterima" class="btn-action btn-edit" onclick="enableEdit('Diterima')">
@@ -95,6 +95,27 @@
         <div class="p-4">
             <textarea id="textDitolak" class="textarea-editor" disabled>@ViewBag.DitolakRaw</textarea>
             <textarea id="htmlDitolak" style="display:none;">@ViewBag.DitolakHtml</textarea>
+        </div>
+    </div>
+
+    <!-- Email Revisi (Tambahan Baru) -->
+    <div class="editor-card">
+        <div class="card-header-premium">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-800 text-uppercase small letter-spacing-1" style="color: #6366f1;">Email Permintaan Revisi</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button id="btnEditRevisi" class="btn-action btn-edit" onclick="enableEdit('Revisi')">
+                    <i class="fas fa-edit"></i> Edit Format
+                </button>
+                <button id="btnSaveRevisi" class="btn-action btn-save-blue" style="background: #6366f1;" onclick="saveTemplate('Revisi')">
+                    <i class="fas fa-save"></i> Simpan Perubahan
+                </button>
+            </div>
+        </div>
+        <div class="p-4">
+            <textarea id="textRevisi" class="textarea-editor" disabled>@ViewBag.RevisiRaw</textarea>
+            <textarea id="htmlRevisi" style="display:none;">@ViewBag.RevisiHtml</textarea>
         </div>
     </div>
 </div>

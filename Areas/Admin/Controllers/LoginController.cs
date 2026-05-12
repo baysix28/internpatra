@@ -1,222 +1,268 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration; 
 using sinta_asp.Data;
-using sinta_asp.Models;
-using System.Threading.Tasks;
-using System.Net;
-using System.Net.Mail;
-using System;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using sinta_asp.Services;
 
-// ALIAS MODEL ADMIN
-using AdminModel = sinta_asp.Models.Admin;
+
+using AdminEntity = sinta_asp.Models.Admin;
 
 namespace sinta_asp.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [AllowAnonymous]
     public class LoginController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly PasswordHasher<AdminModel> _passwordHasher;
+        private readonly PasswordHasher<AdminEntity> _passwordHasher;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
+        
 
-        public LoginController(AppDbContext context, IConfiguration config)
+        public LoginController(AppDbContext context, IConfiguration config, IEmailService emailService)
         {
             _context = context;
-            _config = config;
-            _passwordHasher = new PasswordHasher<AdminModel>();
+            _config  = config;
+            _emailService = emailService;
+            _passwordHasher = new PasswordHasher<AdminEntity>();
         }
 
-        // ===============================
-        // GET: /Admin/Login
-        // ===============================
+        // ================= GET LOGIN =================
         [HttpGet]
-        public IActionResult Index()
+        public IActionResult Index(string? returnUrl = null)
         {
-            if (HttpContext.Session.GetString("AdminLogin") == "true")
-            {
+            if (User.Identity?.IsAuthenticated == true)
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-            }
-            return View();
+
+            if (!string.IsNullOrEmpty(returnUrl) &&
+                returnUrl.Contains("/Admin/Login", StringComparison.OrdinalIgnoreCase))
+                returnUrl = null;
+
+            ViewBag.ReturnUrl = returnUrl;
+            return View("~/Areas/Admin/Views/Login/Index.cshtml");
         }
 
-        // ===============================
-        // POST: /Admin/Login/Index (LOGIN)
-        // ===============================
+        // ================= POST LOGIN =================
         [HttpPost]
-        public async Task<IActionResult> Index(string Email, string Password)
+        public async Task<IActionResult> Index(string Email, string Password, string? returnUrl = null)
         {
-            if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
-            {
+            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
                 return Json(new { success = false, message = "Email dan password wajib diisi" });
-            }
 
             var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == Email);
 
             if (admin == null)
-            {
                 return Json(new { success = false, message = "Email tidak ditemukan" });
-            }
 
-            // --- PROTEKSI AKTIVASI (UPDATE: BYPASS UNTUK SUPERADMIN) ---
-            // Jika akun bukan SuperAdmin DAN belum aktif, maka blokir login.
+            // FIX: Gunakan "SuperAdmin" konsisten (sesuai Role di model)
             if (admin.Role != "SuperAdmin" && !admin.IsActive)
+                return Json(new { success = false, message = "Akun belum aktif. Cek email Anda untuk link aktivasi." });
+
+            // 🔥 CEK OTP (kode reset)
+            if (admin.ResetToken == Password && admin.ResetTokenExpiry > DateTime.UtcNow)
             {
-                return Json(new { success = false, message = "Akun Anda belum aktif! Silakan cek email untuk aktivasi." });
+                admin.ResetToken = null;
+                admin.ResetTokenExpiry = null;
+                await _context.SaveChangesAsync();
+
+                var claimsOtp = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name,  admin.Email ?? ""),
+                    new Claim(ClaimTypes.Role,  admin.Role  ?? "AdminRegion"),
+                    new Claim("AdminId",   admin.Id.ToString()),
+                    new Claim("AdminNama", admin.Nama ?? "")
+                };
+
+                var identityOtp = new ClaimsIdentity(claimsOtp, "AdminScheme");
+
+                await HttpContext.SignInAsync(
+                    "AdminScheme",
+                    new ClaimsPrincipal(identityOtp),
+                    new AuthenticationProperties
+                    {
+                        IsPersistent = true,
+                        ExpiresUtc   = DateTimeOffset.UtcNow.AddHours(12)
+                    });
+
+                // FIX: Semua key session konsisten, pakai "AdminNama" bukan "AdminName"
+                HttpContext.Session.SetString("AdminLogin",  "true");
+                HttpContext.Session.SetString("AdminId",     admin.Id.ToString());
+                HttpContext.Session.SetString("AdminNama",   admin.Nama   ?? "");
+                HttpContext.Session.SetString("AdminEmail",  admin.Email  ?? "");
+                HttpContext.Session.SetString("AdminRole",   admin.Role   ?? "AdminRegion");
+                HttpContext.Session.SetString("AdminRegion", admin.Region ?? "");
+
+                return Json(new { success = true, redirect = "/Admin/Dashboard" });
             }
 
+            // 🔐 LOGIN NORMAL (password)
             var verify = _passwordHasher.VerifyHashedPassword(admin, admin.PasswordHash, Password);
 
             if (verify != PasswordVerificationResult.Success)
-            {
                 return Json(new { success = false, message = "Password salah" });
-            }
 
-            // ======================================================
-            // SET SESSION
-            // ======================================================
-            HttpContext.Session.SetString("AdminLogin", "true");
-            HttpContext.Session.SetString("AdminId", admin.Id.ToString());
-            HttpContext.Session.SetString("AdminNama", admin.Nama ?? "Admin");
-            HttpContext.Session.SetString("AdminEmail", admin.Email);
-            HttpContext.Session.SetString("AdminRole", (admin.Role ?? "Admin").Trim());
-            HttpContext.Session.SetString("AdminRegion", admin.Region ?? "");
-
-            return Json(new { success = true });
-        }
-
-        // ===============================
-        // POST: /Admin/Login/Register (PENDAFTARAN)
-        // ===============================
-        [HttpPost]
-        public async Task<IActionResult> Register(string FullName, string Email, string Password, string Role = "Admin")
-        {
-            if (string.IsNullOrEmpty(FullName) || string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
+            var claims = new List<Claim>
             {
-                return Json(new { success = false, message = "Semua field wajib diisi" });
-            }
-
-            var existingAdmin = await _context.Admins.AnyAsync(a => a.Email == Email);
-            if (existingAdmin)
-            {
-                return Json(new { success = false, message = "Email sudah digunakan oleh akun lain" });
-            }
-
-            // --- INISIALISASI AKUN (UPDATE: SUPERADMIN OTOMATIS AKTIF) ---
-            var newAdmin = new AdminModel
-            {
-                Nama = FullName,
-                Email = Email,
-                Role = Role,
-                Region = "Pusat",
-                // Jika yang didaftarkan adalah SuperAdmin, maka langsung aktif tanpa token
-                IsActive = (Role == "SuperAdmin"), 
-                ActivationToken = (Role == "SuperAdmin") ? null : Guid.NewGuid().ToString()
+                new Claim(ClaimTypes.Name,  admin.Email ?? ""),
+                new Claim(ClaimTypes.Role,  admin.Role  ?? "AdminRegion"),
+                new Claim("AdminId",   admin.Id.ToString()),
+                new Claim("AdminNama", admin.Nama ?? "")
             };
 
-            newAdmin.PasswordHash = _passwordHasher.HashPassword(newAdmin, Password);
+            var identity = new ClaimsIdentity(claims, "AdminScheme");
 
-            try
-            {
-                _context.Admins.Add(newAdmin);
-                await _context.SaveChangesAsync();
-                
-                string successMessage = (Role == "SuperAdmin") 
-                    ? "Registrasi SuperAdmin berhasil! Silakan langsung login." 
-                    : "Registrasi berhasil! Silakan cek email untuk aktivasi.";
+            await HttpContext.SignInAsync(
+                "AdminScheme",
+                new ClaimsPrincipal(identity),
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc   = DateTimeOffset.UtcNow.AddHours(12)
+                });
 
-                return Json(new { success = true, message = successMessage });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Terjadi kesalahan: " + ex.Message });
-            }
+            // FIX: Semua key session konsisten, pakai "AdminNama" bukan "AdminName"
+            HttpContext.Session.SetString("AdminLogin",  "true");
+            HttpContext.Session.SetString("AdminId",     admin.Id.ToString());
+            HttpContext.Session.SetString("AdminNama",   admin.Nama   ?? "");
+            HttpContext.Session.SetString("AdminEmail",  admin.Email  ?? "");
+            HttpContext.Session.SetString("AdminRole",   admin.Role   ?? "AdminRegion");
+            HttpContext.Session.SetString("AdminRegion", admin.Region ?? "");
+
+            string redirectUrl = "/Admin/Dashboard";
+            if (!string.IsNullOrWhiteSpace(returnUrl) &&
+                Url.IsLocalUrl(returnUrl) &&
+                !returnUrl.Contains("/Admin/Login", StringComparison.OrdinalIgnoreCase))
+                redirectUrl = returnUrl;
+
+            return Json(new { success = true, redirect = redirectUrl });
         }
 
-        // ==========================================
-        // PROSES AKTIVASI DARI LINK EMAIL
-        // ==========================================
-        [HttpGet]
-        public async Task<IActionResult> ActivateAccount(string token)
+        // ================= POST FORGOT PASSWORD =================
+        [HttpPost]
+        [Route("Admin/Login/ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(string email)
         {
-            if (string.IsNullOrEmpty(token)) return Content("Token tidak valid.");
+            if (string.IsNullOrWhiteSpace(email))
+                return Json(new { success = false, message = "Email wajib diisi." });
 
-            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.ActivationToken == token);
+            var admin = await _context.Admins
+                .FirstOrDefaultAsync(a => a.Email == email);
 
             if (admin == null)
-            {
-                return Content("Link aktivasi tidak valid atau sudah digunakan.");
-            }
+                return Json(new { success = true, message = "Jika email terdaftar, kode reset akan dikirim ke email Anda." });
 
-            admin.IsActive = true;
-            admin.ActivationToken = null; // Hapus token
-            
-            _context.Update(admin);
+            var token = new Random().Next(100000, 999999).ToString();
+
+            admin.ResetToken = token;
+            admin.ResetTokenExpiry = DateTime.UtcNow.AddHours(1);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Index", new { message = "Akun berhasil diaktifkan. Silakan login." });
-        }
-
-        // ==========================================
-        // POST: /Admin/Login/ForgotPassword
-        // ==========================================
-        [HttpPost]
-        public async Task<IActionResult> ForgotPassword(string Email)
-        {
-            if (string.IsNullOrEmpty(Email)) return Json(new { success = false, message = "Email wajib diisi" });
-
-            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == Email);
-            if (admin == null)
-            {
-                return Json(new { success = false, message = "Email tidak terdaftar." });
-            }
-
-            // --- PASSWORD SEMENTARA ---
-            string temporaryPassword = Guid.NewGuid().ToString().Substring(0, 8);
-            admin.PasswordHash = _passwordHasher.HashPassword(admin, temporaryPassword);
-
             try
             {
-                var smtpHost = _config["EmailSettings:Host"];
-                var smtpPort = int.Parse(_config["EmailSettings:Port"] ?? "587");
-                var senderEmail = _config["EmailSettings:Email"];
-                var senderPass = _config["EmailSettings:Password"];
-
-                using (var smtpClient = new SmtpClient(smtpHost, smtpPort))
-                {
-                    smtpClient.Credentials = new NetworkCredential(senderEmail, senderPass);
-                    smtpClient.EnableSsl = true;
-
-                    var mailMessage = new MailMessage
-                    {
-                        From = new MailAddress(senderEmail, "SINTA Pertamina Support"),
-                        Subject = "Reset Password Admin SINTA",
-                        Body = $"<p>Halo {admin.Nama}, password sementara Anda adalah: <b>{temporaryPassword}</b></p>",
-                        IsBodyHtml = true,
-                    };
-                    mailMessage.To.Add(Email);
-
-                    await smtpClient.SendMailAsync(mailMessage);
-                }
-
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Password sementara telah dikirim ke email." });
+                await _emailService.SendForgotPasswordEmailAsync(
+                    admin.Email,
+                    token
+                );
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Gagal kirim email: " + ex.Message });
+                return Json(new { success = false, message = "Gagal mengirim email: " + ex.Message });
             }
+
+            return Json(new { success = true, message = "Kode reset password telah dikirim ke email Anda." });
         }
 
-        // ===============================
-        // LOGOUT
-        // ===============================
-        public IActionResult Logout()
+        // ================= GET AKTIVASI =================
+        [HttpGet]
+        [Route("Admin/Login/ActivateAccount")]
+        public async Task<IActionResult> ActivateAccount(string? token)
         {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                ViewBag.Status  = "error";
+                ViewBag.Message = "Token aktivasi tidak valid atau tidak ditemukan.";
+                return View("~/Areas/Admin/Views/Aktivasi/Index.cshtml");
+            }
+
+            var admin = await _context.Admins
+                .FirstOrDefaultAsync(a => a.ActivationToken == token);
+
+            if (admin == null)
+            {
+                ViewBag.Status  = "error";
+                ViewBag.Message = "Token tidak ditemukan atau sudah pernah digunakan.";
+                return View("~/Areas/Admin/Views/Aktivasi/Index.cshtml");
+            }
+
+            if (!admin.IsActive)
+            {
+                admin.IsActive = true;
+                admin.ActivationToken = null;
+                await _context.SaveChangesAsync();
+            }
+
+            ViewBag.Status  = "success";
+            ViewBag.Message = "Akun berhasil diaktifkan! Silakan login.";
+
+            return View("~/Areas/Admin/Views/Aktivasi/Index.cshtml");
+        }
+
+        // ================= POST AKTIVASI (Set Password) =================
+        [HttpPost]
+        [Route("Admin/Login/ActivateAccount")]
+        public async Task<IActionResult> ActivateAccount(string token, string password, string confirmPassword)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return Json(new { success = false, message = "Token tidak valid." });
+
+            if (string.IsNullOrWhiteSpace(password))
+                return Json(new { success = false, message = "Password wajib diisi." });
+
+            if (password.Length < 8)
+                return Json(new { success = false, message = "Password minimal 8 karakter." });
+
+            if (password != confirmPassword)
+                return Json(new { success = false, message = "Konfirmasi password tidak cocok." });
+
+            var admin = await _context.Admins
+                .FirstOrDefaultAsync(a => a.ActivationToken == token);
+
+            if (admin == null)
+                return Json(new { success = false, message = "Token tidak valid atau sudah digunakan." });
+
+            if (admin.IsActive)
+                return Json(new { success = false, message = "Akun sudah aktif sebelumnya." });
+
+            admin.PasswordHash    = _passwordHasher.HashPassword(admin, password);
+            admin.IsActive        = true;
+            admin.ActivationToken = null;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "Akun berhasil diaktifkan! Silakan login." });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Logout()
+        {
+            // Hapus authentication cookie
+            await HttpContext.SignOutAsync("AdminScheme");
+
+            // Hapus session
             HttpContext.Session.Clear();
-            return RedirectToAction("Index");
+
+            // Hapus cookie auth manual
+            Response.Cookies.Delete("SINTA_ADMIN_AUTH");
+
+            // Disable cache browser
+            Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+
+            // Redirect ke login
+            return RedirectToAction("Index", "Login", new { area = "Admin" });
         }
     }
 }

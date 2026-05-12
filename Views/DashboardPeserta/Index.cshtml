@@ -3,7 +3,8 @@
 @using sinta_asp.Models
 @model sinta_asp.Models.UserProfile
 @inject IHttpContextAccessor HttpContextAccessor
-
+<script src="~/js/Tooltip.js"></script>
+<script src="~/js/site.js"></script>
 @{
     Layout = null;
 
@@ -95,7 +96,8 @@
             height: 100%; display: flex; flex-direction: column;
         }
 
-                /* Warna Default (Kuning) */
+        .status-badge.status-revisi { background: #ede9fe; color: #5b21b6; }
+        /* Warna Default (Kuning) */
         .status-badge.status-review { background: #fff3cd; color: #856404; }
 
         /* Warna Diterima (Hijau) */
@@ -127,8 +129,30 @@
             background: #f8fafc;
             opacity: 0.7;
         }
+        .input-security-clean {
+            font-size: 13px !important; /* Ukuran pas untuk input */
+            height: 38px;
+        }
 
+        .label-custom {
+            font-size: 10px !important;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+        }
 
+        /* Mengecilkan teks nama di header profil */
+        .profile-header-info h5 {
+            font-size: 16px !important;
+            margin-bottom: 2px;
+        }
+
+        .badge-role-peserta {
+            font-size: 10px !important;
+            padding: 4px 8px;
+        }
+
+        .bg-light-revisi { background: #ede9fe; color: #5b21b6; }
         .status-badge { padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
         .status-approved { background: #dcfce7; color: #166534; }
         .status-review { background: #fef9c3; color: #854d0e; }
@@ -261,7 +285,15 @@
         .bg-light-orange { background: #fef3c7; color: #92400e; }
         .bg-light-red { background: #fee2e2; color: #991b1b; }
 
-        .detail-body { padding: 30px; background: #f8fafc; }
+        .detail-body { 
+            padding: 30px; 
+            background: #f8fafc; 
+        }
+
+        .detail-body::-webkit-scrollbar { width: 6px; }
+        .detail-body::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        .detail-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .detail-body::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .info-card-premium { 
             background: white; border-radius: 16px; padding: 20px; 
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); height: 100%;
@@ -317,9 +349,38 @@
             color: #666;
         }
 
-        /* Notifikasi ala Tokopedia */
-        .notification-btn { position: relative; cursor: pointer; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0; transition: 0.2s; }
-        .notification-btn:hover { background: #f8fafc; }
+        .notification-btn {
+            position: relative;
+            cursor: pointer;
+
+            width: 46px;
+            height: 46px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+
+            background: transparent;
+
+            transition: all 0.2s ease;
+        }
+
+        .notification-btn:hover {
+            background: #f8fafc;
+        }
+
+        .notification-btn:focus,
+        .notification-btn:active {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
         .notification-badge-dot { width: 10px; height: 10px; background: var(--p-red); border-radius: 50%; position: absolute; top: -2px; right: -2px; border: 2px solid white; }
 
         #notiTab .nav-link { border: none; color: #64748b; font-weight: 700; font-size: 13px; padding: 12px; }
@@ -329,10 +390,35 @@
             left: auto !important;
         }
 
-        /* Pastikan dropdown tidak menempel terlalu atas */
         .dropdown-menu {
-            margin-top: 10px !important;
-            display: none; /* Default hidden */
+            border: none !important;
+            border-radius: 18px !important;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        /* Footer notif */
+        .notif-footer{
+            padding: 14px;
+            background: white;
+        }
+
+        /* Tombol tandai dibaca */
+        .notif-footer a{
+            color: #16a34a;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .notif-footer a:hover{
+            opacity: 0.8;
+        }
+
+        /* Isi notif */
+        #notifList .notif-item:last-child{
+            border-bottom: none;
         }
 
         /* Saat dropdown terbuka (class show dari bootstrap), jalankan animasi */
@@ -340,40 +426,134 @@
             display: block;
             animation: slideDown 0.2s ease-out forwards;
         }
-
+        /* Update styling agar card lebih ringkas */
         .stat-card {
-            border: none !important;
-            border-radius: 20px; /* Pojokan bulat modern */
+            border: 1px solid #f1f5f9 !important;
+            border-radius: 20px; /* Sangat membulat */
             background: #ffffff;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efek membal/3D */
-            position: relative;
-            overflow: hidden;
-            /* Bayangan halus berlapis */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 
-                        0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            
+            /* Ukuran Diatur Disini */
+            width: 200px;          /* Lebar tetap agar tidak melar */
+            height: 90px;          /* Tinggi tetap agar ringkas */
+            margin: 0 auto;        /* Biar card ada di tengah kolom */
+            
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+    /* Container utama untuk input dan ikon mata */
+    .input-group-security {
+        display: flex;
+        align-items: center;
+        background-color: #ffffff;
+        border: 1.5px solid #e2e8f0; /* Default Abu-abu */
+        border-radius: 50px; /* Lonjong seperti button */
+        padding-right: 15px;
+        transition: all 0.3s ease;
+        height: 45px;
+    }
+
+    /* Hilangkan border asli input agar menyatu dengan container */
+    .input-security-clean {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding-left: 20px;
+        flex-grow: 1;
+    }
+
+    /* Warna ikon mata default */
+    .input-group-security i {
+        color: #94a3b8; 
+        transition: color 0.3s;
+    }
+
+    /* EFEK BIRU PERTAMINA SAAT DIKLIK/INPUT */
+    /* Ketika input di dalam container mendapatkan focus */
+    .input-group-security:focus-within {
+        border-color: #00549B; /* Biru Pertamina */
+        box-shadow: 0 0 0 3px rgba(0, 84, 155, 0.1);
+    }
+
+    /* Ikon mata juga ikut jadi biru saat input aktif */
+    .input-group-security:focus-within i {
+        color: #00549B;
+    }
+
+    /* State readonly (saat tidak mengedit) */
+    .input-security-clean[readonly] {
+        cursor: default;
+    }
+        .border-p-indigo { border-bottom: 4px solid #6366f1 !important; transition: var(--transition); }
+        .border-p-indigo:hover { transform: translateY(-5px); background-color: #f5f7ff; }
+        /* Border atas tipis dan elegan */
+        .border-p-blue   { border-top: 4px solid var(--p-blue) !important; }
+        .border-p-red    { border-top: 4px solid var(--p-red) !important; }
+        .border-p-green  { border-top: 4px solid var(--p-green) !important; }
+        .border-p-yellow { border-top: 4px solid #ffc107 !important; }
+        .stat-card { border: none; border-radius: 12px; transition: all 0.3s ease; }
+        .stat-card p {
+            font-weight: 800 !important; /* Huruf lebih tebal */
+            letter-spacing: 0.5px;
         }
 
-        /* Efek saat kursor nempel (Hover) */
-        .stat-card:hover {
-            transform: translateY(-8px); /* Melayang ke atas */
-            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1), 
-                        0 8px 10px -5px rgba(0, 0, 0, 0.04);
-            background: linear-gradient(145deg, #ffffff, #fdfdfd);
+        .stat-card h4 {
+            font-weight: 900 !important; /* Angka sangat tebal */
         }
+
+        /* --- Logika Warna saat Diklik (Active) --- */
+
+        /* Biru */
+        .border-p-blue.active-filter {
+            background-color: rgba(0, 84, 155, 0.1) !important; /* Biru transparan */
+            border: 1px solid var(--p-blue) !important;
+            border-top: 4px solid var(--p-blue) !important;
+        }
+
+        /* Kuning */
+        .border-p-yellow.active-filter {
+            background-color: rgba(255, 193, 7, 0.1) !important;
+            border: 1px solid #ffc107 !important;
+            border-top: 4px solid #ffc107 !important;
+        }
+
+        /* Hijau */
+        .border-p-green.active-filter {
+            background-color: rgba(40, 167, 69, 0.1) !important;
+            border: 1px solid var(--p-green) !important;
+            border-top: 4px solid var(--p-green) !important;
+        }
+
+        /* Merah */
+        .border-p-red.active-filter {
+            background-color: rgba(236, 28, 36, 0.1) !important;
+            border: 1px solid var(--p-red) !important;
+            border-top: 4px solid var(--p-red) !important;
+        }
+
+
+        /* Hover lebih kalem */
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        /* Border atas yang lebih tipis (3px) */
+        .border-p-blue   { border-top: 3px solid var(--p-blue) !important; }
+        .border-p-red    { border-top: 3px solid var(--p-red) !important; }
+        .border-p-green  { border-top: 3px solid var(--p-green) !important; }
+        .border-p-yellow { border-top: 3px solid #ffc107 !important; }
 
         /* Efek saat diklik (Active) - Seolah ditekan ke bawah */
         .stat-card:active {
             transform: translateY(-2px) scale(0.95);
             box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
             transition: all 0.1s;
-        }
-
-        /* Gaya Card saat aktif/terpilih */
-        .active-filter {
-            background: #f0f7ff !important;
-            border: 2px solid #00549B !important;
-            box-shadow: 0 5px 15px rgba(0, 84, 155, 0.1) !important;
         }
 
         /* Penyesuaian teks di dalam */
@@ -385,51 +565,85 @@
         /* ===== Informasi Tersedia - 2 Card KPI & PPN Tanpa Logo ===== */
         .info-summary-card {
             background: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-            padding: 22px;
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px;
+            padding: 15px;
             height: 100%;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
+        /* Garis aksen atas menggunakan warna Pertamina */
+        .info-summary-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        /* Card 1: Biru Pertamina */
+        .col-md-4:nth-child(1) .info-summary-card::before { background: #00529C; }
+        .col-md-4:nth-child(1) .info-summary-value { color: #00529C; }
+
+        /* Card 2: Hijau Pertamina */
+        .col-md-4:nth-child(2) .info-summary-card::before { background: #60B144; }
+        .col-md-4:nth-child(2) .info-summary-value { color: #60B144; }
+
+        /* Card 3: Merah Pertamina */
+        .col-md-4:nth-child(3) .info-summary-card::before { background: #E31E24; }
+        .col-md-4:nth-child(3) .info-summary-value { color: #E31E24; }
+
         .info-summary-title {
-            font-size: 12px;
-            font-weight: 800;
-            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 800; 
+            color: #718096;   
             text-transform: uppercase;
             margin-bottom: 8px;
-            letter-spacing: .4px;
+            padding-left: 12px;
+            display: block;
         }
 
         .info-summary-value {
-            font-size: 34px;
+            font-size: 28px;
             font-weight: 800;
-            color: #0f172a;
             line-height: 1;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
+            color: #000000; /* Nilai angka tetap hitam bold agar kontras */
         }
 
         .info-summary-desc {
-            font-size: 13px;
-            color: #64748b;
+            font-size: 11px;
+            color: #94a3b8;
             margin-bottom: 0;
         }
 
+        /* Efek hover halus */
+        .info-summary-card:hover {
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            transform: translateY(-2px);
+        }
+
         .info-filter-card {
-            background: #fff;
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 15px; 
             border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-            padding: 18px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+            margin-bottom: 30px;
         }
 
         .info-company-main-card {
             background: #fff;
-            border: 1px solid #dbe7f3;
-            border-radius: 22px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
             overflow: hidden;
-            height: auto;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
         }
 
         .info-company-row {
@@ -437,19 +651,22 @@
         }
 
         .info-company-header {
-            padding: 22px 22px 16px 22px;
-            border-bottom: 1px solid #eef2f7;
-            background: linear-gradient(135deg, #f8fbff 0%, #eef6ff 100%);
+            padding: 24px;
+            border-bottom: 1px solid #f1f5f9;
+            /* Gradient tipis agar tidak flat */
+            background: linear-gradient(to bottom right, #ffffff, #f8fbff);
         }
 
         .info-company-label {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: .4px;
-            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 50px; /* Pill shape */
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
         }
 
         .info-company-label.kpi {
@@ -465,46 +682,102 @@
         .info-company-name {
             font-size: 20px;
             font-weight: 800;
-            color: #0f172a;
+            color: #000000;;
             margin-bottom: 4px;
+            letter-spacing: -0.5px;
         }
 
         .info-company-code {
             font-size: 13px;
-            font-weight: 700;
-            color: #64748b;
+            font-weight: 500;
+            color: #64748b; /* ABU-ABU SLATE */
         }
 
         .info-company-stats {
             display: flex;
-            gap: 10px;
+            gap: 8x;
             flex-wrap: wrap;
             margin-top: 14px;
         }
 
         .info-stat-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: #fff;
-            border: 1px solid #dbe7f3;
+            padding: 6px 14px;
+            border-radius: 50px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
             font-size: 12px;
-            font-weight: 700;
-            color: #334155;
+            font-weight: 600;
+            color: #475569;
+            transition: all 0.2s;
+        }
+        .info-company-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch; /* Memaksa kolom kiri & kanan sama tinggi */
         }
 
+        .info-company-body:has(.info-empty-state) {
+            justify-content: center;
+            align-items: center;
+        }
+        /* Mengunci tinggi card agar sama dan rapi */
         .info-company-body {
-            padding: 18px;
+            height: 600px; /* Kamu bisa atur tinggi ini, misal 500px atau 600px */
+            overflow-y: auto; /* Munculkan scrollbar jika konten melebihi tinggi */
+            overflow-x: hidden;
+            padding-right: 10px; /* Ruang untuk scrollbar agar tidak menutupi teks */
         }
 
+        /* Mempercantik tampilan scrollbar (Custom Scrollbar) */
+        .info-company-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .info-company-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .info-company-body::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        .info-company-body::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+
+        /* Card utama harus full tinggi kolomnya */
+        .info-company-main-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Kunci utama agar card ditarik sampai bawah */
+            margin-bottom: 0 !important;
+            border-radius: 16px;
+            overflow: hidden; /* Agar konten body tidak keluar dari radius card */
+        }
+
+        /* Body mengambil sisa ruang dan mepet ke bawah */
+        .info-company-body {
+            flex-grow: 1; /* Mengambil semua sisa space yang ada di bawah header */
+            height: 500px; /* Atur batas scroll sesuai keinginan */
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #ffffff; /* Pastikan warna sama agar tidak belang */
+        }
+
+        /* Hilangkan margin bawah pada item terakhir di dalam scroll */
+        .info-region-card:last-child {
+            margin-bottom: 0 !important;
+        }
+
+        /* Card Regional (Bentuk Bubble Putih di atas Background Abu) */
         .info-region-card {
             border: 1px solid #e2e8f0;
             border-radius: 16px;
-            overflow: hidden;
             margin-bottom: 16px;
             background: #fff;
+            box-shadow: 0 4px 6px rgba(15, 23, 42, 0.02);
         }
 
         .info-region-card:last-child {
@@ -522,13 +795,113 @@
             flex-wrap: wrap;
         }
 
+        .form-control-bubble {
+            display: block;
+            width: 100%;
+            height: 40px !important;
+            padding: 0 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 50px !important;
+            font-size: 13px;
+            color: #64748b;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-control-bubble:focus {
+            background: #ffffff;
+            border-color: #00529C !important; /* Biru Pertamina */
+            box-shadow: 0 0 0 4px rgba(0, 82, 156, 0.1); /* Glow biru transparan */
+            color: #334155;
+        }
+
+        .btn-reset-soft {
+            height: 40px !important;
+            width: 40px !important;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+
+        /* Tombol Batal Soft */
+        .btn-batal-custom {
+            background-color: #f1f5f9 !important;
+            color: #64748b !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-batal-custom:hover {
+            background-color: #e2e8f0 !important;
+            color: #475569 !important;
+        }
+
+        /* Link Edit Informasi (Tanpa Garis Bawah) */
+        .btn-edit-link {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            text-decoration: none !important;
+            cursor: pointer;
+        }
+
+        .btn-edit-link:hover {
+            color: #00529C;
+            text-decoration: none !important;
+        }
+        .btn-reset-soft:hover {
+            background: #f1f5f9;
+            color: #E31E24; /* Merah Pertamina saat hover */
+            border-color: #cbd5e1;
+        }
+
         .info-region-title {
-            font-size: 15px;
-            font-weight: 800;
-            color: #1e293b;
+            font-size: 14px;
+            font-weight: 800; /* Dibuat Bold */
+            color: #64748b;   /* Dibuat Abu-abu */
             margin-bottom: 0;
         }
 
+        /* Hilangkan garis bawah pada tombol/link edit */
+        #btnEditInformasi, 
+        .btn-link-edit { 
+            text-decoration: none !important; 
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+        }
+
+        #btnEditInformasi:hover {
+            text-decoration: none !important;
+            opacity: 0.8;
+        }
+
+        /* Tombol Simpan Biru Pertamina */
+        .btn-simpan-pertamina {
+            background-color: #00529C !important;
+            color: #ffffff !important;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 10px 24px;
+            border-radius: 50px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 82, 156, 0.2);
+        }
         .info-region-count {
             font-size: 12px;
             font-weight: 700;
@@ -543,38 +916,44 @@
         }
 
         .info-lokasi-item {
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 12px 14px;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 12px 16px;
             background: #fff;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            transition: .2s ease;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .notif-dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
         }
 
         .info-lokasi-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
-            border-color: #bfd7f2;
+            transform: translateX(5px); /* Geser sedikit ke kanan saat hover */
+            background: #fff;
+            border-color: #00529C; /* Biru Pertamina */
+            box-shadow: 0 4px 12px rgba(0, 82, 156, 0.1);
         }
 
         .info-lokasi-name {
             font-size: 14px;
             font-weight: 700;
-            color: #0f172a;
+            color: #64748b;
             line-height: 1.4;
         }
 
+
         .info-open-badge {
-            white-space: nowrap;
-            background: #dcfce7;
-            color: #166534;
-            border-radius: 999px;
-            padding: 6px 10px;
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #d1fae5;
+            border-radius: 50px;
+            padding: 4px 12px;
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 700;
         }
 
         .info-empty-state {
@@ -586,13 +965,135 @@
             color: #64748b;
         }
 
+        /* ===== REVISI PANEL MAHASISWA ===== */
+        .revisi-panel-mhs {
+            background: #fff9f0;
+            border: 1.5px dashed #f59e0b;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-top: 48px;
+            animation: slideUp 0.3s ease-out;
+        }
+        .revisi-chips-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 8px 0 12px 0;
+        }
+        .revisi-chip-item {
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 50px;
+            padding: 3px 14px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .revisi-catatan-box {
+            background: white;
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 10px 10px 0;
+            padding: 10px 14px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #64748b;
+        }
+        .revisi-field-row {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+        }
+        .revisi-field-row.field-aktif {
+            background: #f0f7ff;
+            border: 1.5px solid #00549B;
+        }
+        .revisi-field-row.field-aktif .revisi-field-label {
+            color: #00549B;
+        }
+        .revisi-field-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge-edit-aktif {
+            background: #00549B;
+            color: white;
+            font-size: 9px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .badge-terkunci {
+            background: #f1f5f9;
+            color: #94a3b8;
+            font-size: 9px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+            border: 1px solid #e2e8f0;
+        }
+        .revisi-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            outline: none;
+            padding: 0;
+        }
+        .revisi-input:disabled {
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+        .revisi-upload-trigger {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #00549B;
+            cursor: pointer;
+        }
+        .btn-submit-revisi {
+            background: #00549B;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 28px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-submit-revisi:hover {
+            background: #003d70;
+            transform: translateY(-1px);
+        }
+
         @@media (max-width: 768px) {
             .info-lokasi-item {
                 flex-direction: column;
                 align-items: flex-start;
             }
         }
-        
+    
+        @@keyframes highlightPulse {
+            0%   { background: #dbeafe; box-shadow: 0 0 0 3px #3b82f6; }
+            70%  { background: #dbeafe; box-shadow: 0 0 0 3px #3b82f6; }
+            100% { background: transparent; box-shadow: none; }
+        }
+        .highlight-row td {
+            animation: highlightPulse 2.5s ease-out forwards;
+        }
+
         @@keyframes slideDown {
         from { 
             opacity: 0; 
@@ -601,114 +1102,222 @@
             opacity: 1; 
             transform: translateY(10px);}
         }
+
+    /* ===== SIDEBAR TOGGLE ===== */
+    .sidebar {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+    .main-content {
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .main-content.expanded {
+        margin-left: 0;
+    }
+    .topbar {
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .topbar.expanded {
+        left: 0;
+    }      
     </style>
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
 <nav class="sidebar">
+
     <div class="brand-container">
         <img src="~/images/logo-pertamina.png"
-            class="brand-logo-pertamina
-            alt="Pertamina"
-            onclick="window.location.href='/'">
+             class="brand-logo-pertamina"
+             alt="Pertamina"
+             onclick="window.location.href='/'">
     </div>
 
-    <div style="flex-grow: 1;">
-        <button onclick="showPage('dashboard')" class="nav-link-custom active" id="nav-dashboard">
+    <!-- MENU -->
+    <div style="flex-grow: 1; display:flex; flex-direction:column;">
+
+        <button onclick="showPage('dashboard')"
+                class="nav-link-custom active"
+                id="nav-dashboard">
             <i class="fa-solid fa-house mr-3"></i> Dashboard
         </button>
-        <button onclick="showPage('informasi')" class="nav-link-custom" id="nav-informasi">
+
+        <button onclick="showPage('informasi')"
+                class="nav-link-custom"
+                id="nav-informasi">
             <i class="fa-solid fa-info-circle mr-3"></i> Informasi Tersedia
         </button>
-        <button onclick="showPage('riwayat')" class="nav-link-custom" id="nav-riwayat">
+
+        <button onclick="showPage('riwayat')"
+                class="nav-link-custom"
+                id="nav-riwayat">
             <i class="fa-solid fa-clipboard-list mr-3"></i> Riwayat Magang
         </button>
-        @* <button onclick="showPage('penelitian')" class="nav-link-custom" id="nav-penelitian">
-            <i class="fa-solid fa-flask mr-3"></i> Riwayat Riset
-        </button> *@
-        <button onclick="showPage('profil')" class="nav-link-custom" id="nav-profil">
+
+        <button onclick="showPage('profil')"
+                class="nav-link-custom"
+                id="nav-profil">
             <i class="fa-solid fa-user-gear mr-3"></i> Pengaturan Profil
         </button>
+
     </div>
 
-    @* <button onclick="window.location.href='/'" class="nav-link-custom nav-link-kembali">
-        <i class="fa-solid fa-house mr-3"></i> Kembali ke Home
-    </button> *@
+    <!-- LOGOUT -->
+    <button onclick="handleLogout()"
+            class="nav-link-custom nav-link-logout"
+            style="
+                color:#ec1c24 !important;
+                border:1px solid #fee2e2;
+                background:#fffafa;
+                margin-top:auto;
+            ">
+        <i class="fa-solid fa-right-from-bracket mr-3"></i>
+        Keluar
+    </button>
+
 </nav>
 
 <header class="topbar">
+
+    <!-- KIRI -->
     <div class="d-flex align-items-center">
-        <i class="fa-solid fa-bars-staggered mr-3 text-muted"></i>
-        <span class="font-weight-bold text-muted" id="page-breadcrumb">Panel Peserta / Dashboard</span>
+
+        <i class="fa-solid fa-bars-staggered mr-3 text-muted"
+           onclick="toggleSidebar()"
+           style="cursor:pointer; font-size:18px;">
+        </i>
+
+        <img src="~/images/logo-sinta.png"
+             style="height:40px;"
+             class="mr-3">
+
     </div>
 
+    <!-- KANAN -->
     <div class="d-flex align-items-center">
-        <img src="~/images/logo-sinta.png" style="height:40px;" class="mr-4">
-        
-        <div class="dropdown mr-3">
-            <div class="notification-btn position-relative" id="notiDropdown" data-toggle="dropdown">
+
+        <div class="dropdown mr-3 notif-dropdown">
+
+            <div class="notification-btn position-relative"
+                 id="notiDropdown"
+                 data-toggle="dropdown">
+
                 <i class="fa-solid fa-bell text-muted"></i>
-                <span id="notifBadge" class="badge badge-danger position-absolute" 
-                    style="top:-5px; right:-5px; font-size:10px;"></span>
+
+                <span id="notifBadge"
+                      class="badge badge-danger position-absolute"
+                      style="top:-5px; right:-5px; font-size:10px;">
+                </span>
+
             </div>
-            
-            <div class="dropdown-menu dropdown-menu-right shadow border-0 p-0" style="width: 360px;">
+
+            <div class="dropdown-menu dropdown-menu-right shadow border-0 p-0"
+                 style="width: 360px;">
+
                 <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 font-weight-bold">Notifikasi</h6>
                 </div>
-                
-                <div class="tab-content" style="max-height: 400px; overflow-y: auto;">
+
+                <div class="tab-content"
+                     style="max-height: 400px; overflow-y: auto;">
+
                     <div class="tab-pane fade show active" id="pendaftaran">
                         <div class="list-group list-group-flush" id="notifList">
                         </div>
                     </div>
-                    
+
                     <div class="tab-pane fade p-4 text-center" id="update">
-                        <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-state-2130362-1800923.png" width="100" class="mb-2 opacity-50">
+                        <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-state-2130362-1800923.png"
+                             width="100"
+                             class="mb-2 opacity-50">
                     </div>
+
                 </div>
 
-                <div class="p-2 border-top text-center bg-light">
-                    <a href="#" id="markAllReadBtn" class="small font-weight-bold text-success" style="text-decoration:none;">
+                <div class="notif-footer text-center">
+                    <a href="#"
+                       id="markAllReadBtn"
+                       class="small font-weight-bold text-success"
+                       style="text-decoration:none;">
                         Tandai semua dibaca
                     </a>
                 </div>
+
             </div>
         </div>
 
         <div class="text-right mr-3 border-left pl-3">
-            <div class="small font-weight-bold">@namaUser</div>
+
+            <div class="small font-weight-bold">
+                @namaUser
+            </div>
+
             <small class="text-success font-weight-bold">
-                <i class="fa-solid fa-circle text-success mr-1" style="font-size: 8px;"></i> Online
+                <i class="fa-solid fa-circle text-success mr-1"
+                   style="font-size: 8px;">
+                </i>
+                Online
             </small>
+
         </div>
 
         <div class="dropdown">
-        <div style="cursor: pointer;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <img src="@avatarUrl" id="navbarAvatar" class="rounded-circle shadow-sm border" width="45">
+
+            <div style="cursor: pointer;"
+                 data-toggle="dropdown"
+                 aria-haspopup="true"
+                 aria-expanded="false">
+
+                <img src="@avatarUrl"
+                     id="navbarAvatar"
+                     class="rounded-circle shadow-sm border"
+                     width="45">
+
+            </div>
+
+            <div class="dropdown-menu dropdown-menu-right shadow border-0"
+                 style="border-radius: 12px; min-width: 200px;">
+
+                <div class="dropdown-header font-weight-bold text-dark">
+                    Menu Akun
+                </div>
+
+                <a class="dropdown-item py-2"
+                   href="javascript:void(0)"
+                   onclick="showPage('profil')">
+
+                    <i class="fa-solid fa-user-gear mr-2 text-muted"></i>
+                    Kelola Akun
+
+                </a>
+
+                <div class="dropdown-divider"></div>
+
+                <a class="dropdown-item py-2 text-danger"
+                   href="javascript:void(0)"
+                   onclick="handleLogout()">
+
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i>
+                    Keluar
+
+                </a>
+
+            </div>
+
         </div>
-        
-        <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius: 12px; min-width: 200px;">
-            <div class="dropdown-header font-weight-bold text-dark">Menu Akun</div>
-            
-            <a class="dropdown-item py-2" href="javascript:void(0)" onclick="showPage('profil')">
-                <i class="fa-solid fa-user-gear mr-2 text-muted"></i> Kelola Akun
-            </a>
-            
-            <div class="dropdown-divider"></div>
-            
-            <a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="handleLogout()">
-                <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
-            </a>
-        </div>
+
     </div>
+
 </header>
 
 <main class="main-content">
     <div class="container-fluid py-4">
         
         <div id="page-dashboard" class="page-section active">
-            <div class="mb-4">
+            <div class="mb-4"
                 <h3 style="font-weight: 800; color: #00549B; margin-bottom: 0;">
                     Selamat Datang, @namaUser!
                 </h3>
@@ -848,7 +1457,7 @@
                     <div class="info-summary-card text-center">
                         <div class="info-summary-title">Total Company</div>
                         <div class="info-summary-value" id="summaryTotalCompany">0</div>
-                        <p class="info-summary-desc">Entitas perusahaan yang membuka pendaftaran</p>
+                        <p class="info-summary-desc">Perusahaan yang membuka pendaftaran</p>
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -859,36 +1468,36 @@
                     </div>
                 </div>
             </div>
-
-            <div class="info-filter-card mb-4">
-                <div class="row align-items-end">
-                    <div class="col-md-5 mb-2">
-                        <label class="small font-weight-bold text-muted mb-2">Cari lokasi / unit</label>
-                        <input type="text" id="filterSearchInformasi" class="form-control" placeholder="Contoh: Balongan, Teknik Informatika, Kalimantan...">
+            <div class="info-filter-card mb-3 shadow-sm">
+                <div class="row align-items-end px-2">
+                    <div class="col-md-4 mb-2">
+                        <label class="info-summary-title">Cari lokasi / unit</label>
+                        <input type="text" id="filterSearchInformasi" class="form-control-bubble" placeholder="Cari unit...">
                     </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="small font-weight-bold text-muted mb-2">Company</label>
-                        <select id="filterCompanyInformasi" class="form-control">
+                    
+                    <div class="col-md-3.5 mb-2">
+                        <label class="info-summary-title">Company</label>
+                        <select id="filterCompanyInformasi" class="form-control-bubble">
                             <option value="">Semua Company</option>
                         </select>
                     </div>
-                    <div class="col-md-3 mb-2">
-                        <label class="small font-weight-bold text-muted mb-2">Regional</label>
-                        <select id="filterRegionInformasi" class="form-control" disabled>
-                            <option value="">Pilih company terlebih dahulu</option>
+                    
+                    <div class="col-md-4 mb-2">
+                        <label class="info-summary-title">Regional</label>
+                        <select id="filterRegionInformasi" class="form-control-bubble" disabled>
+                            <option value="">Pilih Regional...</option>
                         </select>
                     </div>
-                    <div class="col-md-1 mb-2">
-                        <button type="button" class="btn btn-light border w-100" onclick="resetInformasiFilter()" title="Reset filter">
-                            <i class="fa fa-rotate-left"></i>
+                    
+                    <div class="col-md-0 mb-2 d-flex justify-content-start">
+                        <button type="button" class="btn-reset-soft" onclick="resetInformasiFilter()">
+                            <i class="fa-solid fa-rotate-left"></i>
                         </button>
                     </div>
                 </div>
             </div>
-
             <div id="informasiGroupedContainer"></div>
         </div>
-
         <div id="page-riwayat" class="page-section">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
@@ -899,34 +1508,60 @@
                     <i class="fa fa-plus mr-2"></i> Daftar Magang Baru
                 </button>
             </div>
+            <div class="row flex-nowrap mb-4 g-2">
 
-            <div class="row mb-4">
-                <div class="col-md-3 mb-3">
-                    <div class="card stat-card shadow-sm text-center p-3" onclick="filterTabel('Semua', this)">
-                        <p class="text-muted mb-1" style="font-size: 13px;">📝 Total Magang</p>
-                        <h3 class="font-weight-bold mb-0">@ViewBag.TotalMagang</h3>
+                <!-- Total -->
+                <div class="col" style="min-width:0;">
+                    <div onclick="filterTabel('Semua', this)"
+                        data-color="#0056b3"
+                        style="cursor:pointer; background:#fff; border-radius:10px; padding:16px 4px; height:100%; border-top:4px solid #0056b3; box-shadow:0 1px 4px rgba(0,0,0,0.08); text-align:center; transition:all 0.2s ease;">
+                        <p style="font-size:10px; font-weight:700; text-transform:uppercase; color:#6b7280; margin:0 0 6px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Total</p>
+                        <h5 style="font-weight:700; color:#334155; font-size:16px; margin:0;">@ViewBag.TotalMagang</h5>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card stat-card shadow-sm text-center p-3" onclick="filterTabel('Menunggu', this)">
-                        <p class="text-muted mb-1" style="font-size: 13px;">⏳ Menunggu</p>
-                        <h3 class="font-weight-bold text-warning mb-0">@ViewBag.Menunggu</h3>
+
+                <!-- Menunggu -->
+                <div class="col" style="min-width:0;">
+                    <div onclick="filterTabel('Menunggu', this)"
+                        data-color="#ffc107"
+                        style="cursor:pointer; background:#fff; border-radius:10px; padding:16px 4px; height:100%; border-top:4px solid #ffc107; box-shadow:0 1px 4px rgba(0,0,0,0.08); text-align:center; transition:all 0.2s ease;">
+                        <p style="font-size:10px; font-weight:700; text-transform:uppercase; color:#6b7280; margin:0 0 6px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Menunggu</p>
+                        <h5 style="font-weight:700; color:#ffc107; font-size:16px; margin:0;">@ViewBag.Menunggu</h5>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card stat-card shadow-sm text-center p-3" onclick="filterTabel('Diterima', this)">
-                        <p class="text-muted mb-1" style="font-size: 13px;">✔️ Diterima</p>
-                        <h3 class="font-weight-bold text-success mb-0">@ViewBag.Diterima</h3>
+
+                <!-- Diterima -->
+                <div class="col" style="min-width:0;">
+                    <div onclick="filterTabel('Diterima', this)"
+                        data-color="#28a745"
+                        style="cursor:pointer; background:#fff; border-radius:10px; padding:16px 4px; height:100%; border-top:4px solid #28a745; box-shadow:0 1px 4px rgba(0,0,0,0.08); text-align:center; transition:all 0.2s ease;">
+                        <p style="font-size:10px; font-weight:700; text-transform:uppercase; color:#6b7280; margin:0 0 6px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Diterima</p>
+                        <h5 style="font-weight:700; color:#28a745; font-size:16px; margin:0;">@ViewBag.Diterima</h5>
                     </div>
                 </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card stat-card shadow-sm text-center p-3" onclick="filterTabel('Ditolak', this)">
-                        <p class="text-muted mb-1" style="font-size: 13px;">❌ Ditolak</p>
-                        <h3 class="font-weight-bold text-danger mb-0">@ViewBag.Ditolak</h3>
+
+                <!-- Revisi -->
+                <div class="col" style="min-width:0;">
+                    <div onclick="filterTabel('Revisi', this)"
+                        data-color="#6366f1"
+                        style="cursor:pointer; background:#fff; border-radius:10px; padding:16px 4px; height:100%; border-top:4px solid #6366f1; box-shadow:0 1px 4px rgba(0,0,0,0.08); text-align:center; transition:all 0.2s ease;">
+                        <p style="font-size:10px; font-weight:700; text-transform:uppercase; color:#6b7280; margin:0 0 6px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Revisi</p>
+                        <h5 style="font-weight:700; color:#6366f1; font-size:16px; margin:0;">@ViewBag.Revisi</h5>
                     </div>
                 </div>
+
+                <!-- Ditolak -->
+                <div class="col" style="min-width:0;">
+                    <div onclick="filterTabel('Ditolak', this)"
+                        data-color="#dc3545"
+                        style="cursor:pointer; background:#fff; border-radius:10px; padding:16px 4px; height:100%; border-top:4px solid #dc3545; box-shadow:0 1px 4px rgba(0,0,0,0.08); text-align:center; transition:all 0.2s ease;">
+                        <p style="font-size:10px; font-weight:700; text-transform:uppercase; color:#6b7280; margin:0 0 6px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Ditolak</p>
+                        <h5 style="font-weight:700; color:#dc3545; font-size:16px; margin:0;">@ViewBag.Ditolak</h5>
+                    </div>
+                </div>
+
             </div>
-
+           
             <div class="glass-card p-0 overflow-hidden">
                 <table class="table table-hover mb-0" style="table-layout: fixed; font-size: 13.5px;">
                     <thead class="bg-light">
@@ -944,7 +1579,7 @@
                         {
                             foreach (var item in (List<sinta_asp.Models.Magang>)ViewBag.RiwayatMagang) 
                             {
-                                <tr class="baris-magang" data-status="@item.Status">
+                                <tr class="baris-magang" data-status="@item.Status" data-id="@item.Id">
                                     <td class="px-4 font-weight-bold" style="color: var(--p-blue);">@item.Company</td>
                                     <td style="color: #333;">@item.Region</td>
                                     <td style="color: #333;">@item.Lokasi</td>
@@ -953,6 +1588,7 @@
                                         @{
                                             var statusClass = item.Status == "Diterima" ? "status-success" : 
                                                             item.Status == "Ditolak" ? "status-danger" : 
+                                                            item.Status == "Revisi" ? "status-revisi" :
                                                             "status-review";
                                         }
                                         <span class="status-badge @statusClass" style="display: inline-block; min-width: 80px; font-size: 11px; padding: 3px 8px; font-weight: 600;">
@@ -960,7 +1596,18 @@
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary" style="border-radius: 8px; font-size: 11px; font-weight: bold; padding: 2px 10px;" onclick="showReviewDetail('@item.Id')">
+                                        <button class="btn btn-sm" 
+                                                style="border-radius: 8px; 
+                                                    font-size: 11px; 
+                                                    font-weight: bold; 
+                                                    padding: 2px 10px; 
+                                                    color: #00549b; 
+                                                    border: 1px solid #00549b; 
+                                                    background-color: transparent;
+                                                    transition: all 0.3s ease;" 
+                                                onclick="showReviewDetail('@item.Id')"
+                                                onmouseover="this.style.backgroundColor='#00549b'; this.style.color='white';" 
+                                                onmouseout="this.style.backgroundColor='transparent'; this.style.color='#00549b';">
                                             Review
                                         </button>
                                     </td>
@@ -990,46 +1637,209 @@
                 <div class="modal-content">
                     <div class="modal-header-premium">
                         <div class="header-flex-container">
-                            <img id="d-foto" src="/img/default-user.png" class="profile-circle-frame" title="Klik untuk lihat foto asli" onclick="window.open(this.src, '_blank')">
+                            <img id="d-foto" src="/img/default-user.png" class="profile-circle-frame" 
+                                title="Klik untuk lihat foto asli" onclick="window.open(this.src, '_blank')">
                             <div class="header-text-info">
                                 <div id="d-status-badge-container"></div>
                                 <h2 id="d-nama" class="mb-1 fw-bold"></h2>
-                                <span class="opacity-75 small"><i class="fas fa-clock me-1"></i> Terdaftar: <span id="d-created-at"></span></span>
+                                <span class="opacity-75 small">
+                                    <i class="fas fa-clock me-1"></i> Terdaftar: <span id="d-created-at"></span>
+                                </span>
                             </div>
                         </div>
                     </div>
+
                     <div class="detail-body">
+                        <!-- Baris info utama (tidak berubah) -->
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;"><i class="fas fa-id-card me-2"></i>KONTAK & PRIBADI</div>
+                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;">
+                                    <i class="fas fa-id-card me-2"></i>KONTAK & PRIBADI
+                                </div>
                                 <div class="info-card-premium">
-                                    <div class="info-label">Email</div><div id="d-email" class="info-value"></div>
-                                    <div class="info-label">WhatsApp</div><div class="info-value"><a id="d-hp-link" target="_blank" class="text-decoration-none"></a></div>
-                                    <div class="info-label">Instagram</div><div class="info-value"><a id="d-ig-link" target="_blank" class="text-decoration-none" style="color: var(--p-blue);"></a></div>
-                                    <div class="info-label">Tempat, Tgl Lahir</div><div class="info-value"><span id="d-tempat"></span>, <span id="d-tgl-lahir"></span></div>
+                                    <div class="info-label">Email</div>
+                                    <div id="d-email" class="info-value"></div>
+                                    <div class="info-label">WhatsApp</div>
+                                    <div class="info-value">
+                                        <a id="d-hp-link" target="_blank" class="text-decoration-none"></a>
+                                    </div>
+                                    <div class="info-label">Instagram</div>
+                                    <div class="info-value">
+                                        <a id="d-ig-link" target="_blank" class="text-decoration-none" style="color: var(--p-blue);"></a>
+                                    </div>
+                                    <div class="info-label">Tempat, Tgl Lahir</div>
+                                    <div class="info-value">
+                                        <span id="d-tempat"></span>, <span id="d-tgl-lahir"></span>
+                                    </div>
                                 </div>
                             </div>
+
                             <div class="col-md-4">
-                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;"><i class="fas fa-graduation-cap me-2"></i>AKADEMIK & PENEMPATAN</div>
+                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;">
+                                    <i class="fas fa-graduation-cap me-2"></i>AKADEMIK & PENEMPATAN
+                                </div>
                                 <div class="info-card-premium">
-                                    <div class="info-label">Kampus (NIM)</div><div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
-                                    <div class="info-label">Fakultas / Jurusan</div><div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
-                                    <div class="info-label">Unit Penempatan</div><div class="info-value text-primary fw-bold"><span id="d-company"></span> - <span id="d-lokasi"></span></div>
-                                    <div class="info-label">Periode Magang</div><div id="d-periode" class="info-value text-danger"></div>
+                                    <div class="info-label">Kampus (NIM)</div>
+                                    <div class="info-value">
+                                        <span id="d-univ"></span> (<span id="d-nim"></span>)
+                                    </div>
+                                    <div class="info-label">Fakultas / Jurusan</div>
+                                    <div class="info-value">
+                                        <span id="d-fakultas"></span> / <span id="d-jurusan"></span>
+                                    </div>
+                                    <div class="info-label">Unit Penempatan</div>
+                                    <div class="info-value text-primary fw-bold">
+                                        <span id="d-company"></span> - <span id="d-lokasi"></span>
+                                    </div>
+                                    <div class="info-label">Periode Magang</div>
+                                    <div id="d-periode" class="info-value text-danger"></div>
                                 </div>
                             </div>
+
                             <div class="col-md-4">
-                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;"><i class="fas fa-file-alt me-2"></i>BERKAS DIGITAL</div>
-                                <a id="link-cv" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
-                                <a id="link-surat" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
-                                <a id="link-proposal" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-lines text-warning me-2"></i> Proposal Magang</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                                <div class="mb-2 px-2 fw-bold text-secondary" style="font-size:12px;">
+                                    <i class="fas fa-file-alt me-2"></i>BERKAS DIGITAL
+                                </div>
+                                <a id="link-cv" href="#" target="_blank" class="doc-link">
+                                    <span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span>
+                                    <i class="fas fa-external-link-alt fa-xs"></i>
+                                </a>
+                                <a id="link-surat" href="#" target="_blank" class="doc-link">
+                                    <span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span>
+                                    <i class="fas fa-external-link-alt fa-xs"></i>
+                                </a>
+                                <a id="link-proposal" href="#" target="_blank" class="doc-link">
+                                    <span><i class="fas fa-file-lines text-warning me-2"></i> Proposal Magang</span>
+                                    <i class="fas fa-external-link-alt fa-xs"></i>
+                                </a>
                             </div>
                         </div>
-                    </div>
+
+                        <!-- ✅ PANEL REVISI MAHASISWA — hanya muncul saat status Revisi -->
+                        <input type="hidden" id="d-magang-id">
+
+                        <div id="revisiPanelMhs" class="revisi-panel-mhs" style="display:none;">
+                            <!-- Header banner -->
+                            <div class="d-flex align-items-start" style="gap:12px; margin-bottom:12px;">
+                                <i class="fas fa-exclamation-triangle" 
+                                style="color:#f59e0b; font-size:20px; margin-top:2px; flex-shrink:0;"></i>
+                                <div>
+                                    <div style="font-size:12px; font-weight:800; color:#92400e; text-transform:uppercase;">
+                                        Admin meminta revisi pada:
+                                    </div>
+                                    <div id="revisiChipsMhs" class="revisi-chips-wrap"></div>
+                                </div>
+                            </div>
+
+                            <!-- Catatan admin -->
+                            <div id="revisiCatatanBox" class="revisi-catatan-box">
+                                <strong style="font-size:11px; color:#92400e; text-transform:uppercase;">
+                                    Catatan dari Admin:
+                                </strong><br>
+                                <span id="revisiCatatanText"></span>
+                            </div>
+
+                            <div style="font-size:12px; color:#64748b; margin-bottom:16px;">
+                                Field yang ditandai <strong style="color:#00549B;">biru</strong> bisa diedit. 
+                                Sisanya terkunci dan tidak perlu diubah.
+                            </div>
+
+                            <!-- Field-field revisi (2 kolom) -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- NIM -->
+                                    <div id="rowRevisiNIM" class="revisi-field-row">
+                                        <div class="revisi-field-label">
+                                            <i class="fas fa-id-badge"></i> NIM
+                                            <span id="badgeNIM" class="badge-terkunci">TERKUNCI</span>
+                                        </div>
+                                        <input id="revisiNIM" type="text" class="revisi-input" disabled>
+                                    </div>
+
+                                    <!-- No HP -->
+                                    <div id="rowRevisiHP" class="revisi-field-row">
+                                        <div class="revisi-field-label">
+                                            <i class="fas fa-phone"></i> No. WhatsApp
+                                            <span id="badgeHP" class="badge-terkunci">TERKUNCI</span>
+                                        </div>
+                                        <input id="revisiHP" type="text" class="revisi-input" disabled>
+                                    </div>
+
+                                    <!-- Durasi -->
+                                    <div id="rowRevisiDurasi" class="revisi-field-row">
+                                        <div class="revisi-field-label">
+                                            <i class="fas fa-calendar-alt"></i> Durasi Magang
+                                            <span id="badgeDurasi" class="badge-terkunci">TERKUNCI</span>
+                                        </div>
+                                        <div class="d-flex" style="gap:8px;">
+                                            <input id="revisiMulai" type="date" class="revisi-input" 
+                                                style="flex:1; border:1px solid #e2e8f0; border-radius:6px; padding:4px 8px;" disabled>
+                                            <input id="revisiSelesai" type="date" class="revisi-input" 
+                                                style="flex:1; border:1px solid #e2e8f0; border-radius:6px; padding:4px 8px;" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <!-- CV -->
+                                    <div id="rowRevisiCV" class="revisi-field-row">
+                                        <div class="revisi-field-label">
+                                            <i class="fas fa-file-pdf"></i> File CV
+                                            <span id="badgeCV" class="badge-terkunci">TERKUNCI</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#64748b;" id="namaFileCV">cv saat ini</div>
+                                        <div id="triggerCV" class="revisi-upload-trigger" 
+                                            onclick="document.getElementById('revisiFileCV').click()">
+                                            <i class="fas fa-upload"></i> Pilih file CV baru (PDF, maks 5MB)
+                                        </div>
+                                        <input id="revisiFileCV" type="file" accept=".pdf" style="display:none;" 
+                                            onchange="previewNamaFile(this, 'namaFileCV')">
+                                    </div>
+
+                                    <!-- Surat -->
+                                    <div id="rowRevisiSurat" class="revisi-field-row">
+                                        <div class="revisi-field-label">
+                                            <i class="fas fa-file-contract"></i> Surat Pengantar
+                                            <span id="badgeSurat" class="badge-terkunci">TERKUNCI</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#64748b;" id="namaFileSurat">surat saat ini</div>
+                                        <div id="triggerSurat" class="revisi-upload-trigger" 
+                                            onclick="document.getElementById('revisiFileSurat').click()">
+                                            <i class="fas fa-upload"></i> Pilih file surat baru (PDF, maks 5MB)
+                                        </div>
+                                        <input id="revisiFileSurat" type="file" accept=".pdf" style="display:none;" 
+                                            onchange="previewNamaFile(this, 'namaFileSurat')">
+                                    </div>
+
+                                    <!-- Proposal -->
+                                    <div id="rowRevisiProposal" class="revisi-field-row">
+                                        <div class="revisi-field-label">
+                                            <i class="fas fa-file-signature"></i> Proposal Magang
+                                            <span id="badgeProposal" class="badge-terkunci">TERKUNCI</span>
+                                        </div>
+                                        <div style="font-size:12px; color:#64748b;" id="namaFileProposal">proposal saat ini</div>
+                                        <div id="triggerProposal" class="revisi-upload-trigger" 
+                                            onclick="document.getElementById('revisiFileProposal').click()">
+                                            <i class="fas fa-upload"></i> Pilih file proposal baru (PDF, maks 5MB)
+                                        </div>
+                                        <input id="revisiFileProposal" type="file" accept=".pdf" style="display:none;" 
+                                            onchange="previewNamaFile(this, 'namaFileProposal')">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tombol submit -->
+                            <div class="text-right mt-3">
+                                <button class="btn-submit-revisi" onclick="submitRevisiMahasiswa()">
+                                    <i class="fas fa-paper-plane mr-2"></i> Submit Revisi ke Admin
+                                </button>
+                            </div>
+                        </div>
+
+                    </div><!-- /detail-body -->
                 </div>
             </div>
         </div>
-
         
 
         @* <div id="page-penelitian" class="page-section">
@@ -1144,54 +1954,83 @@
                             <h5 class="font-weight-bold mb-1">@namaUser</h5>
                             <div class="d-flex align-items-center">
                                 <span class="badge-role-peserta mr-2">PESERTA MAGANG</span>
-                                <a href="javascript:void(0)" id="btnEditInfo" class="small text-muted font-weight-bold" onclick="enableEdit()">
+                                @* <a href="javascript:void(0)" id="btnEditInfo" class="small text-muted font-weight-bold" onclick="enableEdit()">
                                     <i class="fa-solid fa-pencil mr-1"></i> Edit Informasi
-                                </a>
+                                </a> *@
                             </div>
                         </div>
                     </div>
 
                     <hr class="my-4 opacity-50">
-
                     <div class="row">
+                        <!-- NAMA LENGKAP PESERTA -->
                         <div class="col-md-6 mb-4">
                             <label class="label-custom">NAMA LENGKAP PESERTA</label>
-                            <input type="text" id="inputNama" class="form-control input-custom" value="@Model?.NamaLengkap" placeholder="Nama Lengkap" readonly>
+                            <div class="input-group-security">
+                                <input type="text" id="inputNama" class="form-control input-security-clean" 
+                                    value="@Model?.NamaLengkap" placeholder="Nama Lengkap" readonly>
+                            </div>
                         </div>
+
+                        <!-- USERNAME / EMAIL -->
                         <div class="col-md-6 mb-4">
                             <label class="label-custom">USERNAME / EMAIL</label>
-                            <input type="email" id="inputEmail" class="form-control input-custom" value="@userEmail" readonly>
+                            <div class="input-group-security">
+                                <input type="email" id="inputEmail" class="form-control input-security-clean" 
+                                    value="@userEmail" readonly>
+                            </div>
                         </div>
+
+                        <!-- NOMOR HANDPHONE -->
                         <div class="col-md-6 mb-4">
                             <label class="label-custom">NOMOR HANDPHONE</label>
-                            <input type="text" id="inputNoHP" class="form-control input-custom" value="@Model?.NoHP" placeholder="Contoh: 0888..." readonly>
+                            <div class="input-group-security">
+                                <input type="text" id="inputNoHP" class="form-control input-security-clean" 
+                                    value="@Model?.NoHP" placeholder="Contoh: 08123456789" readonly>
+                            </div>
                         </div>
+
+                        <!-- INSTANSI / PERGURUAN TINGGI -->
                         <div class="col-md-6 mb-4">
                             <label class="label-custom">INSTANSI / PERGURUAN TINGGI</label>
-                            <input type="text" id="inputUniv" class="form-control input-custom" value="@Model?.NamaPerguruanTinggi" placeholder="Nama Perguruan Tinggi" readonly>
+                            <div class="input-group-security">
+                                <input type="text" id="inputUniv" class="form-control input-security-clean" 
+                                    value="@Model?.NamaPerguruanTinggi" placeholder="Nama Perguruan Tinggi" readonly>
+                            </div>
                         </div>
                     </div>
+                    <div class="row mt-4">
+                        <div class="col-12 text-right">
+                            <button type="button" id="btnBatal" class="btn btn-batal-custom mr-2" style="display: none;">
+                                <i class="fa-solid fa-xmark"></i> Batal
+                            </button>
 
-                    <div class="text-right mt-2">
-                        <button type="button" class="btn btn-primary" id="btnSimpan" onclick="saveProfile()" disabled>Simpan Perubahan</button>
+                            <button type="button" id="btnSimpan" class="btn btn-simpan-pertamina" onclick="saveProfile()" style="display: none;">
+                                <i class="fa-solid fa-floppy-disk me-2"></i> Simpan Perubahan
+                            </button>
+
+                            <button type="button" id="btnEditTrigger" class="btn-edit-link">
+                                <i class="fa-solid fa-pencil mr-1"></i> Edit Informasi
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-
             <div class="tab-pane fade" id="tab-security" role="tabpanel">
                 <div class="p-4">
                     <div class="mb-4">
                         <h5 class="font-weight-bold">Keamanan Akun</h5>
                         <p class="text-muted small">Disarankan untuk mengganti kata sandi secara berkala untuk menjaga keamanan akun Anda.</p>
                     </div>
-
-                    <form id="securityForm" onsubmit="updatePassword(event)" style="max-width: 500px;">
+                    <form id="securityForm" onsubmit="updatePassword(event)" style="max-width: 100%;">
+                        <!-- KATA SANDI SAAT INI -->
                         <div class="mb-4">
                             <label class="label-custom">KATA SANDI SAAT INI</label>
-                            <div class="input-group">
-                                <input type="password" id="oldPass" class="form-control input-custom" placeholder="Masukkan password lama" required>
-                                <div class="input-group-append">
-                                    <span class="input-group-text bg-light border-0" onclick="togglePassword('oldPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                            <div class="input-group-security">
+                                <input type="password" id="oldPass" class="form-control input-security-clean" 
+                                    placeholder="••••••••" readonly required>
+                                <div class="append-security" style="display: none;">
+                                    <span onclick="togglePassword('oldPass')" style="cursor: pointer;">
                                         <i class="fa-solid fa-eye" id="icon-oldPass"></i>
                                     </span>
                                 </div>
@@ -1199,23 +2038,28 @@
                         </div>
                         
                         <div class="row">
+                            <!-- KATA SANDI BARU -->
                             <div class="col-md-6 mb-4">
                                 <label class="label-custom">KATA SANDI BARU</label>
-                                <div class="input-group">
-                                    <input type="password" id="newPass" class="form-control input-custom" placeholder="Min 6 karakter" required>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text bg-light border-0" onclick="togglePassword('newPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                                <div class="input-group-security">
+                                    <input type="password" id="newPass" class="form-control input-security-clean" 
+                                        placeholder="••••••••" readonly required>
+                                    <div class="append-security" style="display: none;">
+                                        <span onclick="togglePassword('newPass')" style="cursor: pointer;">
                                             <i class="fa-solid fa-eye" id="icon-newPass"></i>
                                         </span>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- KONFIRMASI PASSWORD -->
                             <div class="col-md-6 mb-4">
                                 <label class="label-custom">KONFIRMASI PASSWORD</label>
-                                <div class="input-group">
-                                    <input type="password" id="confirmPass" class="form-control input-custom" placeholder="Ulangi password baru" required>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text bg-light border-0" onclick="togglePassword('confirmPass')" style="cursor: pointer; border-radius: 0 8px 8px 0;">
+                                <div class="input-group-security">
+                                    <input type="password" id="confirmPass" class="form-control input-security-clean" 
+                                        placeholder="••••••••" readonly required>
+                                    <div class="append-security" style="display: none;">
+                                        <span onclick="togglePassword('confirmPass')" style="cursor: pointer;">
                                             <i class="fa-solid fa-eye" id="icon-confirmPass"></i>
                                         </span>
                                     </div>
@@ -1223,17 +2067,22 @@
                             </div>
                         </div>
 
-                        <div class="alert alert-info border-0 shadow-sm" style="border-radius: 10px; background: #e0efff; color: #00549b;">
-                            <i class="fa-solid fa-circle-info mr-2"></i>
-                            <small>Password harus minimal 6 karakter kombinasi huruf dan angka.</small>
-                        </div>
+
 
                         <div class="text-right mt-4">
-                            <button type="submit" class="btn btn-danger px-5 py-2 font-weight-bold shadow-sm" style="border-radius:8px; background: var(--p-red); border: none;">
-                                Perbarui Kata Sandi
+                            <button type="button" id="btnBatalPassword" class="btn btn-batal-custom mr-2" style="display: none;">
+                                <i class="fa-solid fa-xmark"></i> Batal
+                            </button>
+                            <button type="submit" id="btnSimpanPassword" class="btn btn-simpan-pertamina px-4" style="display: none;">
+                                <i class="fa-solid fa-check-circle me-2"></i> Perbarui Kata Sandi
+                            </button>
+
+                            <button type="button" id="btnEditPassword" class="btn-edit-link">
+                                <i class="fa-solid fa-key mr-1"></i> Ubah Kata Sandi
                             </button>
                         </div>
                     </form>
+                    
                 </div>
             </div>
         </div>
@@ -1244,84 +2093,337 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    let informasiData = [];
+    // ===== GLOBAL FUNCTIONS (harus di luar document.ready agar onclick inline bisa akses) =====
 
-    async function loadInformasiTersedia() {
-        const container = document.getElementById('informasiGroupedContainer');
+    var isEditing = false;
+    var originalData = "";
 
-        try {
-            const response = await fetch('/DashboardPeserta/GetInformasiTersedia');
-            let data = await response.json();
+    function getSnapshot() {
+        return JSON.stringify({
+            nama: $('#inputNama').val(),
+            noHp: $('#inputNoHP').val(),
+            univ: $('#inputUniv').val(),
+            old: $('#oldPass').val(),
+            newp: $('#newPass').val(),
+            conf: $('#confirmPass').val()
+        });
+    }
 
-            // Normalisasi data:
-            // KPI hanya punya 1 regional = Refinery Unit VI Balongan
-            // selain itu masuk PPN
-            informasiData = (data || []).map(item => {
-                const isKPI = (item.region || '').trim() === 'Refinery Unit VI Balongan';
+    function isDirty() {
+        if (!isEditing) return false;
+        return getSnapshot() !== originalData;
+    }
 
-                return {
-                    ...item,
-                    companyCode: isKPI ? 'KPI' : 'PPN',
-                    companyName: isKPI
-                        ? 'PT Kilang Pertamina Internasional'
-                        : 'PT Pertamina Patra Niaga'
-                };
+    function forceReset() {
+        isEditing = false;
+        originalData = "";
+
+        $('.input-security-clean').prop('readonly', true).css('background-color', '#f8fafc');
+
+        $('#btnSimpan, #btnBatal').hide();
+        $('#btnEditTrigger').show();
+
+        $('.append-security').hide();
+        $('#btnSimpanPassword, #btnBatalPassword').hide();
+        $('#btnEditPassword').show();
+    }
+
+    function _navigatePage(pageId) {
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+        var target = document.getElementById('page-' + pageId);
+        if (target) target.classList.add('active');
+
+        document.querySelectorAll('.nav-link-custom').forEach(n => n.classList.remove('active'));
+        var navTarget = document.getElementById('nav-' + pageId);
+        if (navTarget) navTarget.classList.add('active');
+
+        localStorage.setItem('lastOpenedPage', pageId);
+    }
+
+    function showPage(pageId) {
+        if (isDirty()) {
+            Swal.fire({
+                title: 'Simpan Perubahan?',
+                text: "Kamu sudah mengubah data. Jika pindah, perubahanmu akan hilang.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#00549B',
+                confirmButtonText: 'Ya, Pindah',
+                cancelButtonText: 'Tetap di Sini'
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    forceReset();
+                    _navigatePage(pageId);
+                }
             });
-
-            updateSummary(informasiData);
-            populateCompanyFilter(informasiData);
-            populateRegionFilter(informasiData);
-            renderGroupedInformasi(informasiData);
-            bindInformasiFilterEvents();
-        } catch (error) {
-            container.innerHTML = `
-                <div class="info-empty-state">
-                    <i class="fa fa-circle-exclamation mb-3" style="font-size:32px;"></i>
-                    <div class="font-weight-bold mb-1">Gagal memuat data lokasi magang</div>
-                    <div class="small">Silakan coba beberapa saat lagi.</div>
-                </div>
-            `;
-            console.error(error);
+        } else {
+            forceReset();
+            _navigatePage(pageId);
         }
+    }
+
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('collapsed');
+        document.querySelector('.main-content').classList.toggle('expanded');
+        document.querySelector('.topbar').classList.toggle('expanded');
+    }
+
+    function togglePassword(inputId) {
+        var input = document.getElementById(inputId);
+        var icon = document.getElementById('icon-' + inputId);
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = "password";
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function filterTabel(status, element) {
+        // Reset semua card — cari by data-color bukan .stat-card
+        document.querySelectorAll('[data-color]').forEach(function(card) {
+            var c = card.getAttribute('data-color');
+            card.style.background = '#fff';
+            card.style.transform = 'none';
+            card.style.border = 'none';
+            card.style.borderTop = '4px solid ' + c;
+        });
+
+        // Highlight hanya yang diklik
+        var color = element.getAttribute('data-color');
+        element.style.background = color + '18';
+        element.style.transform = 'translateY(-2px)';
+        element.style.borderTop = '4px solid ' + color;
+
+        // Filter baris tabel
+        document.querySelectorAll('#tabelBodyRiwayat .baris-magang').forEach(function(row) {
+            var statusBaris = row.getAttribute('data-status');
+            row.style.display = (status === 'Semua' || statusBaris === status) ? '' : 'none';
+        });
+    }
+
+    function handleLogout() {
+        Swal.fire({
+            title: 'Keluar?',
+            text: "Sesi akan berakhir",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ec1c24',
+            confirmButtonText: 'Logout'
+        }).then(function(r) {
+            if (r.isConfirmed) {
+                localStorage.removeItem('form_magang_draft');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/Auth/Logout';
+            }
+        });
+    }
+
+    function saveProfile() {
+        Swal.fire({
+            title: 'Menyimpan...',
+            allowOutsideClick: false,
+            didOpen: function() { Swal.showLoading(); }
+        });
+
+        $.ajax({
+            url: '/DashboardPeserta/UpdateProfil',
+            type: 'POST',
+            data: {
+                nama: $('#inputNama').val(),
+                noHp: $('#inputNoHP').val(),
+                univ: $('#inputUniv').val()
+            },
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire('Berhasil', 'Profil diperbarui!', 'success').then(function() {
+                        forceReset();
+                        $('.font-weight-bold.mb-1').text($('#inputNama').val());
+                    });
+                } else {
+                    Swal.fire('Gagal', res.message, 'error');
+                }
+            },
+            error: function() {
+                Swal.fire('Error', 'Gagal tersambung ke server', 'error');
+            }
+        });
+    }
+
+    function updatePassword(e) {
+        e.preventDefault();
+
+        var oldP = $('#oldPass').val();
+        var newP = $('#newPass').val();
+        var confirmP = $('#confirmPass').val();
+
+        if (!oldP || !newP || !confirmP) {
+            Swal.fire('Opps!', 'Semua kolom password wajib diisi.', 'warning');
+            return;
+        }
+        if (newP !== confirmP) {
+            Swal.fire('Error', 'Konfirmasi password tidak cocok!', 'error');
+            return;
+        }
+
+        Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+
+        $.ajax({
+            url: '/DashboardPeserta/UpdatePassword',
+            type: 'POST',
+            data: {
+                oldPass: oldP,
+                newPass: newP,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function(res) {
+                if (res.success) {
+                    Swal.fire('Berhasil!', 'Password diperbarui.', 'success');
+                    $('#securityForm')[0].reset();
+                    forceReset();
+                } else {
+                    Swal.fire('Gagal!', res.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+                Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
+            }
+        });
+    }
+
+    function uploadFoto(input) {
+        if (!input.files || !input.files[0]) return;
+        var file = input.files[0];
+
+        if (file.size > 2 * 1024 * 1024) {
+            Swal.fire('Opps!', 'Ukuran file terlalu besar (Max 2MB)', 'error');
+            input.value = '';
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('fotoProfil', file);
+
+        $.ajax({
+            url: '/DashboardPeserta/UpdateFoto',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(res) {
+                if (res.success) {
+                    var newPath = res.filePath + '?t=' + new Date().getTime();
+                    if ($('#imgPreview').length) {
+                        $('#imgPreview').attr('src', newPath);
+                    } else {
+                        $('#avatarContainer').html('<img src="' + newPath + '" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">');
+                    }
+                    $('#navbarAvatar').attr('src', newPath);
+                    Swal.fire({ icon: 'success', title: 'Berhasil!', text: 'Foto profil diperbarui.', timer: 1500, showConfirmButton: false });
+                } else {
+                    Swal.fire('Gagal!', res.message, 'error');
+                }
+            },
+            error: function() {
+                Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
+            }
+        });
+    }
+
+    function deletePhoto() {
+        Swal.fire({
+            title: 'Hapus foto?',
+            text: 'Foto profil akan dihapus.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus'
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                $.post('/DashboardPeserta/DeleteFoto', function(res) {
+                    if (res.success) { location.reload(); }
+                });
+            }
+        });
+    }
+
+    function viewPhoto() {
+        var photoUrl = $('#imgPreview').attr('src');
+        if (!photoUrl) {
+            Swal.fire('Info', 'Anda belum mengunggah foto profil.', 'info');
+            return;
+        }
+        Swal.fire({ imageUrl: photoUrl, imageAlt: 'Foto Profil', showCloseButton: true, showConfirmButton: false, background: '#fff' });
+    }
+
+    function selectPhoto() {
+        $('#fileInputFoto').click();
+    }
+
+    // ===== INFORMASI TERSEDIA =====
+    var informasiData = [];
+
+    function loadInformasiTersedia() {
+        var container = document.getElementById('informasiGroupedContainer');
+
+        fetch('/DashboardPeserta/GetInformasiTersedia')
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                informasiData = (data || []).map(function(item) {
+                    var isKPI = (item.region || '').trim() === 'Refinery Unit VI Balongan';
+                    return Object.assign({}, item, {
+                        companyCode: isKPI ? 'KPI' : 'PPN',
+                        companyName: isKPI ? 'PT Kilang Pertamina Internasional' : 'PT Pertamina Patra Niaga'
+                    });
+                });
+                updateSummary(informasiData);
+                populateCompanyFilter(informasiData);
+                populateRegionFilter(informasiData);
+                renderGroupedInformasi(informasiData);
+                bindInformasiFilterEvents();
+            })
+            .catch(function(error) {
+                container.innerHTML = '<div class="info-empty-state"><i class="fa fa-circle-exclamation mb-3" style="font-size:32px;"></i><div class="font-weight-bold mb-1">Gagal memuat data lokasi magang</div><div class="small">Silakan coba beberapa saat lagi.</div></div>';
+                console.error(error);
+            });
     }
 
     function updateSummary(data) {
         document.getElementById('summaryTotalLokasi').textContent = data.length;
         document.getElementById('summaryTotalCompany').textContent = 2;
-        document.getElementById('summaryTotalRegion').textContent = new Set(data.map(x => x.region)).size;
+        document.getElementById('summaryTotalRegion').textContent = new Set(data.map(function(x) { return x.region; })).size;
     }
 
     function populateCompanyFilter(data) {
-        const companySelect = document.getElementById('filterCompanyInformasi');
-        const selectedCompany = companySelect.value;
-
-        const companies = [...new Set(data.map(x => x.companyName))].sort();
-
-        companySelect.innerHTML = `<option value="">Semua Company</option>` +
-            companies.map(x => `<option value="${x}">${x}</option>`).join('');
-
+        var companySelect = document.getElementById('filterCompanyInformasi');
+        var selectedCompany = companySelect.value;
+        var companies = [...new Set(data.map(function(x) { return x.companyName; }))].sort();
+        companySelect.innerHTML = '<option value="">Semua Company</option>' +
+            companies.map(function(x) { return '<option value="' + x + '">' + x + '</option>'; }).join('');
         companySelect.value = selectedCompany;
     }
 
     function populateRegionFilter(data) {
-        const companySelect = document.getElementById('filterCompanyInformasi');
-        const regionSelect = document.getElementById('filterRegionInformasi');
-        const selectedCompany = companySelect.value;
-        const previousRegion = regionSelect.value;
+        var companySelect = document.getElementById('filterCompanyInformasi');
+        var regionSelect = document.getElementById('filterRegionInformasi');
+        var selectedCompany = companySelect.value;
+        var previousRegion = regionSelect.value;
 
         if (!selectedCompany) {
-            regionSelect.innerHTML = `<option value="">Pilih company terlebih dahulu</option>`;
+            regionSelect.innerHTML = '<option value="">Pilih company terlebih dahulu</option>';
             regionSelect.value = '';
             regionSelect.disabled = true;
             return;
         }
 
-        const filteredByCompany = data.filter(item => item.companyName === selectedCompany);
-        const regions = [...new Set(filteredByCompany.map(x => x.region))].sort();
+        var filteredByCompany = data.filter(function(item) { return item.companyName === selectedCompany; });
+        var regions = [...new Set(filteredByCompany.map(function(x) { return x.region; }))].sort();
 
         regionSelect.disabled = false;
-        regionSelect.innerHTML = `<option value="">Semua Regional</option>` +
-            regions.map(x => `<option value="${x}">${x}</option>`).join('');
+        regionSelect.innerHTML = '<option value="">Semua Regional</option>' +
+            regions.map(function(x) { return '<option value="' + x + '">' + x + '</option>'; }).join('');
 
         if (regions.includes(previousRegion)) {
             regionSelect.value = previousRegion;
@@ -1338,64 +2440,40 @@
     }
 
     function renderGroupedInformasi(data) {
-        const container = document.getElementById('informasiGroupedContainer');
-        const search = document.getElementById('filterSearchInformasi').value.toLowerCase().trim();
-        const company = document.getElementById('filterCompanyInformasi').value;
-        const region = document.getElementById('filterRegionInformasi').value;
+        var container = document.getElementById('informasiGroupedContainer');
+        var search = document.getElementById('filterSearchInformasi').value.toLowerCase().trim();
+        var company = document.getElementById('filterCompanyInformasi').value;
+        var region = document.getElementById('filterRegionInformasi').value;
 
-        const filtered = data.filter(item => {
-            const companyName = (item.companyName || '').toLowerCase();
-            const regionName = (item.region || '').toLowerCase();
-            const lokasiName = (item.lokasi || '').toLowerCase();
-
-            const matchSearch =
-                lokasiName.includes(search) ||
-                regionName.includes(search) ||
-                companyName.includes(search);
-
-            const matchCompany = !company || item.companyName === company;
-            const matchRegion = !region || item.region === region;
-
+        var filtered = data.filter(function(item) {
+            var companyName = (item.companyName || '').toLowerCase();
+            var regionName = (item.region || '').toLowerCase();
+            var lokasiName = (item.lokasi || '').toLowerCase();
+            var matchSearch = lokasiName.includes(search) || regionName.includes(search) || companyName.includes(search);
+            var matchCompany = !company || item.companyName === company;
+            var matchRegion = !region || item.region === region;
             return matchSearch && matchCompany && matchRegion;
         });
 
         if (filtered.length === 0) {
-            container.innerHTML = `
-                <div class="info-empty-state">
-                    <i class="fa fa-folder-open mb-3" style="font-size:32px;"></i>
-                    <div class="font-weight-bold mb-1">Data tidak ditemukan</div>
-                    <div class="small">Coba ubah kata kunci pencarian atau filter yang dipilih.</div>
-                </div>
-            `;
+            container.innerHTML = '<div class="info-empty-state"><i class="fa fa-folder-open mb-3" style="font-size:32px;"></i><div class="font-weight-bold mb-1">Data tidak ditemukan</div><div class="small">Coba ubah kata kunci pencarian atau filter yang dipilih.</div></div>';
             return;
         }
 
-        const grouped = {
-            KPI: [],
-            PPN: []
-        };
-
-        filtered.forEach(item => {
+        var grouped = { KPI: [], PPN: [] };
+        filtered.forEach(function(item) {
             if (item.companyCode === 'KPI') grouped.KPI.push(item);
             else grouped.PPN.push(item);
         });
 
-        const companyMeta = {
-            KPI: {
-                code: 'KPI',
-                name: 'PT Kilang Pertamina Internasional',
-                labelClass: 'kpi'
-            },
-            PPN: {
-                code: 'PPN',
-                name: 'PT Pertamina Patra Niaga',
-                labelClass: 'ppn'
-            }
+        var companyMeta = {
+            KPI: { code: 'KPI', name: 'PT Kilang Pertamina Internasional', labelClass: 'kpi' },
+            PPN: { code: 'PPN', name: 'PT Pertamina Patra Niaga', labelClass: 'ppn' }
         };
 
         function groupByRegion(items) {
-            const regionMap = {};
-            items.forEach(item => {
+            var regionMap = {};
+            items.forEach(function(item) {
                 if (!regionMap[item.region]) regionMap[item.region] = [];
                 regionMap[item.region].push(item);
             });
@@ -1404,542 +2482,504 @@
 
         function renderCompanyCard(companyCode, items) {
             if (!items.length) {
-                return `
-                    <div class="col-lg-6 mb-4">
-                        <div class="info-company-main-card">
-                            <div class="info-company-header">
-                                <span class="info-company-label ${companyMeta[companyCode].labelClass}">
-                                    ${companyCode}
-                                </span>
-                                <div class="info-company-name">${companyMeta[companyCode].name}</div>
-                                <div class="info-company-code">Lokasi magang yang tersedia</div>
-                            </div>
-                            <div class="info-company-body">
-                                <div class="info-empty-state">
-                                    Belum ada data lokasi yang tampil untuk filter ini.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                return '<div class="col-lg-6 mb-4"><div class="info-company-main-card"><div class="info-company-header"><span class="info-company-label ' + companyMeta[companyCode].labelClass + '">' + companyCode + '</span><div class="info-company-name">' + companyMeta[companyCode].name + '</div><div class="info-company-code">Lokasi magang yang tersedia</div></div><div class="info-company-body"><div class="info-empty-state">Belum ada data lokasi yang tampil untuk filter ini.</div></div></div></div>';
             }
 
-            const byRegion = groupByRegion(items);
-            const totalLokasi = items.length;
-            const totalRegional = Object.keys(byRegion).length;
+            var byRegion = groupByRegion(items);
+            var totalLokasi = items.length;
+            var totalRegional = Object.keys(byRegion).length;
+            var regionHtml = '';
 
-            let regionHtml = '';
-            Object.keys(byRegion).sort().forEach(regionName => {
-                const lokasiItems = byRegion[regionName];
+            Object.keys(byRegion).sort().forEach(function(regionName) {
+                var lokasiItems = byRegion[regionName];
+                var lokasiHtml = lokasiItems.map(function(item) {
+                    return '<div class="info-lokasi-item d-flex justify-content-between align-items-center"><div class="info-lokasi-left"><div class="info-lokasi-name font-weight-bold" style="color: #334155;">' + item.lokasi + '</div><div class="text-success small d-flex align-items-center" style="font-weight: 700;"><i class="fa-solid fa-circle-check mr-1"></i> Terbuka</div></div><div class="info-lokasi-right"><button class="btn btn-sm btn-detail-lokasi" style="background-color: var(--p-blue); color: white; border-radius: 20px; font-weight: 800; font-size: 10px; padding: 5px 15px; border: none;" data-lokasi="' + item.lokasi + '" data-region="' + item.region + '" data-company="' + companyCode + '" onclick="showDetailLokasi(this)">DETAIL</button></div></div>';
+                }).join('');
 
-                regionHtml += `
-                    <div class="info-region-card">
-                        <div class="info-region-header">
-                            <div class="info-region-title">${regionName}</div>
-                            <div class="info-region-count">${lokasiItems.length} lokasi / unit</div>
-                        </div>
-                        <div class="info-lokasi-list">
-                            ${lokasiItems.map(item => `
-                                <div class="info-lokasi-item">
-                                    <div class="info-lokasi-name">${item.lokasi}</div>
-                                    <span class="info-open-badge">Membuka Pendaftaran</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
+                regionHtml += '<div class="info-region-card"><div class="info-region-header"><div class="info-region-title font-weight-bold">' + regionName + '</div><div class="info-region-count">' + lokasiItems.length + ' lokasi / unit</div></div><div class="info-lokasi-list">' + lokasiHtml + '</div></div>';
             });
 
-            return `
-                <div class="col-lg-6 mb-4">
-                    <div class="info-company-main-card">
-                        <div class="info-company-header">
-                            <span class="info-company-label ${companyMeta[companyCode].labelClass}">
-                                ${companyCode}
-                            </span>
-                            <div class="info-company-name">${companyMeta[companyCode].name}</div>
-                            <div class="info-company-code">Daftar lokasi magang yang sedang membuka pendaftaran</div>
-
-                            <div class="info-company-stats">
-                                <span class="info-stat-pill">
-                                    <i class="fa fa-location-dot"></i> ${totalLokasi} lokasi / unit
-                                </span>
-                                <span class="info-stat-pill">
-                                    <i class="fa fa-map"></i> ${totalRegional} regional
-                                </span>
-                                <span class="info-stat-pill">
-                                    <i class="fa fa-circle-check"></i> Membuka pendaftaran
-                                </span>
-                            </div>
-                        </div>
-                        <div class="info-company-body">
-                            ${regionHtml}
-                        </div>
-                    </div>
-                </div>
-            `;
+            return '<div class="col-lg-6 mb-4"><div class="info-company-main-card"><div class="info-company-header"><span class="info-company-label ' + companyMeta[companyCode].labelClass + '">' + companyCode + '</span><div class="info-company-name">' + companyMeta[companyCode].name + '</div><div class="info-company-code">Daftar lokasi magang yang sedang membuka pendaftaran</div><div class="info-company-stats"><span class="info-stat-pill"><i class="fa-solid fa-location-dot"></i> ' + totalLokasi + ' lokasi / unit</span><span class="info-stat-pill"><i class="fa-solid fa-map"></i> ' + totalRegional + ' regional</span><span class="info-stat-pill badge-open-status"><i class="fa-solid fa-circle-check"></i> Membuka pendaftaran</span></div></div><div class="info-company-body">' + regionHtml + '</div></div></div>';
         }
 
-        container.innerHTML = `
-            <div class="row info-company-row">
-                ${renderCompanyCard('KPI', grouped.KPI)}
-                ${renderCompanyCard('PPN', grouped.PPN)}
-            </div>
-        `;
+        container.innerHTML = '<div class="row info-company-row">' + renderCompanyCard('KPI', grouped.KPI) + renderCompanyCard('PPN', grouped.PPN) + '</div>';
     }
 
     function bindInformasiFilterEvents() {
-        const searchInput = document.getElementById('filterSearchInformasi');
-        const companySelect = document.getElementById('filterCompanyInformasi');
-        const regionSelect = document.getElementById('filterRegionInformasi');
-
+        var searchInput = document.getElementById('filterSearchInformasi');
+        var companySelect = document.getElementById('filterCompanyInformasi');
+        var regionSelect = document.getElementById('filterRegionInformasi');
         if (!searchInput || !companySelect || !regionSelect) return;
 
-        searchInput.oninput = function () {
-            renderGroupedInformasi(informasiData);
-        };
-
-        companySelect.onchange = function () {
-            populateRegionFilter(informasiData);
-            renderGroupedInformasi(informasiData);
-        };
-
-        regionSelect.onchange = function () {
-            renderGroupedInformasi(informasiData);
-        };
+        searchInput.oninput = function() { renderGroupedInformasi(informasiData); };
+        companySelect.onchange = function() { populateRegionFilter(informasiData); renderGroupedInformasi(informasiData); };
+        regionSelect.onchange = function() { renderGroupedInformasi(informasiData); };
     }
 
     loadInformasiTersedia();
     bindInformasiFilterEvents();
 
+
+    function showDetailLokasi(el) {
+        var lokasiRaw = el.getAttribute('data-lokasi');
+        var lokasi = lokasiRaw ? lokasiRaw.trim() : "";
+        var region = el.getAttribute('data-region') || "";
+        var company = el.getAttribute('data-company');
+
+        document.getElementById('modalTitle').innerText = lokasi;
+        var fullCompany = (company === 'KPI') ? 'PT Kilang Pertamina Internasional' : 'PT Pertamina Patra Niaga';
+        document.getElementById('modalSubtitle').innerText = (region ? region + " - " : "") + fullCompany;
+
+        var deskripsiFinal = "Deskripsi tidak tersedia.";
+
+        if (company === 'KPI') {
+            if (deskripsiPosisi[lokasi]) {
+                deskripsiFinal = deskripsiPosisi[lokasi];
+            } else {
+                var keyMatch = Object.keys(deskripsiPosisi).find(function(k) {
+                    return k.toLowerCase().replace(/\s/g, '') === lokasi.toLowerCase().replace(/\s/g, '');
+                });
+                deskripsiFinal = keyMatch ? deskripsiPosisi[keyMatch] : "Deskripsi posisi belum tersedia untuk bidang ini.";
+            }
+        } else if (company === 'PPN') {
+            deskripsiFinal = "Unit operasional distribusi energi regional.";
+        }
+
+        var descElement = document.getElementById('modalDescriptionText');
+        if (descElement) descElement.innerText = deskripsiFinal;
+
+        $('#modalDetailLokasi').modal('show');
+    }
     function showReviewDetail(id) {
+        // Reset panel revisi setiap buka modal
+        document.getElementById('revisiPanelMhs').style.display = 'none';
+        document.getElementById('revisiFileCV').value = '';
+        document.getElementById('revisiFileSurat').value = '';
+        document.getElementById('revisiFileProposal').value = '';
+
         $.ajax({
             url: '/PendaftaranMagang/GetDetailMagang/' + id,
             type: 'GET',
-            success: function (m) {
-                // Mapping data dasar
+            success: function(m) {
+                // Simpan id untuk submit nanti
+                document.getElementById('d-magang-id').value = id;
+
+                // Isi field info utama (sama seperti sebelumnya)
                 document.getElementById('d-nama').innerText = m.nama || '-';
                 document.getElementById('d-email').innerText = m.email || '-';
-                
-                // WhatsApp Link (Ganti template literals ke string biasa)
-                const hpElem = document.getElementById('d-hp-link');
-                if(m.wa) {
+
+                var hpElem = document.getElementById('d-hp-link');
+                if (m.wa) {
                     var cleanWa = m.wa.replace(/[^0-9]/g, '');
                     hpElem.innerText = m.wa;
                     hpElem.href = 'https://wa.me/' + cleanWa;
-                } else {
-                    hpElem.innerText = '-';
-                }
+                } else { hpElem.innerText = '-'; }
 
-                // Instagram Link
-                const igElem = document.getElementById('d-ig-link');
-                if(m.instagram) {
-                    var cleanIg = m.instagram.replace('@@', ''); 
+                var igElem = document.getElementById('d-ig-link');
+                if (m.instagram) {
+                    var cleanIg = m.instagram.replace('@@', '');
                     igElem.innerText = m.instagram;
                     igElem.href = 'https://instagram.com/' + cleanIg;
-                } else {
-                    igElem.innerText = '-';
-                }
+                } else { igElem.innerText = '-'; }
 
-                document.getElementById('d-univ').innerText = m.univ || '-';
-                document.getElementById('d-nim').innerText = m.nim || '-';
+                document.getElementById('d-univ').innerText   = m.univ || '-';
+                document.getElementById('d-nim').innerText    = m.nim || '-';
                 document.getElementById('d-jurusan').innerText = m.jurusan || '-';
                 document.getElementById('d-fakultas').innerText = m.fakultas || '-';
                 document.getElementById('d-company').innerText = m.company || '-';
-                document.getElementById('d-lokasi').innerText = m.lokasi || '-';
-                document.getElementById('d-tempat').innerText = m.tempatLahir || '-';
+                document.getElementById('d-lokasi').innerText  = m.lokasi || '-';
+                document.getElementById('d-tempat').innerText  = m.tempatLahir || '-';
                 document.getElementById('d-tgl-lahir').innerText = m.tglLahir || '-';
                 document.getElementById('d-created-at').innerText = m.createdAtFormatted || '-';
-                
-                // Gabungkan string tanpa backtick
                 document.getElementById('d-periode').innerText = m.tglMulai + ' s/d ' + m.tglSelesai;
-                
-                // Files & Photo
-                document.getElementById('d-foto').src = m.fotoProfil || '/img/default-user.png';
-                document.getElementById('link-cv').href = m.pathCV || '#';
-                document.getElementById('link-surat').href = m.pathSurat || '#';
+                document.getElementById('d-foto').src = m.fotoProfil || '/images/default-user.png';
+                document.getElementById('link-cv').href     = m.pathCV || '#';
+                document.getElementById('link-surat').href  = m.pathSurat || '#';
                 document.getElementById('link-proposal').href = m.pathProposal || '#';
 
-                // Status Badge (Hindari backtick di sini)
-                const sClass = m.status === 'Diterima' ? 'bg-light-green' : (m.status === 'Ditolak' ? 'bg-light-red' : 'bg-light-orange');
-                document.getElementById('d-status-badge-container').innerHTML = '<span class="status-pill-modal ' + sClass + '">' + m.status + '</span>';
-                
-                // Show Modal
+                // Status badge
+                var sClass = m.status === 'Diterima' ? 'bg-light-green' :
+                            m.status === 'Ditolak'  ? 'bg-light-red'   :
+                            m.status === 'Revisi'   ? 'bg-light-revisi' :
+                            'bg-light-orange';
+                document.getElementById('d-status-badge-container').innerHTML =
+                    '<span class="status-pill-modal ' + sClass + '">' + m.status + '</span>';
+
+                // ✅ Bangun panel revisi jika status Revisi
+                if (m.status === 'Revisi') {
+                    buildRevisiPanel(m);
+                }
+
                 var myModal = new bootstrap.Modal(document.getElementById('modalDetail'));
                 myModal.show();
             },
-            error: function() {
-                alert('Data tidak ditemukan');
-            }
+            error: function() { alert('Data tidak ditemukan'); }
         });
     }
 
+    // Bangun panel revisi berdasarkan data dari server
+    function buildRevisiPanel(m) {
+        var fields = (m.revisiFields || '').split(',').map(function(x) { return x.trim().toLowerCase(); });
+        var catatan = m.catatanRevisi || '';
+
+        // Chips
+        var chipsHtml = fields.filter(Boolean).map(function(f) {
+            return '<span class="revisi-chip-item">' + f + '</span>';
+        }).join('');
+        document.getElementById('revisiChipsMhs').innerHTML = chipsHtml || '<span class="text-muted small">-</span>';
+
+        // Catatan
+        document.getElementById('revisiCatatanText').innerText = catatan || 'Tidak ada catatan tambahan.';
+        document.getElementById('revisiCatatanBox').style.display = catatan ? 'block' : 'none';
+
+        // Pre-fill nilai saat ini ke input (readonly dulu)
+        document.getElementById('revisiNIM').value = m.nim || '';
+        document.getElementById('revisiHP').value  = m.wa  || '';
+
+        // Nama file saat ini
+        document.getElementById('namaFileCV').innerText = 
+            m.pathCV ? m.pathCV.split('/').pop() : 'Belum ada file';
+        document.getElementById('namaFileSurat').innerText = 
+            m.pathSurat ? m.pathSurat.split('/').pop() : 'Belum ada file';
+        document.getElementById('namaFileProposal').innerText = 
+            m.pathProposal ? m.pathProposal.split('/').pop() : 'Belum ada file';
+
+        // Aktifkan/kunci field sesuai permintaan admin
+        setFieldRevisi('rowRevisiNIM',    'badgeNIM',     'revisiNIM',     
+                    fields.some(function(f){ return f.includes('akademik'); }));
+
+        setFieldRevisi('rowRevisiHP',     'badgeHP',      'revisiHP',      
+                    fields.some(function(f){ return f.includes('kontak'); }));
+
+        setFieldRevisi('rowRevisiDurasi', 'badgeDurasi',  null,            
+                    fields.some(function(f){ return f.includes('durasi'); }), true);
+
+        setFieldRevisiFile('rowRevisiCV',       'badgeCV',       'triggerCV',      
+                        fields.some(function(f){ return f.includes('cv'); }));
+
+        setFieldRevisiFile('rowRevisiSurat',    'badgeSurat',    'triggerSurat',   
+                        fields.some(function(f){ return f.includes('surat'); }));
+
+        setFieldRevisiFile('rowRevisiProposal', 'badgeProposal', 'triggerProposal',
+                        fields.some(function(f){ return f.includes('proposal'); }));
+
+        document.getElementById('revisiPanelMhs').style.display = 'block';
+    }
+
+    // Helper: aktifkan/kunci input teks
+    function setFieldRevisi(rowId, badgeId, inputId, aktif, isDurasi) {
+        var row   = document.getElementById(rowId);
+        var badge = document.getElementById(badgeId);
+        if (!row || !badge) return;
+
+        if (aktif) {
+            row.classList.add('field-aktif');
+            badge.className = 'badge-edit-aktif';
+            badge.innerText = 'EDIT';
+            if (isDurasi) {
+                document.getElementById('revisiMulai').disabled   = false;
+                document.getElementById('revisiSelesai').disabled = false;
+            } else if (inputId) {
+                document.getElementById(inputId).disabled = false;
+            }
+        } else {
+            row.classList.remove('field-aktif');
+            badge.className = 'badge-terkunci';
+            badge.innerText = 'TERKUNCI';
+            if (isDurasi) {
+                document.getElementById('revisiMulai').disabled   = true;
+                document.getElementById('revisiSelesai').disabled = true;
+            } else if (inputId) {
+                document.getElementById(inputId).disabled = true;
+            }
+        }
+    }
+
+    // Helper: aktifkan/kunci field upload file
+    function setFieldRevisiFile(rowId, badgeId, triggerId, aktif) {
+        var row     = document.getElementById(rowId);
+        var badge   = document.getElementById(badgeId);
+        var trigger = document.getElementById(triggerId);
+        if (!row || !badge || !trigger) return;
+
+        if (aktif) {
+            row.classList.add('field-aktif');
+            badge.className = 'badge-edit-aktif';
+            badge.innerText = 'UPLOAD BARU';
+            trigger.style.display = 'flex';
+        } else {
+            row.classList.remove('field-aktif');
+            badge.className = 'badge-terkunci';
+            badge.innerText = 'TERKUNCI';
+            trigger.style.display = 'none';
+        }
+    }
+
+    // Preview nama file setelah dipilih
+    function previewNamaFile(input, targetId) {
+        var el = document.getElementById(targetId);
+        if (input.files && input.files[0]) {
+            el.innerText = input.files[0].name;
+            el.style.color = '#00549B';
+            el.style.fontWeight = '700';
+        }
+    }
+
+    // Submit revisi mahasiswa
+    function submitRevisiMahasiswa() {
+        var id = document.getElementById('d-magang-id').value;
+        var formData = new FormData();
+        formData.append('id', id);
+
+        // Field teks — hanya kirim kalau tidak disabled
+        var nim = document.getElementById('revisiNIM');
+        if (!nim.disabled) formData.append('nim', nim.value);
+
+        var hp = document.getElementById('revisiHP');
+        if (!hp.disabled) formData.append('noHp', hp.value);
+
+        var mulai = document.getElementById('revisiMulai');
+        if (!mulai.disabled && mulai.value) formData.append('mulaiMagang', mulai.value);
+
+        var selesai = document.getElementById('revisiSelesai');
+        if (!selesai.disabled && selesai.value) formData.append('selesaiMagang', selesai.value);
+
+        // File — hanya kirim kalau ada file dipilih
+        var cv = document.getElementById('revisiFileCV');
+        if (cv.files && cv.files[0]) formData.append('fileCv', cv.files[0]);
+
+        var surat = document.getElementById('revisiFileSurat');
+        if (surat.files && surat.files[0]) formData.append('fileSurat', surat.files[0]);
+
+        var proposal = document.getElementById('revisiFileProposal');
+        if (proposal.files && proposal.files[0]) formData.append('fileProposal', proposal.files[0]);
+
+        Swal.fire({
+            title: 'Kirim revisi?',
+            text: 'Pastikan semua field yang diminta sudah kamu perbaiki.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#00549B',
+            confirmButtonText: 'Ya, Kirim',
+            cancelButtonText: 'Cek Lagi'
+        }).then(function(result) {
+            if (!result.isConfirmed) return;
+
+            Swal.fire({ title: 'Mengirim...', allowOutsideClick: false, didOpen: function(){ Swal.showLoading(); } });
+
+            $.ajax({
+                url: '/DashboardPeserta/SubmitRevisi',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(res) {
+                    if (res.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Revisi Terkirim!',
+                            text: 'Status pengajuan kamu kembali ke Menunggu Review.',
+                            confirmButtonColor: '#00549B'
+                        }).then(function() { location.reload(); });
+                    } else {
+                        Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'Gagal menghubungi server.', 'error');
+                }
+            });
+        });
+    }
+
+    // ===== NOTIFIKASI =====
     function loadNotifications() {
-        $.get('/Notification/GetUserNotifications', function (data) {
-
-            let html = '';
-
-            if (data.length === 0) {
-                html = `<div class="p-3 text-center text-muted">Tidak ada notifikasi</div>`;
+        $.get('/Notification/GetUserNotifications', function(data) {
+            var html = '';
+            if (!data || data.length === 0) {
+                html = '<div class="p-4 text-center text-muted"><i class="fa fa-bell-slash mb-2" style="font-size:28px; opacity:0.3;"></i><div class="small">Tidak ada notifikasi</div></div>';
+                $('#notifList').html(html);
+                return;
             }
 
-            data.forEach(n => {
+            data.forEach(function(n) {
+                var iconHtml = '', borderColor = '';
+                if (n.type === 'success') {
+                    iconHtml = '<div style="width:36px;height:36px;border-radius:10px;background:#dcfce7;display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0;"><i class="fa fa-check text-success" style="font-size:14px;"></i></div>';
+                    borderColor = 'border-left: 3px solid #22c55e;';
+                } else if (n.type === 'error') {
+                    iconHtml = '<div style="width:36px;height:36px;border-radius:10px;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0;"><i class="fa fa-times text-danger" style="font-size:14px;"></i></div>';
+                    borderColor = 'border-left: 3px solid #ef4444;';
+                } else if (n.type === 'new') {
+                    iconHtml = '<div style="width:36px;height:36px;border-radius:10px;background:#dbeafe;display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0;"><i class="fa fa-paper-plane text-primary" style="font-size:14px;"></i></div>';
+                    borderColor = 'border-left: 3px solid #3b82f6;';
+                } else {
+                    iconHtml = '<div style="width:36px;height:36px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0;"><i class="fa fa-bell text-muted" style="font-size:14px;"></i></div>';
+                    borderColor = 'border-left: 3px solid #94a3b8;';
+                }
+                var unreadBg = n.isRead ? 'background:#fff;' : 'background:#f0f7ff;';
+                var dotHtml = n.isRead ? '' : '<span style="width:8px;height:8px;background:#00549B;border-radius:50%;flex-shrink:0;margin-left:8px;display:inline-block;"></span>';
 
-                let cls = n.isRead ? '' : 'notif-unread';
-
-                html += `
-                    <a href="/Notification/GoTo/${n.id}" class="notif-item ${cls} d-block">
-                        <div class="notif-title">${n.title}</div>
-                        <div class="notif-msg">${n.message}</div>
-                    </a>
-                `;
+                html += '<a href="/Notification/GoTo/' + n.id + '" class="d-flex align-items-start text-decoration-none" style="padding:12px 16px; border-bottom:1px solid #f1f5f9; ' + unreadBg + ' ' + borderColor + ' transition:background 0.2s;">' + iconHtml + '<div style="flex:1; min-width:0;"><div style="font-size:13px;font-weight:700;color:#1e293b;line-height:1.3;">' + n.title + '</div><div style="font-size:12px;color:#64748b;margin-top:2px;line-height:1.4;">' + n.message + '</div><div style="font-size:10px;color:#94a3b8;margin-top:4px;"><i class="fa fa-clock mr-1"></i>' + n.timeAgo + '</div></div>' + dotHtml + '</a>';
             });
 
             $('#notifList').html(html);
+        }).fail(function() {
+            $('#notifList').html('<div class="p-3 text-center text-muted small">Gagal memuat notifikasi.</div>');
         });
     }
 
-    loadNotifications();
-
-    $('#markAllReadBtn').click(function (e) {
-        e.preventDefault();
-
-        $('#notifBadge').hide(); // langsung sembunyikan badge
-
-        $.post('/Notification/MarkAllRead', function () {
-            loadNotifications();
-            loadUnreadCount();
-        });
-    });
-
     function loadUnreadCount() {
-        $.get('/Notification/UnreadCount', function (count) {
-            if (count > 0)
-                $('#notifBadge').text(count).show();
-            else
-                $('#notifBadge').hide();
+        $.get('/Notification/UnreadCount', function(count) {
+            if (count > 0) $('#notifBadge').text(count).show();
+            else $('#notifBadge').hide();
         });
     }
 
     loadUnreadCount();
 
-    function togglePassword(inputId) {
-        const input = document.getElementById(inputId);
-        const icon = document.getElementById('icon-' + inputId);
-        
-        if (input.type === "password") {
-            input.type = "text";
-            icon.classList.replace('fa-eye', 'fa-eye-slash');
-        } else {
-            input.type = "password";
-            icon.classList.replace('fa-eye-slash', 'fa-eye');
-        }
-    }
-
+    // ===== DOCUMENT READY =====
     $(document).ready(function() {
         loadNotifications();
         loadUnreadCount();
 
-        setInterval(function(){
+        setInterval(function() {
             loadUnreadCount();
-        }, 5000); // cek setiap 5 detik
+            loadNotifications();
+        }, 5000);
 
-        const params = new URLSearchParams(window.location.search);
-        const tabFromNotif = params.get('tab');
+        // Navigasi awal
+        var params = new URLSearchParams(window.location.search);
+        var tabFromUrl = params.get('tab');
+        var highlightId = params.get('highlight');
 
-        if (tabFromNotif) {
-            showPage(tabFromNotif);
-            localStorage.setItem('lastOpenedPage', tabFromNotif);
+        if (tabFromUrl) {
+            showPage(tabFromUrl);
+            localStorage.setItem('lastOpenedPage', tabFromUrl);
+        } else {
+            var lastPage = localStorage.getItem('lastOpenedPage') || 'dashboard';
+            showPage(lastPage);
         }
 
-        const lastPage = localStorage.getItem('lastOpenedPage') || 'dashboard';
-        showPage(lastPage);
-
-        const activeTab = localStorage.getItem('activeProfileTab');
-        if (activeTab) {
-            // Aktifkan tab berdasarkan ID link-nya
-            $(`#${activeTab}`).tab('show');
+        if (highlightId) {
+            setTimeout(function() {
+                var targetRow = document.querySelector('tr[data-id="' + highlightId + '"]');
+                if (targetRow) {
+                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetRow.classList.add('highlight-row');
+                }
+            }, 450);
         }
 
-        // 2. Simpan tab ke LocalStorage setiap kali tab diklik
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-            const tabId = $(e.target).attr('id');
-            localStorage.setItem('activeProfileTab', tabId);
+        // Restore tab profil
+        var activeTab = localStorage.getItem('activeProfileTab');
+        if (activeTab) { $('#' + activeTab).tab('show'); }
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+            localStorage.setItem('activeProfileTab', $(e.target).attr('id'));
         });
 
-        // Fungsi ketika tombol Edit Informasi diklik
-        $('#btnEditInfo').on('click', function() {
-            const isReadOnly = $('#inputNama').prop('readonly');
-
-            if (isReadOnly) {
-                // AKTIFKAN MODE EDIT
-                $('.input-custom').prop('readonly', false); // Lepas status readonly
-                $('#btnSimpan').prop('disabled', false); 
-                $('.input-custom').css('background-color', '#fff'); // Ubah background jadi putih agar kontras
-                $('.input-custom').first().focus(); // Fokuskan ke input pertama
-                
-                $(this).html('<i class="fa-solid fa-xmark mr-1"></i> Batal Edit'); // Ganti teks tombol
-                $(this).removeClass('text-muted').addClass('text-danger');
+        // Proteksi pindah tab saat dirty
+        $('#profileTab a').on('click', function(e) {
+            if (isDirty()) {
+                e.preventDefault();
+                var targetTab = $(this);
+                Swal.fire({
+                    title: 'Data Belum Disimpan',
+                    text: "Jika pindah tab, perubahan ketikanmu akan hilang.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#00549B',
+                    confirmButtonText: 'Ya, Pindah',
+                    cancelButtonText: 'Tetap di Sini'
+                }).then(function(result) {
+                    if (result.isConfirmed) { forceReset(); targetTab.tab('show'); }
+                });
             } else {
-                // KEMBALI KE MODE LOCK (Batal)
-                $('.input-custom').prop('readonly', true);
-                $('#btnSimpan').prop('disabled', true);
-                $('.input-custom').css('background-color', '#f8fafc'); // Kembalikan warna abu-abu
-                
-                $(this).html('<i class="fa-solid fa-pencil mr-1"></i> Edit Informasi');
-                $(this).removeClass('text-danger').addClass('text-muted');
+                forceReset();
             }
+        });
+
+        // Tombol Edit Profil
+        $('#btnEditTrigger').on('click', function() {
+            isEditing = true;
+            originalData = getSnapshot();
+            $('.input-security-clean').not('#inputEmail, #oldPass, #newPass, #confirmPass').prop('readonly', false).css('background-color', '#fff');
+            $(this).hide();
+            $('#btnSimpan, #btnBatal').fadeIn(300);
+        });
+
+        // Tombol Edit Password
+        $('#btnEditPassword').on('click', function() {
+            isEditing = true;
+            originalData = getSnapshot();
+            $('#oldPass, #newPass, #confirmPass').prop('readonly', false).css('background-color', '#fff');
+            $('.append-security').fadeIn();
+            $(this).hide();
+            $('#btnSimpanPassword, #btnBatalPassword').fadeIn(300);
+        });
+
+        // Highlight input saat fokus
+        $('.input-security-clean, .input-custom').on('focus', function() {
+            if ($(this).prop('readonly') === false) {
+                $(this).closest('.input-group-security').css({ 'border-color': '#00529C', 'box-shadow': '0 0 0 3px rgba(0, 82, 156, 0.1)' });
+            }
+        }).on('blur', function() {
+            $(this).closest('.input-group-security').css({ 'border-color': '#e2e8f0', 'box-shadow': 'none' });
+        });
+
+        // Tombol Batal
+        $('#btnBatal, #btnBatalPassword').on('click', function() {
+            forceReset();
         });
     });
 
-    function showPhotoOptions() {
-        Swal.fire({
-            title: 'Foto Profil',
-            showDenyButton: true,
-            showCancelButton: true,
-            confirmButtonText: 'Unggah Foto Baru',
-            denyButtonText: 'Hapus Foto',
-            cancelButtonText: 'Batal',
-            confirmButtonColor: '#00549B',
-            denyButtonColor: '#ec1c24',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $('#fileInput').click();
-            } else if (result.isDenied) {
-                deletePhoto();
-            }
-        });
-    }
-
-    function uploadFoto(input) {
-        if (!input.files || !input.files[0]) return;
-
-        const file = input.files[0];
-
-        if (file.size > 2 * 1024 * 1024) {
-            Swal.fire('Opps!', 'Ukuran file terlalu besar (Max 2MB)', 'error');
-            input.value = '';
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('fotoProfil', file);
-
-        $.ajax({
-            url: '/DashboardPeserta/UpdateFoto',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                if (res.success) {
-                    const newPath = res.filePath + '?t=' + new Date().getTime();
-
-                    if ($('#imgPreview').length) {
-                        $('#imgPreview').attr('src', newPath);
-                    } else {
-                        $('#avatarContainer').html(
-                            '<img src="' + newPath + '" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">'
-                        );
-                    }
-
-                    $('#navbarAvatar').attr('src', newPath);
-
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: 'Foto profil diperbarui.',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
-                } else {
-                    Swal.fire('Gagal!', res.message, 'error');
-                }
-            },
-            error: function () {
-                Swal.fire('Error!', 'Gagal menghubungi server.', 'error');
-            }
-        });
-    }
-
-    function deletePhoto() {
-        Swal.fire({
-            title: 'Hapus foto?',
-            text: 'Foto profil akan dihapus.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, Hapus'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.post('/DashboardPeserta/DeleteFoto', function(res) {
-                    if (res.success) {
-                        location.reload();
-                    }
-                });
-            }
-        });
-    }
-
-    // --- FUNGSI LIHAT FOTO ---
-    function viewPhoto() {
-        const photoUrl = $('#imgPreview').attr('src');
-
-        if (!photoUrl) {
-            Swal.fire('Info', 'Anda belum mengunggah foto profil.', 'info');
-            return;
-        }
-
-        Swal.fire({
-            imageUrl: photoUrl,
-            imageAlt: 'Foto Profil',
-            showCloseButton: true,
-            showConfirmButton: false,
-            background: '#fff'
-        });
-    }
-
-    // --- FUNGSI PILIH FOTO ---
-    function selectPhoto() {
-        $('#fileInputFoto').click(); // Trigger klik pada input file tersembunyi
-    }
-
-    function updatePassword(e) {
-        e.preventDefault(); 
-
-        const oldP = $('#oldPass').val();
-        const newP = $('#newPass').val();
-        const confirmP = $('#confirmPass').val();
-
-        if (!oldP || !newP || !confirmP) {
-            Swal.fire('Opps!', 'Semua kolom password wajib diisi.', 'warning');
-            return;
-        }
-
-        if (newP !== confirmP) {
-            Swal.fire('Error', 'Konfirmasi password tidak cocok!', 'error');
-            return;
-        }
-
-        Swal.fire({ title: 'Memproses...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-
-        $.ajax({
-            url: '/DashboardPeserta/UpdatePassword',
-            type: 'POST',
-            data: { 
-                oldPass: oldP, 
-                newPass: newP,
-                // Token keamanan ASP.NET Core
-                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() 
-            },
-            success: function(res) {
-                if (res.success) {
-                    Swal.fire('Berhasil!', 'Password diperbarui.', 'success');
-                    $('#securityForm')[0].reset(); 
-                } else {
-                    Swal.fire('Gagal!', res.message, 'error');
-                }
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText);
-                Swal.fire('Error!', 'Terjadi kesalahan sistem.', 'error');
-            }
-        });
-    }
-
-    function showPage(pageId) {
-        $('.page-section').removeClass('active');
-        $('#page-' + pageId).addClass('active');
-        $('.nav-link-custom').removeClass('active');
-        $('#nav-' + pageId).addClass('active');
-
-        const breadcrumbs = {
-            'dashboard': 'Panel Peserta / Dashboard',
-            'informasi': 'Panel Peserta / Informasi Tersedia',
-            'riwayat': 'Panel Peserta / Riwayat Magang',
-            'penelitian': 'Panel Peserta / Riwayat Riset',
-            'profil': 'Panel Peserta / Pengaturan Profil'
-        };
-        $('#page-breadcrumb').text(breadcrumbs[pageId]);
-
-        localStorage.setItem('lastOpenedPage', pageId);
-    }
-
-    function saveProfile() {
-        // Tampilkan loading
-        Swal.fire({ 
-            title: 'Menyimpan...', 
-            allowOutsideClick: false, 
-            didOpen: () => { Swal.showLoading() } 
-        });
-
-        $.ajax({
-            url: '/DashboardPeserta/UpdateProfil',
-            type: 'POST',
-            data: {
-                nama: $('#inputNama').val(),
-                noHp: $('#inputNoHP').val(),
-                univ: $('#inputUniv').val()
-            },
-            success: function(res) {
-                if(res.success) {
-                    Swal.fire('Berhasil', 'Profil diperbarui!', 'success').then(() => {
-                        // Hanya mengunci input yang ada di tab profil
-                        $('#tab-data .input-custom').prop('readonly', true);
-                        
-                        // Kembalikan tombol edit ke mode normal
-                        $('#btnEditInfo').html('<i class="fa-solid fa-pencil mr-1"></i> Edit Informasi');
-                        $('#btnEditInfo').removeClass('text-danger');
-                        
-                        // Update nama di header agar sinkron
-                        $('.font-weight-bold.mb-1').text($('#inputNama').val());
-                    });
-                } else {
-                    Swal.fire('Gagal', res.message, 'error');
-                }
-            }, // Tutup success
-            error: function() {
-                Swal.fire('Error', 'Gagal tersambung ke server', 'error');
-            }
-        }); // Tutup $.ajax
-    }
-
-    function handleLogout() {
-        Swal.fire({
-            title: 'Keluar?',
-            text: "Sesi akan berakhir",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ec1c24',
-            confirmButtonText: 'Logout'
-        }).then((r) => { 
-            if (r.isConfirmed) {
-                // Hapus draft spesifik dan bersihkan semuanya
-                localStorage.removeItem('form_magang_draft'); 
-                localStorage.clear();
-                sessionStorage.clear();
-
-                window.location.href = '/Auth/Logout'; 
-            }
-        });
-    }
-
-    function filterTabel(status, element) {
-        // 1. Hapus class 'active-filter' dari semua card dulu
-        document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active-filter'));
-        // 2. Tambah class 'active-filter' ke card yang barusan diklik
-        element.classList.add('active-filter');
-
-        // 3. Logika Filter Tabel (Sama seperti sebelumnya)
-        const baris = document.querySelectorAll('#tabelBodyRiwayat .baris-magang');
-        baris.forEach(row => {
-            const statusBaris = row.getAttribute('data-status');
-            if (status === 'Semua') {
-                row.style.display = '';
-            } else {
-                row.style.display = (statusBaris === status) ? '' : 'none';
-            }
-        });
-    }
 </script>
+
+<!-- ✅ Modal dipindah ke sini — langsung di dalam <body>, di luar semua container -->
+<div class="modal fade" id="modalDetailLokasi" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center pt-0">
+                <div class="icon-box mb-3">
+                    <i class="fa-solid fa-circle-info" style="font-size: 50px; color: #00549B;"></i>
+                </div>
+                <h5 class="font-weight-bold mb-1" id="modalTitle">Nama Unit/Lokasi</h5>
+                <p class="text-muted small mb-4" id="modalSubtitle">Regional - Perusahaan</p>
+                
+                <!-- 1. BAGIAN DESKRIPSI -->
+                <div id="modalDescriptionContainer" class="text-left mb-3 p-3" style="background: #f8f9fa; border-left: 4px solid #00549B; border-radius: 8px;">
+                    <h6 class="font-weight-bold small text-uppercase mb-2" style="color: #00549B;">Tentang Posisi/Unit</h6>
+                    <p id="modalDescriptionText" class="text-muted small mb-0" style="line-height: 1.5;"></p>
+                </div>
+
+                <!-- 2. BAGIAN DATA PENDAFTARAN -->
+                <div class="text-left bg-light p-3" style="border-radius: 15px; border: 1px solid #eee;">
+                    <h6 class="font-weight-bold small text-uppercase text-secondary mb-2">Informasi Pendaftaran</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2">
+                            <i class="fa-solid fa-check text-success mr-2"></i> Status: <strong id="modalStatus">Membuka Pendaftaran</strong>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fa-solid fa-calendar mr-2" style="color: #00549B;"></i> Periode: <strong id="modalPeriode">Batch 2026</strong>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-user-gear mr-2" style="color: #00549B;"></i> Kuota: <strong id="modalKuota">Tersedia</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary btn-block font-weight-bold" data-dismiss="modal" style="border-radius: 12px; background-color: #00549B; border: none;">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

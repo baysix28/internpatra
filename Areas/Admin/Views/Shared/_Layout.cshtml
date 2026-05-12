@@ -188,11 +188,11 @@
             <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "EmailTemplate" ? "active" : "")" asp-area="Admin" asp-controller="EmailTemplate" asp-action="Index"><i class="fa-solid fa-envelope-open-text mr-2"></i> Format Konfirmasi</a></li>
         }
 
-        <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "active" : "")" asp-area="Admin" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear mr-2"></i> Settings</a></li>
+        <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "active" : "")" asp-area="Admin" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear mr-2"></i> Pengaturan</a></li>
     </ul>
 
     <a asp-area="Admin" asp-controller="Login" asp-action="Logout" class="nav-link-custom nav-link-logout">
-        <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+        <i class="fa-solid fa-right-from-bracket mr-2"></i> Keluar
     </a>
 </nav>
 
@@ -217,9 +217,14 @@
                 <div id="notificationList" style="max-height: 300px; overflow-y: auto;">
                     <div class="text-center p-3 text-muted small">Memuat...</div>
                 </div>
-                <button type="button" class="btn btn-link btn-sm btn-block p-2 text-center small font-weight-bold text-primary" style="text-decoration:none;" data-toggle="modal" data-target="#modalAllNotifications">
-                    Lihat Semua
-                </button>
+                    <button type="button" 
+                            class="btn btn-link btn-sm btn-block p-2 text-center small font-weight-bold text-primary" 
+                            style="text-decoration:none;" 
+                            data-toggle="modal" 
+                            data-target="#modalAllNotifications"
+                            onclick="fetchAllNotifications()">        
+                        Lihat Semua
+                    </button>
             </div>
         </div>
 
@@ -291,56 +296,167 @@
         }
     });
 
-    function fetchAdminNotifications() {
+function fetchAdminNotifications() {
+    $.ajax({
+        url: '/Admin/Dashboard/GetNotifications',
+        type: 'GET',
+        success: function (data) {
+            renderNotifDropdown(data);
+        }
+    });
+}
+
+// Render notif di dropdown (ringkas, 7 hari terakhir)
+function renderNotifDropdown(data) {
+    const list         = $('#notificationList');
+    const badge        = $('#notifBadge');
+    const sidebarBadge = $('#sidebarNotifBadge');
+    const countLabel   = $('#notifCountLabel');
+
+    list.empty();
+
+    let unreadCount = data.filter(n => !n.isRead).length;
+
+    if (unreadCount > 0) {
+        badge.text(unreadCount).removeClass('d-none');
+        sidebarBadge.text(unreadCount).removeClass('d-none');
+        countLabel.text(unreadCount + ' Baru');
+    } else {
+        badge.addClass('d-none');
+        sidebarBadge.addClass('d-none');
+        countLabel.text('Semua dibaca');
+    }
+
+    if (data.length === 0) {
+        list.append(`
+            <div class="text-center p-4 text-muted">
+                <i class="fa fa-bell-slash mb-2" style="font-size:28px;opacity:0.3;"></i>
+                <div class="small">Tidak ada notifikasi 7 hari terakhir</div>
+            </div>
+        `);
+        return;
+    }
+
+    data.forEach(n => {
+        // Icon & warna berdasarkan type
+        let iconBg    = '#f1f5f9';
+        let iconColor = 'text-muted';
+        let iconClass = 'fa-bell';
+        let borderLeft = '#94a3b8';
+
+        if (n.type === 'Baru') {
+            iconBg = '#dbeafe'; iconColor = 'text-primary';
+            iconClass = 'fa-user-plus'; borderLeft = '#3b82f6';
+        } else if (n.type === 'Diterima') {
+            iconBg = '#dcfce7'; iconColor = 'text-success';
+            iconClass = 'fa-check'; borderLeft = '#22c55e';
+        } else if (n.type === 'Ditolak') {
+            iconBg = '#fee2e2'; iconColor = 'text-danger';
+            iconClass = 'fa-times'; borderLeft = '#ef4444';
+        } else if (n.type === 'update') {
+            iconBg = '#fef9c3'; iconColor = 'text-warning';
+            iconClass = 'fa-rotate'; borderLeft = '#eab308';
+        }
+
+        const unreadBg  = n.isRead ? '#fff' : '#f0f7ff';
+        const dotHtml   = n.isRead ? '' : `<span style="width:8px;height:8px;background:var(--p-blue);border-radius:50%;flex-shrink:0;margin-left:8px;"></span>`;
+
+        const itemHtml = `
+            <a href="javascript:void(0)"
+               onclick="handleNotifClick(${n.id}, ${n.magangId})"
+               class="d-flex align-items-start text-decoration-none"
+               style="padding:12px 16px; border-bottom:1px solid #f1f5f9;
+                      background:${unreadBg}; border-left:3px solid ${borderLeft};
+                      transition:background 0.2s;">
+                <div style="width:36px;height:36px;border-radius:10px;background:${iconBg};
+                            display:flex;align-items:center;justify-content:center;
+                            margin-right:12px;flex-shrink:0;">
+                    <i class="fas ${iconClass} ${iconColor}" style="font-size:13px;"></i>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:700;color:#1e293b;line-height:1.3;">${n.title}</div>
+                    <div style="font-size:12px;color:#64748b;margin-top:2px;line-height:1.4;">${n.message}</div>
+                    <div style="font-size:10px;color:#94a3b8;margin-top:4px;">
+                        <i class="fas fa-clock mr-1"></i>${n.timeAgo}
+                    </div>
+                </div>
+                ${dotHtml}
+            </a>
+        `;
+        list.append(itemHtml);
+    });
+}
+
+    // Render notif di modal "Lihat Semua" — ambil semua tanpa filter tanggal
+    function fetchAllNotifications() {
+        const container = $('#fullNotifContainer');
+        container.html('<div class="text-center p-4 text-muted small">Memuat riwayat...</div>');
+
         $.ajax({
-            url: '/Admin/Dashboard/GetNotifications',
+            url: '/Admin/Dashboard/GetNotifications?take=100&allTime=true',
             type: 'GET',
             success: function (data) {
-                const list = $('#notificationList');
-                const fullContainer = $('#fullNotifContainer');
-                const badge = $('#notifBadge');
-                const sidebarBadge = $('#sidebarNotifBadge');
-                const countLabel = $('#notifCountLabel');
-                
-                list.empty();
-                fullContainer.empty();
-
-                let unreadCount = data.filter(n => !n.isRead).length;
-
-                if (unreadCount > 0) {
-                    badge.text(unreadCount).removeClass('d-none');
-                    sidebarBadge.text(unreadCount).removeClass('d-none');
-                    countLabel.text(unreadCount + ' Baru');
-                } else {
-                    badge.addClass('d-none');
-                    sidebarBadge.addClass('d-none');
-                    countLabel.text('0');
-                }
+                container.empty();
 
                 if (data.length === 0) {
-                    list.append('<div class="p-3 text-center text-muted small">Tidak ada notifikasi</div>');
-                    fullContainer.append('<div class="p-4 text-center text-muted small">Belum ada riwayat</div>');
+                    container.html('<div class="p-4 text-center text-muted small">Belum ada riwayat notifikasi.</div>');
                     return;
                 }
 
+                // Group by tanggal
+                const grouped = {};
                 data.forEach(n => {
-                    const unreadClass = n.isRead ? '' : 'unread';
-                    const iconColor = n.type === 'Baru' ? 'text-primary' : 'text-success';
-                    const itemHtml = `
-                        <a href="javascript:void(0)" class="notif-item ${unreadClass}" onclick="handleNotifClick(${n.id}, ${n.magangId})">
-                            <div class="notif-icon-circle ${iconColor}">
-                                <i class="fas ${n.iconClass || 'fa-user-plus'}"></i>
-                            </div>
-                            <div style="flex:1">
-                                <div class="small font-weight-bold text-dark" style="font-size: 0.8rem;">${n.title}</div>
-                                <div class="text-muted small" style="font-size: 0.75rem; line-height: 1.2;">${n.message}</div>
-                                <div class="text-primary mt-1" style="font-size:9px">${n.timeAgo}</div>
-                            </div>
-                            ${!n.isRead ? '<div class="notif-dot"></div>' : ''}
-                        </a>
-                    `;
-                    list.append(itemHtml);
-                    fullContainer.append(itemHtml);
+                    const tgl = n.createdAt.split(',')[0]; // "dd MMM yyyy"
+                    if (!grouped[tgl]) grouped[tgl] = [];
+                    grouped[tgl].push(n);
+                });
+
+                Object.keys(grouped).forEach(tgl => {
+                    // Header tanggal
+                    container.append(`
+                        <div style="padding:8px 16px; background:#f8fafc; 
+                                    border-bottom:1px solid #e2e8f0;
+                                    font-size:11px; font-weight:800; 
+                                    color:#94a3b8; letter-spacing:0.5px;">
+                            ${tgl}
+                        </div>
+                    `);
+
+                    grouped[tgl].forEach(n => {
+                        let iconBg = '#f1f5f9', iconColor = 'text-muted', iconClass = 'fa-bell', borderLeft = '#94a3b8';
+
+                        if (n.type === 'Baru')     { iconBg='#dbeafe'; iconColor='text-primary'; iconClass='fa-user-plus'; borderLeft='#3b82f6'; }
+                        if (n.type === 'Diterima') { iconBg='#dcfce7'; iconColor='text-success'; iconClass='fa-check';     borderLeft='#22c55e'; }
+                        if (n.type === 'Ditolak')  { iconBg='#fee2e2'; iconColor='text-danger';  iconClass='fa-times';     borderLeft='#ef4444'; }
+                        if (n.type === 'update')   { iconBg='#fef9c3'; iconColor='text-warning'; iconClass='fa-rotate';   borderLeft='#eab308'; }
+
+                        const unreadBg = n.isRead ? '#fff' : '#f0f7ff';
+                        const dotHtml  = n.isRead ? '' : `<span style="width:8px;height:8px;background:var(--p-blue);border-radius:50%;flex-shrink:0;margin-left:8px;"></span>`;
+                        const jam      = n.createdAt.split(', ')[1]; // "HH:mm"
+
+                        container.append(`
+                            <a href="javascript:void(0)"
+                            onclick="handleNotifClick(${n.id}, ${n.magangId})"
+                            class="d-flex align-items-start text-decoration-none"
+                            style="padding:12px 16px; border-bottom:1px solid #f8fafc;
+                                    background:${unreadBg}; border-left:3px solid ${borderLeft};
+                                    transition:background 0.2s;">
+                                <div style="width:36px;height:36px;border-radius:10px;background:${iconBg};
+                                            display:flex;align-items:center;justify-content:center;
+                                            margin-right:12px;flex-shrink:0;">
+                                    <i class="fas ${iconClass} ${iconColor}" style="font-size:13px;"></i>
+                                </div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:13px;font-weight:700;color:#1e293b;">${n.title}</div>
+                                    <div style="font-size:12px;color:#64748b;margin-top:2px;line-height:1.4;">${n.message}</div>
+                                    <div style="font-size:10px;color:#94a3b8;margin-top:4px;">
+                                        <i class="fas fa-clock mr-1"></i>${jam}
+                                    </div>
+                                </div>
+                                ${dotHtml}
+                            </a>
+                        `);
+                    });
                 });
             }
         });

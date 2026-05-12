@@ -8,7 +8,6 @@ namespace sinta_asp.Areas.Admin.Controllers
     {
         public IActionResult Index()
         {
-            // CEK LOGIN ADMIN
             if (HttpContext.Session.GetString("AdminLogin") != "true")
             {
                 return RedirectToAction("Index", "Login", new { area = "Admin" });

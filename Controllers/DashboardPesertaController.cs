@@ -9,7 +9,7 @@ using System.IO;
 
 namespace sinta_asp.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "PesertaOnly")]
     public class DashboardPesertaController : Controller
     {
         private readonly AppDbContext _context;
@@ -21,51 +21,52 @@ namespace sinta_asp.Controllers
             // _environment = environment; // Tambahkan ini
         }
 
-        public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index()
+    {
+        var userEmail = User.Identity?.Name;
+
+        var profil = await _context.UserProfile
+            .FirstOrDefaultAsync(u => u.Email == userEmail);
+
+        var riwayatMagang = await _context.PendaftaranMagang
+            .Where(m => m.EmailPribadi == userEmail)
+            .OrderByDescending(m => m.CreatedAt)
+            .ToListAsync();
+
+        // --- INOVASI: AMBIL DATA MAGANG AKTIF (TERBARU & DITERIMA) ---
+        var today = DateTime.Today;
+
+        var magangDiterima = riwayatMagang
+            .Where(m => m.Status == "Diterima")
+            .OrderByDescending(m => m.SelesaiMagang)
+            .FirstOrDefault();
+
+        ViewBag.MagangAktif = null;
+        ViewBag.MagangAkanDatang = null;
+        ViewBag.MagangSelesai = null;
+
+        if (magangDiterima != null)
         {
-            var userEmail = User.Identity?.Name;
-
-            var profil = await _context.UserProfile
-                .FirstOrDefaultAsync(u => u.Email == userEmail);
-
-            var riwayatMagang = await _context.PendaftaranMagang
-                .Where(m => m.EmailPribadi == userEmail)
-                .OrderByDescending(m => m.CreatedAt)
-                .ToListAsync();
-
-            // --- INOVASI: AMBIL DATA MAGANG AKTIF (TERBARU & DITERIMA) ---
-            var today = DateTime.Today;
-
-            var magangDiterima = riwayatMagang
-                .Where(m => m.Status == "Diterima")
-                .OrderByDescending(m => m.SelesaiMagang)
-                .FirstOrDefault();
-
-            ViewBag.MagangAktif = null;
-            ViewBag.MagangAkanDatang = null;
-            ViewBag.MagangSelesai = null;
-
-            if (magangDiterima != null)
-            {
-                if (magangDiterima.MulaiMagang.Date > today)
-                    ViewBag.MagangAkanDatang = magangDiterima;
-                else if (magangDiterima.SelesaiMagang.Date < today)
-                    ViewBag.MagangSelesai = magangDiterima;
-                else
-                    ViewBag.MagangAktif = magangDiterima;
-            }
-
-            // --- LOGIKA PERHITUNGAN UNTUK DASHBOARD ---
-            ViewBag.TotalMagang = riwayatMagang.Count;
-            ViewBag.Menunggu = riwayatMagang.Count(m => m.Status == "Menunggu" || m.Status == "Review Berkas");
-            ViewBag.Diterima = riwayatMagang.Count(m => m.Status == "Diterima");
-            ViewBag.Ditolak = riwayatMagang.Count(m => m.Status == "Ditolak");
-
-            ViewBag.RiwayatMagang = riwayatMagang;
-
-            return View(profil);
+            if (magangDiterima.MulaiMagang.Date > today)
+                ViewBag.MagangAkanDatang = magangDiterima;
+            else if (magangDiterima.SelesaiMagang.Date < today)
+                ViewBag.MagangSelesai = magangDiterima;
+            else
+                ViewBag.MagangAktif = magangDiterima;
         }
 
+        // --- LOGIKA PERHITUNGAN UNTUK DASHBOARD ---
+        ViewBag.TotalMagang = riwayatMagang.Count;
+        ViewBag.Menunggu = riwayatMagang.Count(m => m.Status == "Menunggu" || m.Status == "Review Berkas");
+        ViewBag.Diterima = riwayatMagang.Count(m => m.Status == "Diterima");
+        ViewBag.Ditolak = riwayatMagang.Count(m => m.Status == "Ditolak");
+        
+        // Menghitung jumlah status revisi
+        ViewBag.Revisi = riwayatMagang.Count(m => m.Status == "Revisi");
+
+        ViewBag.RiwayatMagang = riwayatMagang;
+        return View(profil);
+    }
         [HttpGet]
         public IActionResult GetInformasiTersedia()
         {
@@ -264,6 +265,124 @@ namespace sinta_asp.Controllers
         public async Task<IActionResult> InformasiTersedia()
         {
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitRevisi(
+            int id,
+            string? nim,
+            string? noHp,
+            IFormFile? fileCv,
+            IFormFile? fileSurat,
+            IFormFile? fileProposal,
+            string? mulaiMagang,
+            string? selesaiMagang)
+        {
+            try
+            {
+                var userEmail = User.Identity?.Name;
+
+                // Ambil data magang milik user ini saja (keamanan)
+                var data = await _context.PendaftaranMagang
+                    .FirstOrDefaultAsync(m => m.Id == id && m.EmailPribadi == userEmail);
+
+                if (data == null)
+                    return Json(new { success = false, message = "Data tidak ditemukan." });
+
+                if (data.Status != "Revisi")
+                    return Json(new { success = false, message = "Status bukan Revisi, tidak bisa diubah." });
+
+                // Parse field revisi yang diminta admin jadi list lowercase
+                var revisiFields = (data.RevisiFields ?? "")
+                    .Split(',')
+                    .Select(x => x.Trim().ToLower())
+                    .ToList();
+
+                // --- Update field sesuai yang diminta admin saja ---
+
+                if (revisiFields.Any(r => r.Contains("akademik")) && !string.IsNullOrEmpty(nim))
+                    data.NIM = nim;
+
+                if (revisiFields.Any(r => r.Contains("kontak")) && !string.IsNullOrEmpty(noHp))
+                    data.NoHp = noHp;
+
+                if (revisiFields.Any(r => r.Contains("durasi")))
+                {
+                    if (DateTime.TryParse(mulaiMagang, out var tglMulai))
+                        data.MulaiMagang = tglMulai;
+                    if (DateTime.TryParse(selesaiMagang, out var tglSelesai))
+                        data.SelesaiMagang = tglSelesai;
+                }
+
+                // --- Upload file jika diminta ---
+                string uploadBase = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+                if (revisiFields.Any(r => r.Contains("cv")) && fileCv != null && fileCv.Length > 0)
+                {
+                    string folder = Path.Combine(uploadBase, "cv");
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                    // Hapus file lama
+                    if (!string.IsNullOrEmpty(data.FileCv))
+                    {
+                        var oldPath = Path.Combine(folder, Path.GetFileName(data.FileCv));
+                        if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                    }
+
+                    string fileName = $"cv_{Guid.NewGuid()}.pdf";
+                    using var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+                    await fileCv.CopyToAsync(stream);
+                    data.FileCv = "uploads/cv/" + fileName;
+                }
+
+                if (revisiFields.Any(r => r.Contains("surat")) && fileSurat != null && fileSurat.Length > 0)
+                {
+                    string folder = Path.Combine(uploadBase, "surat");
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                    if (!string.IsNullOrEmpty(data.FileSuratPengantar))
+                    {
+                        var oldPath = Path.Combine(folder, Path.GetFileName(data.FileSuratPengantar));
+                        if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                    }
+
+                    string fileName = $"surat_{Guid.NewGuid()}.pdf";
+                    using var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+                    await fileSurat.CopyToAsync(stream);
+                    data.FileSuratPengantar = "uploads/surat/" + fileName;
+                }
+
+                if (revisiFields.Any(r => r.Contains("proposal")) && fileProposal != null && fileProposal.Length > 0)
+                {
+                    string folder = Path.Combine(uploadBase, "proposal");
+                    if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                    if (!string.IsNullOrEmpty(data.FileProposal))
+                    {
+                        var oldPath = Path.Combine(folder, Path.GetFileName(data.FileProposal));
+                        if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                    }
+
+                    string fileName = $"proposal_{Guid.NewGuid()}.pdf";
+                    using var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+                    await fileProposal.CopyToAsync(stream);
+                    data.FileProposal = "uploads/proposal/" + fileName;
+                }
+
+                // --- Selesai revisi: kembalikan ke Menunggu & bersihkan field revisi ---
+                data.Status = "Menunggu";
+                data.RevisiFields = null;
+                data.CatatanRevisi = null;
+
+                _context.PendaftaranMagang.Update(data);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
         }
 
         [HttpPost]

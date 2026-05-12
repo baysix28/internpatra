@@ -144,8 +144,8 @@
                     <i class="fas fa-exclamation-triangle"></i> <span>@TempData["ErrorMessage"]</span>
                 </div>
             }
-
             <form asp-action="Login" method="post" id="loginForm">
+                <!-- Input Email -->
                 <div class="form-group">
                     <label class="input-label">Email Address</label>
                     <div class="input-box">
@@ -154,16 +154,21 @@
                     </div>
                 </div>
 
+                <!-- Input Password dengan Lupa Password & Error Handler -->
                 <div class="form-group">
-                    <label class="input-label">Password</label>
+                    <div class="d-flex justify-content-between align-items-center" style="display: flex; justify-content: space-between;">
+                        <label class="input-label">Password</label>
+                        <a href="@Url.Action("ForgotPassword", "Auth")" style="font-size: 11px; color: var(--white-soft); text-decoration: none; margin-bottom: 10px;">Lupa Password?</a>
+                    </div>
                     <div class="input-box">
                         <i class="fa-solid fa-lock field-icon"></i>
-                        <input type="password" class="form-input" name="Password" id="passwordInput" placeholder="********">
+                        <input type="password" class="form-input" name="Password" id="passwordInput" placeholder="********" required>
                         <i class="fa-solid fa-eye toggle-password" id="togglePass"></i>
                     </div>
-                    @* <small id="passwordError">
+                    <!-- Pastikan ID ini ada agar JavaScript tidak error -->
+                    <small id="passwordError">
                         <i class="fas fa-info-circle"></i> Minimal 6 karakter
-                    </small> *@
+                    </small>
                 </div>
 
                 <button type="submit" class="btn-auth">

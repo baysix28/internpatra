@@ -7,6 +7,7 @@ using sinta_asp.Services;
 
 namespace sinta_asp.Controllers
 {
+    [Authorize(AuthenticationSchemes = "PesertaScheme")] 
     public class PendaftaranMagangController : Controller
     {
         private readonly AppDbContext _context;
@@ -22,6 +23,9 @@ namespace sinta_asp.Controllers
             _environment = environment;
             _emailService = emailService;
         }
+
+        
+        [AllowAnonymous] // ← tambahkan ini
 
         public IActionResult Index() => View();
 
@@ -43,7 +47,6 @@ namespace sinta_asp.Controllers
                 EmailPribadi = email
             });
         }
-
         [HttpGet]
         public async Task<IActionResult> GetDetailMagang(int id)
         {
@@ -75,12 +78,15 @@ namespace sinta_asp.Controllers
                 pathCV = "/" + m.FileCv,
                 pathSurat = "/" + m.FileSuratPengantar,
                 pathProposal = "/" + m.FileProposal,
-                status = m.Status
+                status = m.Status,
+
+                // ✅ TAMBAHAN
+                revisiFields  = m.RevisiFields ?? "",   // "CV, Surat Pengantar, Data Akademik"
+                catatanRevisi = m.CatatanRevisi ?? ""   // pesan dari admin
             });
         }
-
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Store(
             Magang model,
             IFormFile? Foto,
@@ -92,7 +98,12 @@ namespace sinta_asp.Controllers
 
             try
             {
-                string currentUserEmail = User.Identity?.Name ?? "guest@gmail.com";
+                string currentUserEmail = User.Identity?.Name ?? "";
+                    if (string.IsNullOrEmpty(currentUserEmail))
+                    {
+                        TempData["ErrorMessage"] = "Sesi habis, silakan login ulang.";
+                        return RedirectToAction("Login", "Auth");
+                    }
                 model.EmailPribadi = currentUserEmail;
 
                 // ===== 1. UPLOAD FILE =====
@@ -155,13 +166,25 @@ namespace sinta_asp.Controllers
                 {
                     Nama = model.NamaLengkap,
                     UserEmail = model.EmailPribadi,
-                    Title = "Pendaftaran Magang",
-                    Message = $"Pendaftaran magang di {model.Company} berhasil dikirim.",
-                    Url = "/DashboardPeserta#riwayat",
+                    Title = "Pendaftaran Magang Terkirim", 
+                    Message = $"Pendaftaran magang di {model.Company} ({model.Region}) berhasil dikirim. Silakan tunggu konfirmasi dari tim HC.",  // ← Update
+                    Url = "/DashboardPeserta?tab=riwayat",
                     Type = "new",
                     IsRead = false,
                     CreatedAt = DateTime.Now,
                     ExternalId = model.Id.ToString()
+                });
+
+                // NOTIF KE ADMIN (pendaftaran baru)
+                _context.AdminNotifications.Add(new AdminNotification
+                {
+                    Title = "Pendaftaran Baru",
+                    Message = $"{model.NamaLengkap} mendaftar di {model.Region}",
+                    Type = "Baru",
+                    TargetRegion = model.Region,
+                    IsRead = false,
+                    CreatedAt = DateTime.Now,
+                    MagangId = model.Id
                 });
 
                 await _context.SaveChangesAsync();

@@ -31,6 +31,7 @@
     };
 }
 
+<!-- External Resources -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -56,6 +57,7 @@
     .stat-card.active[data-status="Menunggu"] { border: 2px solid var(--p-orange); background: #fffbeb; }
     .stat-card.active[data-status="Diterima"] { border: 2px solid var(--p-green); background: #ecfdf5; }
     .stat-card.active[data-status="Ditolak"] { border: 2px solid var(--p-red); background: #fef2f2; }
+    .stat-card.active[data-status="Revisi"] { border: 2px solid #6366f1; background: #f5f3ff; }
 
     .icon-box {
         width: 40px; height: 40px; border-radius: 10px;
@@ -69,14 +71,16 @@
     .stat-label { color: #64748b; font-size: 0.7rem; font-weight: 700; }
     .stat-value { font-weight: 800; font-size: 1.15rem; color: #1e293b; }
 
+    /* --- Table --- */
     .main-table-card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; position: static !important; }
     .filter-toolbar { display: flex; align-items: center; justify-content: space-between; width: 100%; position: static !important; }
-    
+
     .table thead th { background: #f8fafc; font-weight: 700; color: #64748b; font-size: 0.7rem; padding: 12px 15px; text-transform: uppercase; border: none; }
     .badge-status { padding: 5px 12px; border-radius: 50px; font-weight: 700; font-size: 0.65rem; text-transform: uppercase; }
     .status-Diterima { background: #dcfce7; color: #065f46; }
     .status-Ditolak { background: #fee2e2; color: #991b1b; }
     .status-Menunggu { background: #fef3c7; color: #92400e; }
+    .status-Revisi { background: #e0e7ff; color: #3730a3; }
 
     .btn-review {
         background: var(--p-blue); color: #fff; border: none;
@@ -90,12 +94,7 @@
         transition: var(--transition); background-color: #fff; font-weight: 600; font-size: 0.85rem; color: #475569; outline: none;
     }
 
-    /* --- Hover Dropdown Logic --- */
-    .dropdown:hover > .dropdown-menu-premium {
-        display: block;
-        margin-top: 0; 
-    }
-
+    /* --- Dropdown Region --- */
     .btn-region-select {
         min-width: 220px; text-align: left; padding: 8px 12px; font-weight: 700; font-size: 0.8rem;
         color: var(--p-blue); border: 1.5px solid #e2e8f0; border-radius: 10px; background-color: white;
@@ -112,6 +111,7 @@
     .btn-pertamina { background: var(--p-blue); color: white; border: none; font-weight: 700; border-radius: 6px; padding: 8px 16px; font-size: 0.8rem; transition: var(--transition); }
     .user-avatar-list { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
 
+    /* --- Modal --- */
     .modal-content { border-radius: 28px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; }
     .modal-header-premium { background: linear-gradient(135deg, #00549B 0%, #003d70 100%); padding: 1.5rem 2rem; color: white; position: relative; }
     .header-flex-container { display: flex; align-items: center; gap: 20px; }
@@ -122,14 +122,14 @@
     .btn-action-standard {
         padding: 8px 24px; min-width: 130px; font-size: 0.8rem; font-weight: 700; border-radius: 10px; border: none; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    
     .btn-accept-modern { background: var(--p-blue); color: white; box-shadow: 0 4px 10px rgba(0, 84, 155, 0.15); }
     .btn-accept-modern:hover { background: #003d70; transform: translateY(-1px); color: white; }
-    
     .btn-reject-modern { background: var(--p-red); color: white; box-shadow: 0 4px 10px rgba(236, 28, 36, 0.15); }
     .btn-reject-modern:hover { background: #c1121a; transform: translateY(-1px); color: white; }
-    
-    .detail-body { padding: 30px 40px 100px 40px; background: #fff; position: relative; }
+    .btn-revision-modern { background: var(--p-orange); color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.15); }
+    .btn-revision-modern:hover { background: #d97706; transform: translateY(-1px); color: white; }
+
+    .detail-body { padding: 30px 40px 110px 40px; background: #fff; position: relative; }
     .info-card-premium { background: #f8fafc; border-radius: 16px; padding: 18px; height: 100%; border: 1px solid #eef2f6; }
     
     .info-label { color: #94a3b8; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; }
@@ -146,11 +146,30 @@
     .rekomendasi-box { background: transparent; border: none; padding: 0; }
     .text-rekomendasi { color: #000000 !important; font-weight: 700; font-size: 0.9rem; line-height: 1.5; }
 
-    .action-wrapper-minimal { position: absolute; bottom: 30px; right: 40px; display: flex; gap: 12px; z-index: 10; }
+    /* --- Revision Panel --- */
+    .revision-panel {
+        display: none; background: #fff9f0; border: 2px dashed #f59e0b;
+        border-radius: 16px; padding: 20px; margin-top: 25px; animation: slideInUp 0.4s ease;
+    }
+    .revision-item {
+        display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+        background: white; border: 1px solid #fee2e2; border-radius: 8px;
+        margin-bottom: 8px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; font-weight: 600;
+    }
+    .revision-item:hover { border-color: var(--p-orange); background: #fffaf5; }
+    .revision-item input { width: 18px; height: 18px; }
+
+    /* --- Action Buttons --- */
+    .action-wrapper-minimal { position: absolute; bottom: 30px; right: 40px; display: flex; gap: 10px; z-index: 10; }
 
     .magang-row.unread {
         background-color: rgba(0, 84, 155, 0.04) !important;
         border-left: 4px solid var(--p-blue);
+    }
+
+    @@keyframes slideInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 
@@ -169,11 +188,58 @@
         </button>
     </div>
 
+    <!-- Stat Cards -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3"><div class="stat-card active" data-status="all" id="card-all" onclick="filterByStatus('all', 'card-all')"><div class="icon-box bg-light-blue"><i class="fas fa-user-group"></i></div><div><div class="stat-label">Total Pendaftar</div><div class="stat-value" id="val-all">@totalPendaftar</div></div></div></div>
-        <div class="col-md-3"><div class="stat-card" data-status="Menunggu" id="card-proses" onclick="filterByStatus('Menunggu', 'card-proses')"><div class="icon-box bg-light-orange"><i class="fas fa-hourglass-half"></i></div><div><div class="stat-label">Menunggu</div><div class="stat-value" id="val-proses">@Model.StatusDiproses</div></div></div></div>
-        <div class="col-md-3"><div class="stat-card" data-status="Diterima" id="card-terima" onclick="filterByStatus('Diterima', 'card-terima')"><div class="icon-box bg-light-green"><i class="fas fa-check-double"></i></div><div><div class="stat-label">Diterima</div><div class="stat-value" id="val-terima">@Model.StatusDiterima</div></div></div></div>
-        <div class="col-md-3"><div class="stat-card" data-status="Ditolak" id="card-tolak" onclick="filterByStatus('Ditolak', 'card-tolak')"><div class="icon-box bg-light-red"><i class="fas fa-user-xmark"></i></div><div><div class="stat-label">Ditolak</div><div class="stat-value" id="val-tolak">@Model.StatusDitolak</div></div></div></div>
+        <!-- Total Pendaftar -->
+        <div class="col-md">
+            <div class="stat-card active" data-status="all" id="card-all" onclick="filterByStatus('all', 'card-all')">
+                <div class="icon-box bg-light-blue"><i class="fas fa-user-group"></i></div>
+                <div>
+                    <div class="stat-label">Total</div>
+                    <div class="stat-value" id="val-all">@totalPendaftar</div>
+                </div>
+            </div>
+        </div>
+        <!-- Menunggu -->
+        <div class="col-md">
+            <div class="stat-card" data-status="Menunggu" id="card-proses" onclick="filterByStatus('Menunggu', 'card-proses')">
+                <div class="icon-box bg-light-orange"><i class="fas fa-hourglass-half"></i></div>
+                <div>
+                    <div class="stat-label">Menunggu</div>
+                    <div class="stat-value" id="val-proses">@Model.StatusDiproses</div>
+                </div>
+            </div>
+        </div>
+        <!-- Diterima -->
+        <div class="col-md">
+            <div class="stat-card" data-status="Diterima" id="card-terima" onclick="filterByStatus('Diterima', 'card-terima')">
+                <div class="icon-box bg-light-green"><i class="fas fa-check-double"></i></div>
+                <div>
+                    <div class="stat-label">Diterima</div>
+                    <div class="stat-value" id="val-terima">@Model.StatusDiterima</div>
+                </div>
+            </div>
+        </div>
+        <!-- Ditolak -->
+        <div class="col-md">
+            <div class="stat-card" data-status="Ditolak" id="card-tolak" onclick="filterByStatus('Ditolak', 'card-tolak')">
+                <div class="icon-box bg-light-red"><i class="fas fa-user-xmark"></i></div>
+                <div>
+                    <div class="stat-label">Ditolak</div>
+                    <div class="stat-value" id="val-tolak">@Model.StatusDitolak</div>
+                </div>
+            </div>
+        </div>
+        <!-- Revisi (Tambahan Baru) -->
+        <div class="col-md">
+            <div class="stat-card" data-status="Revisi" id="card-revisi" onclick="filterByStatus('Revisi', 'card-revisi')">
+                <div class="icon-box" style="background-color: #fff3cd; color: #856404;"><i class="fas fa-edit"></i></div>
+                <div>
+                    <div class="stat-label">Revisi</div>
+                    <div class="stat-value" id="val-revisi">@Model.StatusRevisi</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="main-table-card">
@@ -191,12 +257,10 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-premium shadow-lg">
                             <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == "all" ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('all')">Semua Region</a></li>
-                            
                             @foreach (var region in staticRegions)
                             {
                                 <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == region ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
                             }
-
                             @if (ViewBag.AllRegions != null)
                             {
                                 foreach (var region in (IEnumerable<string>)ViewBag.AllRegions)
@@ -257,6 +321,7 @@
     </div>
 </div>
 
+<!-- Modal Detail -->
 <div class="modal fade" id="modalDetail" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
@@ -275,6 +340,7 @@
 
             <div class="detail-body">
                 <div class="row g-4">
+                    <!-- Kolom 1: Kontak & Pribadi -->
                     <div class="col-md-4">
                         <div class="info-label"><i class="fas fa-id-card me-2"></i>Kontak & Pribadi</div>
                         <div class="info-card-premium">
@@ -288,23 +354,31 @@
                                     <i class="fab fa-whatsapp me-1"></i><span id="d-hp"></span>
                                 </a>
                             </div>
-                            <div class="info-label">Tempat, Tgl Lahir</div><div id="d-ttl" class="info-value"></div>
+                            <div class="info-label">Tempat, Tgl Lahir</div>
+                            <div id="d-ttl" class="info-value"></div>
                             <div class="info-label">Instagram</div>
                             <div class="info-value">@@<span id="d-ig-text"></span></div>
                         </div>
                     </div>
+
+                    <!-- Kolom 2: Akademik & Unit -->
                     <div class="col-md-4">
                         <div class="info-label"><i class="fas fa-university me-2"></i>Akademik & Unit</div>
                         <div class="info-card-premium">
-                            <div class="info-label">Kampus (NIM)</div><div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
-                            <div class="info-label">Fakultas / Jurusan</div><div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
+                            <div class="info-label">Kampus (NIM)</div>
+                            <div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
+                            <div class="info-label">Fakultas / Jurusan</div>
+                            <div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
                             <div class="info-label">Penempatan (Company - Region)</div>
                             <div id="d-company-region" class="info-value"></div>
                             <div class="info-label">Lokasi Penugasan</div>
                             <div id="d-lokasi" class="info-value highlight-lokasi"></div>
-                            <div class="info-label">Periode Magang</div><div id="d-periode" class="info-value"></div>
+                            <div class="info-label">Periode Magang</div>
+                            <div id="d-periode" class="info-value"></div>
                         </div>
                     </div>
+
+                    <!-- Kolom 3: Berkas Digital -->
                     <div class="col-md-4">
                         <div class="info-label"><i class="fas fa-file-alt me-2"></i>Berkas Digital</div>
                         <a id="link-cv" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
@@ -316,9 +390,65 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Revision Area yang Diperbarui -->
+                <div id="revisionPanel" class="revision-panel">
+                    <h6 class="fw-800 text-warning mb-3"><i class="fas fa-exclamation-circle me-2"></i> REVISI DATA</h6>
+                    <div class="row g-3">
+                        <!-- Kolom Kiri -->
+                        <div class="col-md-6">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="Foto Profil (Kurang Jelas)" id="rev1">
+                                <label class="form-check-label small fw-bold" for="rev1">Foto Profil</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="Data Kontak (WA/Email Salah)" id="rev2">
+                                <label class="form-check-label small fw-bold" for="rev2">Data Kontak</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="Data Akademik (NIM/Jurusan)" id="rev3">
+                                <label class="form-check-label small fw-bold" for="rev3">Data Akademik </label>
+                            </div>
+                        </div>
+
+                        <!-- Kolom Kanan -->
+                        <div class="col-md-6">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="CV (File Rusak/Salah)" id="rev4">
+                                <label class="form-check-label small fw-bold" for="rev4">CV</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="Surat Pengantar (Bermasalah)" id="rev5">
+                                <label class="form-check-label small fw-bold" for="rev5">Surat Pengantar</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="Proposal Magang (Kurang Lengkap)" id="rev6">
+                                <label class="form-check-label small fw-bold" for="rev6">Proposal Magang</label>
+                            </div>
+                            <!-- TAMBAHAN BARU DI SINI -->
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" value="Durasi Magang (Tanggal tidak sesuai)" id="rev7">
+                                <label class="form-check-label small fw-bold" for="rev7">Durasi Magang</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <label class="info-label">Catatan Tambahan (Opsional):</label>
+                            <textarea id="revisionNote" class="form-control" rows="2" style="border-radius:12px;" placeholder="Tulis instruksi spesifik di sini..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button onclick="toggleRevisionPanel()" class="btn btn-light fw-bold px-4" style="border-radius:10px;">Batal</button>
+                        <button onclick="submitRevision()" class="btn btn-warning text-white fw-bold px-4" style="border-radius:10px;">Kirim Revisi</button>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi -->
                 <div id="action-area-minimal" class="action-wrapper-minimal">
                     @if (adminRole != "SuperAdmin")
                     {
+                        <button onclick="toggleRevisionPanel()" class="btn-action-standard btn-revision-modern"><i class="fas fa-edit"></i> Minta Revisi</button>
                         <button onclick="updateStatus('Ditolak')" class="btn-action-standard btn-reject-modern"><i class="fas fa-times"></i> Tolak</button>
                         <button onclick="updateStatus('Diterima')" class="btn-action-standard btn-accept-modern"><i class="fas fa-check"></i> Terima</button>
                     }
@@ -344,10 +474,7 @@
         window.location.href = `/Admin/Mahasiswa/Index?selectedRegion=${encodeURIComponent(region)}`;
     }
 
-    // Live Search Functionality
-    $("#tableSearch").on("keyup", function() {
-        applyAllFilters();
-    });
+    $("#tableSearch").on("keyup", function() { applyAllFilters(); });
 
     function filterByStatus(status, cardId) {
         currentStatusFilter = status;
@@ -361,31 +488,129 @@
         $(".magang-row").each(function() {
             const rowStatus = $(this).attr("data-status");
             const rowText = $(this).text().toLowerCase();
-            
             const matchSearch = rowText.indexOf(searchText) > -1;
             const matchStatus = currentStatusFilter === 'all' || rowStatus === currentStatusFilter;
-            
-            if (matchSearch && matchStatus) {
-                $(this).show();
-            } else {
-                $(this).hide();
+            $(this).toggle(matchSearch && matchStatus);
+        });
+    }
+
+    // Fungsi untuk menghitung durasi antara dua tanggal
+    function calculateDuration(start, end) {
+        if (!start || !end) return "-";
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        const months = Math.floor(diffDays / 30);
+        const days = diffDays % 30;
+        
+        return months > 0 ? `${months} Bulan ${days} Hari` : `${days} Hari`;
+    }
+
+    function exportExcel() {
+        // Mengambil data dari Model C# yang sudah di-serialize ke JSON di sisi client
+        const rawData = @Html.Raw(JsonSerializer.Serialize(daftarMagang));
+        
+        if (!rawData || rawData.length === 0) {
+            Swal.fire('Info', 'Tidak ada data untuk dieksport.', 'info');
+            return;
+        }
+
+        // Transformasi data agar sesuai dengan kolom yang kamu minta
+        const excelData = rawData.map((item, index) => {
+            return {
+                "No": index + 1,
+                "ID Pendaftaran": item.Id || item.id,
+                "Tanggal Daftar": item.CreatedAt ? new Date(item.CreatedAt).toLocaleDateString('id-ID') : "-",
+                "NIM": item.NIM || item.nim,
+                "Nama Lengkap": item.NamaLengkap || item.namaLengkap,
+                "Email": item.EmailPribadi || item.emailPribadi,
+                "No. HP": item.NoHp || item.noHp,
+                "Instagram": item.Instagram || "-",
+                "Tempat Lahir": item.TempatLahir || item.tempatLahir,
+                "Tanggal Lahir": item.TanggalLahir ? new Date(item.TanggalLahir).toLocaleDateString('id-ID') : "-",
+                "Perguruan Tinggi": item.NamaPerguruanTinggi || item.namaPerguruanTinggi,
+                "Fakultas": item.Fakultas || item.fakultas,
+                "Jurusan": item.Jurusan || item.jurusan,
+                "Company": item.Company || item.company,
+                "Region": item.Region || item.region,
+                "Lokasi": item.Lokasi || item.lokasi,
+                "Rekomendasi": item.RekomendasiPegawai || "-",
+                "Mulai Magang": item.MulaiMagang ? new Date(item.MulaiMagang).toLocaleDateString('id-ID') : "-",
+                "Selesai Magang": item.SelesaiMagang ? new Date(item.SelesaiMagang).toLocaleDateString('id-ID') : "-",
+                "Durasi Magang": calculateDuration(item.MulaiMagang, item.SelesaiMagang),
+                "Status": item.Status || item.status
+            };
+        });
+
+        // Proses pembuatan file Excel
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Mahasiswa Magang");
+
+        // Nama file otomatis berdasarkan region
+        const fileName = "Data_Magang_SINTA_" + "@displayRegion".replace(/\s/g, '_') + ".xlsx";
+        XLSX.writeFile(workbook, fileName);
+    }
+
+    function submitRevision() {
+        const id = $("#d-id").val();
+        const items = [];
+        // Mengambil nilai dari checkbox yang dicentang
+        $("#revisionPanel input:checked").each(function() {
+            items.push($(this).val());
+        });
+        
+        const note = $("#revisionNote").val();
+
+        if (items.length === 0 && !note) {
+            Swal.fire('Perhatian', 'Pilih minimal satu item revisi atau tulis catatan.', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Kirim Permintaan Revisi?',
+            text: "Mahasiswa akan menerima email instruksi revisi.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            confirmButtonText: 'Ya, Kirim'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Gabungkan checkbox dan catatan tambahan
+                const fullMessage = (items.length > 0 ? "Item Revisi: " + items.join(", ") : "") + 
+                                    (note ? "\nCatatan Tambahan: " + note : "");
+
+                $.post("/Admin/Mahasiswa/UpdateStatus", { 
+                    id: id, 
+                    status: 'Revisi', 
+                    catatan: fullMessage 
+                }, function(res) {
+                    if(res.success) {
+                        Swal.fire('Berhasil', 'Status diubah ke Revisi dan email terkirim.', 'success')
+                            .then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', 'Gagal memperbarui status.', 'error');
+                    }
+                });
             }
         });
     }
 
-    function exportExcel() {
-        const currentRegion = "@rawSelectedRegion";
-        const activeStatus = currentStatusFilter;
-        window.location.href = `/Admin/Mahasiswa/ExportMahasiswa?selectedRegion=${encodeURIComponent(currentRegion)}&status=${encodeURIComponent(activeStatus)}`;
-    }
-
     function showDetail(data) {
+        // Reset panel revisi setiap buka modal
+        $("#revisionPanel").hide();
+        $("#revisionPanel input:checkbox").prop("checked", false);
+        $("#revisionNote").val("");
+
         $("#d-id").val(data.Id || data.id);
         $("#d-nama").text(data.NamaLengkap || data.namaLengkap);
         $("#d-noreg").text(data.NoPendaftaran || data.noPendaftaran || "BELUM TERSEDIA");
         
+        // Format tanggal daftar
         const createdAt = data.CreatedAt || data.createdAt;
-        if(createdAt) {
+        if (createdAt) {
             const date = new Date(createdAt);
             const formatted = date.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) + 
                               ' | ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
@@ -394,40 +619,40 @@
         
         const st = data.Status || data.status;
         updateModalStatusUI(st);
-        
+
+        // Foto profil
         const pf = data.FotoProfil || data.fotoProfil;
         const finalFoto = pf ? "/uploads/foto/" + pf.split('/').pop() : "/img/default-user.png";
         $("#d-foto").attr("src", finalFoto);
         $("#d-foto-link").attr("href", finalFoto);
 
+        // Kontak & Pribadi
         $("#d-email").text(data.EmailPribadi || data.emailPribadi);
         const rawHp = data.NoHp || data.noHp || "";
         let cleanHp = rawHp.replace(/\D/g, '');
         if (cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.slice(1);
         $("#d-hp").text(rawHp || "-");
         $("#d-hp-link").attr("href", cleanHp ? `https://wa.me/${cleanHp}` : "#");
-
         $("#d-ttl").text(`${data.TempatLahir || data.tempatLahir || "-"}, ${formatDate(data.TanggalLahir || data.tanggalLahir)}`);
-        
         let rawIg = (data.Instagram || data.instagram || "").replace(/@@/g, '').trim();
         $("#d-ig-text").text(rawIg || "-");
-        
+
+        // Akademik & Unit
         $("#d-univ").text(data.NamaPerguruanTinggi || data.namaPerguruanTinggi || "-");
         $("#d-nim").text(data.NIM || data.nim || "-");
         $("#d-fakultas").text(data.Fakultas || data.fakultas || "-");
         $("#d-jurusan").text(data.Jurusan || data.jurusan || "-");
-        
         const comp = data.Company || data.company || "-";
         const reg = data.Region || data.region || "-";
-        const lok = data.Lokasi || data.lokasi || "-";
         $("#d-company-region").text(`${comp} - ${reg}`);
-        $("#d-lokasi").text(lok);
-        
+        $("#d-lokasi").text(data.Lokasi || data.lokasi || "-");
+        $("#d-periode").text(formatDate(data.MulaiMagang || data.mulaiMagang) + " - " + formatDate(data.SelesaiMagang || data.selesaiMagang));
+
+        // Rekomendasi
         const rekom = data.RekomendasiPegawai || data.rekomendasiPegawai;
         $("#d-rekomendasi").text(rekom && rekom !== "-" ? rekom : "Tidak ada rekomendasi pegawai.");
 
-        $("#d-periode").text(formatDate(data.MulaiMagang || data.mulaiMagang) + " - " + formatDate(data.SelesaiMagang || data.selesaiMagang));
-
+        // Berkas
         $("#link-cv").attr("href", "/uploads/cv/" + (data.FileCv || data.fileCv || "").split('/').pop());
         $("#link-surat").attr("href", "/uploads/surat/" + (data.FileSuratPengantar || data.fileSuratPengantar || "").split('/').pop());
         $("#link-proposal").attr("href", "/uploads/proposal/" + (data.FileProposal || data.fileProposal || "").split('/').pop());
@@ -444,9 +669,56 @@
         }
     }
 
-    function formatDate(d) {
-        if(!d) return "-";
-        return new Date(d).toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+    function toggleRevisionPanel() {
+        $("#revisionPanel").slideToggle();
+    }
+
+    function submitRevision() {
+        const id = $("#d-id").val();
+        const items = [];
+        $("#revisionPanel input:checked").each(function() { items.push($(this).val()); });
+
+        if (items.length === 0) {
+            Swal.fire('Opps!', 'Pilih minimal satu item yang perlu direvisi!', 'warning');
+            return;
+        }
+
+        const note = $("#revisionNote").val();
+
+        Swal.fire({
+            title: 'Kirim Permintaan Revisi?',
+            text: "Mahasiswa akan diberitahu melalui email.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#f59e0b',
+            confirmButtonText: 'Ya, Kirim',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const row = $(`#row-${id}`);
+                const oldStatus = row.attr("data-status");
+
+                $.post("/Admin/Mahasiswa/UpdateStatus", { 
+                    id: id, 
+                    status: 'Revisi', 
+                    catatan: items.join(', ') + (note ? " | Pesan: " + note : "")
+                }, function(res) {
+                    if (res.success) {
+                        // Update UI tanpa reload
+                        row.attr("data-status", "Revisi");
+                        row.find(".badge-status").attr("class", "badge-status status-Revisi").text("Revisi");
+                        row.removeClass("unread");
+                        if (oldStatus !== "Revisi") { updateStatCount(oldStatus, -1); }
+                        updateModalStatusUI("Revisi");
+                        $("#revisionPanel").hide();
+                        $("#modalDetail").modal('hide');
+                        Swal.fire('Berhasil!', 'Permintaan revisi telah dikirim ke email mahasiswa.', 'success');
+                    } else {
+                        Swal.fire('Error', res.message || 'Gagal mengirim revisi.', 'error');
+                    }
+                });
+            }
+        });
     }
 
     function updateStatus(s) {
@@ -455,8 +727,10 @@
 
         Swal.fire({
             title: 'Konfirmasi', text: `Ubah status menjadi ${s}?`, icon: 'question',
-            showCancelButton: true, confirmButtonColor: s === 'Diterima' ? '#00549B' : '#EC1C24',
-            confirmButtonText: 'Ya, Simpan'
+            showCancelButton: true, 
+            confirmButtonColor: s === 'Diterima' ? '#00549B' : '#EC1C24',
+            confirmButtonText: 'Ya, Simpan',
+            cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
                 const row = $(`#row-${id}`);
@@ -469,8 +743,11 @@
 
                 $("#modalDetail").modal('hide');
                 $.post("/Admin/Mahasiswa/UpdateStatus", { id: id, status: s }, function(res) {
-                    if(!res.success) { Swal.fire('Error', res.message || 'Gagal update.', 'error').then(() => location.reload()); }
-                    else { Swal.fire('Berhasil', res.message, 'success'); }
+                    if (!res.success) { 
+                        Swal.fire('Error', res.message || 'Gagal update.', 'error').then(() => location.reload()); 
+                    } else { 
+                        Swal.fire('Berhasil!', res.message, 'success'); 
+                    }
                 });
             }
         });
@@ -485,5 +762,13 @@
             const currentVal = parseInt($(el).text()) || 0;
             $(el).text(Math.max(0, currentVal + change));
         }
+        // Update total
+        const total = parseInt($("#val-all").text()) || 0;
+        if (change < 0) $("#val-all").text(Math.max(0, total + change));
+    }
+
+    function formatDate(d) {
+        if (!d) return "-";
+        return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
     }
 </script>

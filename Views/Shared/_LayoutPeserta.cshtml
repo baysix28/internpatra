@@ -28,13 +28,25 @@
             --p-gray-bg: #f8fafc;
         }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--p-gray-bg); overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--p-gray-bg); overflow-x: hidden; transition: var(--transition); }
 
         /* Sidebar */
         .sidebar {
-            width: var(--sidebar-width); height: 100vh; position: fixed;
-            left: 0; top: 0; background: #fff; border-right: 1px solid #e2e8f0;
-            z-index: 1000; padding: 30px 20px; display: flex; flex-direction: column;
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: #fff;
+            border-right: 1px solid #e2e8f0;
+            z-index: 1000;
+            padding: 30px 20px;
+            
+            display: flex;
+            flex-direction: column;
+
+            overflow: hidden;
+            transition: var(--transition);
         }
         .brand-container { margin-bottom: 50px; padding: 0 10px; }
         .brand-logo-pertamina { height: 45px; }
@@ -44,17 +56,39 @@
             border-radius: 12px; text-decoration: none !important; margin-bottom: 6px;
             font-weight: 600; transition: var(--transition); border: none; background: transparent; width: 100%;
         }
-        .nav-link-custom:hover { background: rgba(0, 84, 155, 0.05); color: var(--p-blue); }
+        .nav-link-custom:hover { background: rgba(0, 84, 155, 0.05); color: var(--p-blue); transform: translateX(5px); }
         .nav-link-custom.active { background: var(--p-blue); color: #fff !important; box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2); }
-        .nav-link-logout { color: var(--p-red) !important; border: 1px solid #fee2e2; background: #fffafa; margin-top: auto; }
+        .nav-link-logout {
+            color: var(--p-red) !important;
+            border: 1px solid #fee2e2;
+            background: #fffafa;
+            margin-top: auto;
+        }
+        /* Sidebar Toggle */
+        #sidebarToggle {
+            cursor: pointer; font-size: 1.2rem;
+            transition: var(--transition); padding: 10px; border-radius: 8px;
+        }
+        #sidebarToggle:hover { background: #f1f5f9; color: var(--p-blue) !important; }
+
+        body.sidebar-toggled .sidebar  { left: calc(var(--sidebar-width) * -1); }
+        body.sidebar-toggled .topbar   { left: 0; }
+        body.sidebar-toggled .main-content { margin-left: 0; }
+
+        /* Sidebar notif bubble */
+        .sidebar-notif-bubble {
+            background: var(--p-red); color: white; font-size: 10px;
+            padding: 2px 7px; border-radius: 20px; margin-left: auto; font-weight: 700;
+        }
 
         /* Topbar */
         .topbar {
             height: var(--topbar-height); position: fixed; top: 0; right: 0; left: var(--sidebar-width);
             background: #fff; border-bottom: 1px solid #e2e8f0; z-index: 999;
             display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+            transition: var(--transition);
         }
-        .main-content { margin-left: var(--sidebar-width); padding-top: var(--topbar-height); min-height: 100vh; }
+        .main-content { margin-left: var(--sidebar-width); padding-top: var(--topbar-height); min-height: 100vh; transition: var(--transition); }
 
         /* Global Cards */
         .glass-card {
@@ -64,17 +98,77 @@
         .status-badge { padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; }
         .status-review { background: #fef9c3; color: #854d0e; }
         .status-approved { background: #dcfce7; color: #166534; }
+
+        /* Notifications */
+        .notif-dropdown-wrapper { position: relative; padding-bottom: 10px; }
+        .notif-btn {
+            background: transparent; border: none; font-size: 1.25rem;
+            color: #64748b; cursor: pointer; padding: 5px; outline: none !important;
+            box-shadow: none !important;
+        }
+        .notif-btn:hover { color: var(--p-blue); }
+        
+        /* Auto open on hover */
+        .notif-dropdown-wrapper:hover .notif-dropdown {
+            display: block; opacity: 1; visibility: visible; transform: translateY(0);
+        }
+        
+        .notif-dropdown {
+            display: block; opacity: 0; visibility: hidden;
+            transform: translateY(10px); transition: all 0.3s ease;
+            position: absolute; right: 0; top: 100%; width: 330px;
+            background: white; border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 8px 0; z-index: 1001;
+            border: none !important;
+        }
+        .notif-header {
+            padding: 12px 20px; display: flex;
+            justify-content: space-between; align-items: center;
+            border-bottom: none !important;
+        }
+        .notif-badge {
+            position: absolute; top: 0px; right: 0px; background: #ec1c24; color: white;
+            font-size: 9px; padding: 1px 5px; border-radius: 50px; border: 1.5px solid #fff;
+            min-width: 18px; text-align: center;
+        }
+        .sidebar-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Mark all as read button style */
+        .btn-mark-all {
+            color: var(--p-blue) !important;
+            font-weight: 700;
+            text-decoration: none !important;
+            border: none !important;
+            background: transparent;
+            outline: none !important;
+            box-shadow: none !important;
+            transition: var(--transition);
+        }
+        .btn-mark-all:hover { opacity: 0.8; }
+
+        /* Flash highlight */
+        .row-highlight-flash { animation: flashHighlight 2s ease-out; }
+        @@keyframes flashHighlight {
+            0%   { background-color: rgba(0, 84, 155, 0.3) !important; }
+            100% { background-color: transparent; }
+        }
     </style>
     @RenderSection("Styles", required: false)
 </head>
 <body>
 
 <nav class="sidebar">
+
     <div class="brand-container">
         <img src="~/images/logo-pertamina.png" class="brand-logo-pertamina" alt="Pertamina">
     </div>
-    <div style="flex-grow: 1;">
-        <a class="nav-link-custom @(ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" asp-action="Index">
+
+    <div class="sidebar-menu">
+        <a class="nav-link-custom active" asp-action="Index">
             <i class="fa-solid fa-house mr-3"></i> Dashboard
         </a>
         <a class="nav-link-custom" href="#riwayat">
@@ -87,24 +181,98 @@
             <i class="fa-solid fa-user-gear mr-3"></i> Pengaturan Profil
         </a>
     </div>
-    <a href="javascript:void(0)" onclick="confirmLogout()" class="nav-link-custom nav-link-logout">
-        <i class="fa-solid fa-right-from-bracket mr-3"></i> Logout
+
+    <a href="javascript:void(0)"
+       onclick="confirmLogout()"
+       class="nav-link-custom nav-link-logout">
+        <i class="fa-solid fa-right-from-bracket mr-3"></i>
+        Logout
     </a>
+
 </nav>
 
 <header class="topbar">
+
+    <!-- KIRI -->
     <div class="d-flex align-items-center">
-        <i class="fa-solid fa-bars-staggered mr-3 text-muted"></i>
-        <span class="font-weight-bold text-muted">Panel Peserta / Dashboard</span>
+
+        <i class="fa-solid fa-bars-staggered text-muted d-none d-md-block"
+           id="sidebarToggle"
+           style="font-size:20px; margin-right:14px; cursor:pointer;">
+        </i>
+
+        <img src="~/images/logo-sinta.png"
+             alt="SINTA"
+             style="height:42px; margin-right:16px;" />
+
+        <span class="font-weight-bold text-muted">
+            Panel Peserta / Dashboard
+        </span>
+
     </div>
+
+    <!-- KANAN -->
     <div class="d-flex align-items-center">
-        <img src="~/images/logo-sinta.png" style="height:40px;" class="mr-4">
-        <div class="text-right mr-3 border-left pl-3">
-            <div class="small font-weight-bold">@namaUser</div>
-            <small class="text-success font-weight-bold"><i class="fa-solid fa-circle mr-1" style="font-size: 8px;"></i> Online</small>
+
+        <div class="notif-dropdown-wrapper mr-3">
+
+            <button class="notif-btn" type="button">
+                <i class="fa-solid fa-bell"></i>
+                <span id="notifBadge" class="notif-badge d-none">0</span>
+            </button>
+
+            <div class="notif-dropdown shadow border-0">
+
+                <div class="notif-header">
+                    <span class="small font-weight-bold text-dark">
+                        Notifikasi Terbaru
+                    </span>
+
+                    <span id="notifCountLabel"
+                          class="badge badge-pill text-primary small"
+                          style="font-size:10px; background: rgba(0, 84, 155, 0.1);">
+                        0
+                    </span>
+                </div>
+
+                <div id="notificationList"
+                     style="max-height:300px; overflow-y:auto; border-top:none;">
+
+                    <div class="text-center p-3 text-muted small">
+                        Memuat...
+                    </div>
+
+                </div>
+
+            </div>
         </div>
-        <img src="@avatarUrl" class="rounded-circle shadow-sm border" width="45">
+
+        <div class="d-flex align-items-center">
+
+            <div class="text-right mr-3">
+                <div style="font-size:14px; font-weight:700; color:#1e293b;">
+                    @safeName
+                </div>
+
+                <div style="font-size:12px; color:#22c55e; font-weight:600;">
+                    ● Online
+                </div>
+            </div>
+
+            <img src="@avatarUrl"
+                 alt="Avatar"
+                 style="
+                    width:45px;
+                    height:45px;
+                    border-radius:50%;
+                    object-fit:cover;
+                    border:2px solid #e2e8f0;
+                 " />
+
+        </div>
+
     </div>
+
 </header>
 
 <main class="main-content">
@@ -113,19 +281,313 @@
     </div>
 </main>
 
+<!-- MODAL -->
+<div class="modal fade" id="modalAllNotifications" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content border-0 shadow-lg"
+             style="border-radius:15px; overflow:hidden;">
+
+            <div class="modal-header bg-primary text-white border-0">
+                <h6 class="modal-title font-weight-bold mb-0">
+                    <i class="fas fa-bell mr-2"></i>
+                    Riwayat Notifikasi
+                </h6>
+
+                <button type="button"
+                        class="close text-white"
+                        data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body p-0"
+                 id="fullNotifContainer"
+                 style="max-height:60vh; overflow-y:auto;">
+
+                <div class="text-center p-4 text-muted small">
+                    Memuat riwayat...
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function confirmLogout() {
-        Swal.fire({
-            title: 'Keluar Sesi?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ec1c24',
-            confirmButtonText: 'Ya, Logout'
-        }).then((result) => { if (result.isConfirmed) { window.location.href = '/Auth/Logout'; } });
+    $(document).ready(function () {
+
+        // Toggle Sidebar
+        $("#sidebarToggle").on('click', function () {
+            $("body").toggleClass("sidebar-toggled");
+        });
+
+        fetchNotifications();
+        setInterval(fetchNotifications, 60000);
+
+    });
+
+    function fetchNotifications() {
+        $.ajax({
+            url: '/Notification/GetUserNotifications',
+            type: 'GET',
+            success: function (data) {
+                renderNotifDropdown(data);
+            }
+        });
     }
+
+    function renderNotifDropdown(data) {
+
+        const list         = $('#notificationList');
+        const badge        = $('#notifBadge');
+        const sidebarBadge = $('#sidebarNotifBadge');
+        const countLabel   = $('#notifCountLabel');
+
+        list.empty();
+
+        let unreadCount = data.filter(n => !n.isRead).length;
+
+        if (unreadCount > 0) {
+            badge.text(unreadCount).removeClass('d-none');
+            sidebarBadge.text(unreadCount).removeClass('d-none');
+            countLabel.text(unreadCount + ' Baru');
+        } else {
+            badge.addClass('d-none');
+            sidebarBadge.addClass('d-none');
+            countLabel.text('Semua dibaca');
+        }
+
+        if (data.length === 0) {
+            list.append(`
+                <div class="text-center p-4 text-muted">
+                    <i class="fa fa-bell-slash mb-2" style="font-size:28px;opacity:0.3;"></i>
+                    <div class="small">Belum ada notifikasi</div>
+                </div>
+            `);
+            return;
+        }
+
+        data.forEach(n => {
+
+            let iconBg     = '#f1f5f9';
+            let iconColor  = 'text-muted';
+            let iconClass  = 'fa-bell';
+            let borderLeft = '#94a3b8';
+
+            if (n.type === 'success') {
+                iconBg = '#dcfce7'; iconColor = 'text-success';
+                iconClass = 'fa-check'; borderLeft = '#22c55e';
+            }
+            else if (n.type === 'error') {
+                iconBg = '#fee2e2'; iconColor = 'text-danger';
+                iconClass = 'fa-times'; borderLeft = '#ef4444';
+            }
+            else if (n.type === 'new') {
+                iconBg = '#dbeafe'; iconColor = 'text-primary';
+                iconClass = 'fa-paper-plane'; borderLeft = '#3b82f6';
+            }
+            else {
+                iconBg = '#fef9c3'; iconColor = 'text-warning';
+                iconClass = 'fa-rotate'; borderLeft = '#eab308';
+            }
+
+            const unreadBg = n.isRead ? '#fff' : '#f0f7ff';
+            const dotHtml  = n.isRead
+                ? ''
+                : `<span style="width:8px;height:8px;background:#00549B;border-radius:50%;flex-shrink:0;margin-left:8px;"></span>`;
+
+            const itemHtml = `
+                <a href="/Notification/GoTo/${n.id}"
+                   class="d-flex align-items-start text-decoration-none"
+                   style="
+                        padding:12px 16px;
+                        border-bottom: none;
+                        background:${unreadBg};
+                        border-left:3px solid ${borderLeft};
+                        transition:background 0.2s;
+                   ">
+
+                    <div style="
+                        width:36px; height:36px; border-radius:10px;
+                        background:${iconBg}; display:flex; align-items:center;
+                        justify-content:center; margin-right:12px; flex-shrink:0;
+                    ">
+                        <i class="fas ${iconClass} ${iconColor}" style="font-size:13px;"></i>
+                    </div>
+
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:700;color:#1e293b;line-height:1.3;">
+                            ${n.title}
+                        </div>
+                        <div style="font-size:12px;color:#64748b;margin-top:2px;line-height:1.4;">
+                            ${n.message}
+                        </div>
+                        <div style="font-size:10px;color:#94a3b8;margin-top:4px;">
+                            <i class="fas fa-clock mr-1"></i>${n.timeAgo}
+                        </div>
+                    </div>
+
+                    ${dotHtml}
+                </a>
+            `;
+
+            list.append(itemHtml);
+        });
+    }
+
+    function markAllNotificationsAsRead() {
+        $.post('/Notification/MarkAllAsRead', function() {
+            fetchNotifications();
+        });
+    }
+
+    function fetchAllNotifications() {
+
+        const container = $('#fullNotifContainer');
+
+        container.html(`
+            <div class="text-center p-4 text-muted small">
+                Memuat riwayat...
+            </div>
+        `);
+
+        $.ajax({
+            url: '/Notification/GetUserNotifications',
+            type: 'GET',
+            success: function (data) {
+
+                container.empty();
+
+                if (data.length === 0) {
+                    container.html(`
+                        <div class="p-4 text-center text-muted small">
+                            Belum ada riwayat notifikasi.
+                        </div>
+                    `);
+                    return;
+                }
+
+                const grouped = {};
+
+                data.forEach(n => {
+                    const date = new Date(n.createdAt);
+                    const tgl  = date.toLocaleDateString('id-ID', {
+                        day: '2-digit', month: 'short', year: 'numeric'
+                    });
+                    if (!grouped[tgl]) grouped[tgl] = [];
+                    grouped[tgl].push(n);
+                });
+
+                Object.keys(grouped).forEach(tgl => {
+
+                    container.append(`
+                        <div style="
+                            padding:8px 16px; background:#f8fafc;
+                            border-bottom: none;
+                            font-size:11px; font-weight:800;
+                            color:#94a3b8; letter-spacing:0.5px;
+                        ">
+                            ${tgl}
+                        </div>
+                    `);
+
+                    grouped[tgl].forEach(n => {
+
+                        let iconBg     = '#f1f5f9';
+                        let iconColor  = 'text-muted';
+                        let iconClass  = 'fa-bell';
+                        let borderLeft = '#94a3b8';
+
+                        if (n.type === 'success') {
+                            iconBg = '#dcfce7'; iconColor = 'text-success';
+                            iconClass = 'fa-check'; borderLeft = '#22c55e';
+                        }
+                        else if (n.type === 'error') {
+                            iconBg = '#fee2e2'; iconColor = 'text-danger';
+                            iconClass = 'fa-times'; borderLeft = '#ef4444';
+                        }
+                        else if (n.type === 'new') {
+                            iconBg = '#dbeafe'; iconColor = 'text-primary';
+                            iconClass = 'fa-paper-plane'; borderLeft = '#3b82f6';
+                        }
+                        else {
+                            iconBg = '#fef9c3'; iconColor = 'text-warning';
+                            iconClass = 'fa-rotate'; borderLeft = '#eab308';
+                        }
+
+                        const unreadBg = n.isRead ? '#fff' : '#f0f7ff';
+                        const dotHtml  = n.isRead
+                            ? ''
+                            : `<span style="width:8px;height:8px;background:#00549B;border-radius:50%;flex-shrink:0;margin-left:8px;"></span>`;
+
+                        const jam = new Date(n.createdAt)
+                            .toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                        container.append(`
+                            <a href="/Notification/GoTo/${n.id}"
+                               class="d-flex align-items-start text-decoration-none"
+                               style="
+                                    padding:12px 16px;
+                                    border-bottom: none;
+                                    background:${unreadBg};
+                                    border-left:3px solid ${borderLeft};
+                                    transition:background 0.2s;
+                               ">
+
+                                <div style="
+                                    width:36px; height:36px; border-radius:10px;
+                                    background:${iconBg}; display:flex; align-items:center;
+                                    justify-content:center; margin-right:12px; flex-shrink:0;
+                                ">
+                                    <i class="fas ${iconClass} ${iconColor}" style="font-size:13px;"></i>
+                                </div>
+
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:13px;font-weight:700;color:#1e293b;">
+                                        ${n.title}
+                                    </div>
+                                    <div style="font-size:12px;color:#64748b;margin-top:2px;line-height:1.4;">
+                                        ${n.message}
+                                    </div>
+                                    <div style="font-size:10px;color:#94a3b8;margin-top:4px;">
+                                        <i class="fas fa-clock mr-1"></i>${jam}
+                                    </div>
+                                </div>
+
+                                ${dotHtml}
+                            </a>
+                        `);
+                    });
+                });
+            }
+        });
+    }
+function confirmLogout() {
+    Swal.fire({
+        title: 'Keluar?',
+        text: 'Sesi akan berakhir',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ec1c24',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'Logout',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+
+        if (result.isConfirmed) {
+
+            localStorage.clear();
+            sessionStorage.clear();
+
+            window.location.href = '/Auth/Logout';
+        }
+    });
+}
 </script>
 @RenderSection("Scripts", required: false)
 </body>
