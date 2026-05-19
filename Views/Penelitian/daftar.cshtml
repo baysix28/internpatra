@@ -452,14 +452,19 @@
                                             <input type="text" class="form-control" asp-for="JudulPenelitian" required>
                                             <div class="invalid-feedback">Wajib diisi.</div>
                                         </div>
+                                        <div class="col-12 mt-2 mb-1">
+                                            <div class="alert alert-info mb-0" style="padding: 8px 12px;">
+                                                <small><i class="bi bi-info-circle"></i> <b>Info:</b> Jangka waktu maksimal adalah 1 bulan. </small>
+                                            </div>
+                                        </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Mulai</label>
-                                            <input type="date" class="form-control" asp-for="TglMulai" required>
+                                            <input type="date" class="form-control" asp-for="TglMulai" required onchange="cekTanggalMagang()">
                                             <div class="invalid-feedback">Wajib diisi.</div>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Selesai</label>
-                                            <input type="date" class="form-control" asp-for="TglSelesai" required>
+                                            <input type="date" class="form-control" asp-for="TglSelesai" required onchange="cekTanggalMagang()">
                                             <div class="invalid-feedback">Wajib diisi.</div> 
                                         </div>
                                     </div>
@@ -476,24 +481,24 @@
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-bold">Resume / CV (PDF)</label>
-                                            <input type="file" class="form-control" asp-for="FileCV" accept=".pdf" required>
+                                            <input type="file" class="form-control" asp-for="FileCV" accept=".pdf" required onchange="cekUkuranFile(this)">
                                             <div class="invalid-feedback">Wajib upload.</div>
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-bold">Proposal (PDF)</label>
-                                            <input type="file" class="form-control" asp-for="FileProposal" accept=".pdf" required>
+                                            <input type="file" class="form-control" asp-for="FileProposal" accept=".pdf" required onchange="cekUkuranFile(this)">
                                             <div class="invalid-feedback">Wajib upload.</div>
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-bold">Surat Pengantar (PDF)</label>
-                                            <input type="file" class="form-control" asp-for="FileSurat" accept=".pdf" required>
+                                            <input type="file" class="form-control" asp-for="FileSurat" accept=".pdf" required onchange="cekUkuranFile(this)">
                                             <div class="invalid-feedback">Wajib upload.</div>
                                         </div>
                                     </div>
                                     <div class="mt-5 d-flex justify-content-center gap-3">
                                         <button type="button" class="btn btn-back" onclick="prevStep('tab-3')">Kembali</button>
                                         
-                                        <button type="submit" class="btn btn-submit" id="btnSubmit" onclick="cekFoto(event)">
+                                        <button type="submit" class="btn btn-submit" id="btnSubmit">
                                             Kirim Pendaftaran <i class="bi bi-send-fill"></i>
                                         </button>
                                     </div>
@@ -604,31 +609,30 @@
         window.scrollTo(0, 0);
     }
     function validatePane(tabBtnId) {
-        const paneId = tabBtnId.replace('tab', 'step'); const pane = document.getElementById(paneId);
-        const inputs = pane.querySelectorAll('input[required], select[required]');
-        let isPaneValid = true;
-        inputs.forEach(input => {
-            input.setCustomValidity(""); input.classList.remove('is-invalid'); 
-            if (input.name === "NoHp") {
-                const indoRegex = /^08[0-9]{8,13}$/;
-                if (input.value && !indoRegex.test(input.value)) { input.classList.add('is-invalid'); isPaneValid = false; }
-            }
-            if (input.name === "TglSelesai") {
-                const tglMulai = pane.querySelector('input[name="TglMulai"]').value;
-                const feedbackDiv = input.parentElement.querySelector('.invalid-feedback');
-                if (tglMulai && input.value) {
-                    if (new Date(tglMulai) >= new Date(input.value)) {
-                        if(feedbackDiv) feedbackDiv.textContent = "Tanggal Selesai harus lebih besar dari Mulai!";
-                        input.setCustomValidity("Invalid Range"); input.classList.add('is-invalid'); isPaneValid = false;
-                    } else { if(feedbackDiv) feedbackDiv.textContent = "Wajib diisi."; }
-                }
-            }
-            if (!input.value.trim() || !input.checkValidity()) { input.classList.add('is-invalid'); isPaneValid = false; }
-        });
-        updateTabVisual(tabBtnId, isPaneValid);
-        if (!isPaneValid) { const firstError = pane.querySelector('.is-invalid, :invalid'); if(firstError) firstError.focus(); }
-        return isPaneValid;
-    }
+    const paneId = tabBtnId.replace('tab', 'step');
+    const pane = document.getElementById(paneId);
+    const inputs = pane.querySelectorAll('input[required], select[required]');
+    let isPaneValid = true;
+    
+    inputs.forEach(input => {
+        input.setCustomValidity(""); input.classList.remove('is-invalid'); 
+        
+        if (input.name === "NoHp") {
+            const indoRegex = /^08[0-9]{8,13}$/;
+            if (input.value && !indoRegex.test(input.value)) { input.classList.add('is-invalid'); isPaneValid = false; }
+        }
+        
+        // Cek validasi default (kosong atau tidak)
+        if (!input.value.trim() || !input.checkValidity()) { 
+            input.classList.add('is-invalid');
+            isPaneValid = false; 
+        }
+    });
+    
+    updateTabVisual(tabBtnId, isPaneValid);
+    if (!isPaneValid) { const firstError = pane.querySelector('.is-invalid, :invalid'); if(firstError) firstError.focus(); }
+    return isPaneValid;
+}
     function updateTabVisual(tabId, isValid) {
         const tabBtn = document.getElementById(tabId); const marker = tabBtn.querySelector('.step-marker');
         tabBtn.classList.remove('done', 'error');
@@ -641,8 +645,32 @@
         const allTabs = document.querySelectorAll('button[data-bs-toggle="pill"]');
         allTabs.forEach(tab => { tab.addEventListener('hide.bs.tab', function (e) { validatePane(e.target.id); }); });
         const btnSubmit = document.getElementById('btnSubmit');
-        if(btnSubmit){ btnSubmit.addEventListener('click', function(e) { if(!validatePane('tab-4')) e.preventDefault(); }); }
+        if (btnSubmit) { 
+            btnSubmit.addEventListener('click', function(e) { 
+                let isValid1 = validatePane('tab-1');
+                let isValid2 = validatePane('tab-2');
+                let isValid3 = validatePane('tab-3');
+                let isValid4 = validatePane('tab-4');
 
+                if (!isValid1 || !isValid2 || !isValid3 || !isValid4) {
+                    e.preventDefault(); 
+                    
+                    // --- ALERT PREMIUM SWEETALERT ---
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Belum Lengkap',
+                        text: 'Mohon periksa kembali, masih ada data yang belum terisi atau salah format di tab sebelumnya.',
+                        background: '#ffffff', // Background pop-up warna putih
+                        color: '#334155', // Warna teks abu-abu gelap biar elegan
+                        confirmButtonText: 'Cek lagi',
+                        confirmButtonColor: '#003B76', // Tombol warna Biru Navy 
+                        customClass: {
+                            popup: 'rounded-4' // Bikin sudut pop-up melengkung rapi
+                        }
+                    });
+                }
+            }); 
+        }
         const companySelect = document.getElementById('companySelect'); 
         const regionSelect = document.getElementById('regionSelect');   
         const regionInputLocked = document.getElementById('regionInputLocked');
@@ -692,28 +720,25 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
-        // --- 1. FUNGSI PREVIEW FOTO (Supaya gambar muncul saat dipilih) ---
+        // --- 1. FUNGSI PREVIEW FOTO ---
         function tampilkanPreview(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function (e) {
-                    // Ganti gambar placeholder dengan foto yg dipilih
                     document.getElementById('previewFoto').src = e.target.result;
                 }
                 reader.readAsDataURL(input.files[0]);
-
-                // Hapus pesan error jika user sudah pilih foto
                 document.getElementById('pesanErrorFoto').style.display = 'none';
                 input.classList.remove('is-invalid');
             }
         }
 
-        // --- 2. FUNGSI CEK VALIDASI STEP 1 (Supaya gak bisa lanjut kalau kosong) ---
+        // --- 2. FUNGSI CEK VALIDASI STEP 1 ---
         function cekStep1() {
-            var aman = true; // Anggap dulu semua aman
-            
-            // A. CEK FOTO (Manual karena hidden)
+            var aman = true;
             var inputFoto = document.getElementById('inputFoto');
             var pesanErrorFoto = document.getElementById('pesanErrorFoto');
             
@@ -725,28 +750,90 @@
                 pesanErrorFoto.style.display = 'none';
             }
 
-            // B. CEK INPUTAN LAIN (Nama, Email, dll)
-            // Cari semua input/select yang 'required' di Step 1
             var inputStep1 = document.querySelectorAll('#step-1 input[required], #step-1 select[required]');
-
             inputStep1.forEach(function(input) {
                 if (!input.value) {
-                    // Kalau KOSONG: Tambahkan class 'is-invalid' (Biar jadi merah)
                     input.classList.add('is-invalid');
                     aman = false; 
                 } else {
-                    // Kalau ADA ISI: Hapus merahnya
                     input.classList.remove('is-invalid');
                 }
             });
 
-            // C. KEPUTUSAN FINAL
             if (aman) {
-                // Semua aman? Pindah ke Tab 2
                 nextStep('tab-1', 'tab-2');
             } else {
-                // Ada yang error? Scroll ke atas
                 document.getElementById('step-1').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // --- 3. FUNGSI CEK UKURAN FILE DENGAN ALERT INSTAN ---
+        function cekUkuranFile(input) {
+            const maxSize = 2097152; // 2MB
+            if (input.files && input.files.length > 0) {
+                const fileSize = input.files[0].size;
+                if (fileSize > maxSize) {
+                    alert("Gagal! Ukuran file tidak boleh lebih dari 2MB.");
+                    input.value = ""; 
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            }
+        }
+
+        // --- 4. FUNGSI CEK TANGGAL MAGANG (Super Akurat & Kalender Terkunci) ---
+        function cekTanggalMagang() {
+            const inputMulai = document.querySelector('input[name="TglMulai"]');
+            const inputSelesai = document.querySelector('input[name="TglSelesai"]');
+            const feedbackSelesai = inputSelesai.nextElementSibling;
+
+            // KUNCI 1: Mengunci Kalender HTML secara otomatis
+            if (inputMulai && inputMulai.value) {
+                // Jangan izinkan pilih sebelum tanggal mulai
+                inputSelesai.setAttribute('min', inputMulai.value);
+                
+                // Hitung +1 bulan untuk batas maksimal
+                const tgl = new Date(inputMulai.value);
+                tgl.setMonth(tgl.getMonth() + 1);
+                
+                // Format tanggal YYYY-MM-DD
+                const maxYear = tgl.getFullYear();
+                const maxMonth = String(tgl.getMonth() + 1).padStart(2, '0');
+                const maxDay = String(tgl.getDate()).padStart(2, '0');
+                
+                // Kunci kalender! Tanggal lebih dari ini akan abu-abu
+                inputSelesai.setAttribute('max', `${maxYear}-${maxMonth}-${maxDay}`);
+            }
+
+            // KUNCI 2: Teks Peringatan Dinamis
+            // Jika kolom di-backspace sampai kosong, tampilkan "Wajib diisi."
+            if (!inputSelesai.value) {
+                if (feedbackSelesai) feedbackSelesai.textContent = "Wajib diisi.";
+                return; 
+            }
+
+            // Jika ada isinya, cek jaraknya
+            if (inputMulai.value && inputSelesai.value) {
+                const dateMulai = new Date(inputMulai.value);
+                const dateSelesai = new Date(inputSelesai.value);
+                
+                const batasMaksimal = new Date(dateMulai);
+                batasMaksimal.setMonth(batasMaksimal.getMonth() + 1);
+
+                if (dateSelesai < dateMulai) {
+                    if (feedbackSelesai) feedbackSelesai.textContent = "Tanggal selesai tidak boleh mundur.";
+                    inputSelesai.classList.add('is-invalid');
+                    
+                } else if (dateSelesai > batasMaksimal) {
+                    if (feedbackSelesai) feedbackSelesai.textContent = "Jangan lebih dari 1 bulan.";
+                    inputSelesai.classList.add('is-invalid');
+                    
+                } else {
+                    // Kalau rentang tanggalnya aman
+                    if (feedbackSelesai) feedbackSelesai.textContent = "Wajib diisi.";
+                    inputSelesai.classList.remove('is-invalid');
+                }
             }
         }
     </script>
