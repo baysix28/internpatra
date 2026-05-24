@@ -59,8 +59,8 @@
         position: relative;
         
         /* KUNCI 1: UBAH TINGGI JADI 100% LAYAR MONITOR */
-        height: 100vh;       
-        min-height: 100vh;   /* Paksa minimal setinggi layar */
+        height: 75vh;       
+        min-height: 75vh;   /* Paksa minimal setinggi layar */
         
         /* KUNCI 2: HAPUS SEMUA MARGIN BIAR GAK ADA PUTIH-PUTIH */
         margin: 0;           
@@ -103,7 +103,7 @@
             color: white;
             padding-left: 5%; /* Geser dikit dari pinggir kiri */
             justify-content: center; /* Tetap center */
-            padding-bottom: 150px !important;
+            padding-bottom: 20px !important;
             text-align: center;
         }
 
@@ -292,7 +292,7 @@
         margin: 0 auto;
         
         /* Layout */
-        margin-top: -60px !important;
+        margin-top: -20px !important;
         position: relative;
         z-index: 10;
         
@@ -858,9 +858,6 @@
             <div class="d-flex justify-content-center align-items-center gap-3">
                 <a asp-controller="Penelitian" asp-action="Daftar" class="btn-apply-hero">
                     DAFTAR SEKARANG
-                </a>
-                <a asp-controller="Penelitian" asp-action="CekStatus" class="btn-apply-hero">
-                    CEK STATUS PENDAFTARAN
                 </a>
             </div>
     </header>
