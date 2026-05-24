@@ -17,48 +17,265 @@
     bool isJalurKhusus = !string.IsNullOrEmpty(preCompany);
 }
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    /* GLOBAL STYLE - SAMA SEPERTI SEBELUMNYA */
-    :root { --p-red: #ED1B24; --p-blue: #00529C; --p-green: #5CB85C; }
-    .penelitian-wrapper { background-color: #ffffff; font-family: 'Poppins', sans-serif; color: #444; }
-    /* ... (CSS LAINNYA TETAP SAMA, TIDAK SAYA TULIS ULANG AGAR HEMAT TEMPAT) ... */
+
+    /* 2. CONFIG WARNA & FONT */
+    :root { 
+        --p-blue-tua: #003B76;
+        --p-green: #5CB85C; 
+        --p-red: #E30613; 
+    }
+
+    html, body {
+        background-color: #ffffff !important;
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+    }
+
+    .penelitian-wrapper {
+        width: 100%; min-height: 100vh;
+        background-color: #ffffff !important;
+        padding-top: 20px; /* Jarak atas dikurangi biar compact */
+        padding-bottom: 50px;
+        display: flex; flex-direction: column; align-items: center;
+        position: relative;
+    }
+
+    /* 3. JUDUL (Font Size Disesuaikan) */
+    .page-title-section { text-align: center; margin-bottom: 25px; width: 100%; }
+    .page-title-section h2 {
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 800;
+        font-size: 1.7rem; /* Font Judul Dikecilkan */
+        color: var(--p-blue-tua) !important;
+        margin-bottom: 5px; letter-spacing: -0.5px;
+    }
+    .page-title-section p { color: #64748b !important; font-size: 0.75rem; font-family: 'Montserrat', sans-serif;}
+
+    /* 4. CARD FORM (COMPACT STYLE) */
+    .card-form {
+        background: #ffffff;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08); 
+        border: 1px solid #f1f5f9; border-radius: 16px; 
+        width: 100%; max-width: 700px;
+        margin: 0 auto; overflow: hidden; position: relative; font-size: 19px;
+    }
+    /* Trik Compact: Rapatkan jarak antar kolom Bootstrap (Override Gutter) */
+    .card-form .row { --bs-gutter-y: 12px !important; } 
+
+    /* 5. TOMBOL BACK */
+    .btn-back-home {
+        position: absolute; left: 40px; top: 25px; 
+        background: #f8fafc; color: var(--p-blue-tua) !important;
+        border: 1px solid #e2e8f0; padding: 6px 16px; border-radius: 50px;
+        font-weight: 600; text-decoration: none; 
+        display: inline-flex; align-items: center; gap: 6px;
+        transition: all 0.2s; font-size: 0.8rem; /* Font tombol back kecil */
+    }
+    .btn-back-home:hover { background: var(--p-blue-tua); color: white !important; }
+
+    /* --- [UPDATE] STEPPER (ALIGNMENT & COLOR) --- */
+    .nav-pills { 
+        margin-bottom: 20px; 
+        justify-content: center; 
+        gap: 8px; 
+    }
     
-    /* TAMBAHAN KECIL BIAR RAPI */
-    .readonly-input { background-color: #e9ecef !important; cursor: not-allowed; }
+    .nav-link { 
+        background: #f8fafc; 
+        color: #475569; /* [FIX] Warna Teks JELAS (Abu Gelap) */
+        border-radius: 50px !important;
+        padding: 9px 18px; 
+        font-weight: 600; 
+        border: 1px solid #e2e8f0; /* Default border abu tipis */
+        font-size: 0.9rem; /* Font step kecil */
+        
+        /* [FIX] Alignment Rapih Icon & Teks */
+        display: inline-flex; 
+        align-items: center; 
+        justify-content: center;
+    }
     
-    /* ... LANJUTAN CSS ASLI ... */
-    .page-title-section { position: relative; margin-top: 50px; margin-bottom: 40px; text-align: center; }
-    .page-title-section h2 { font-weight: 700; color: var(--p-blue); margin-bottom: 10px; }
-    .btn-back-home { position: absolute; left: 0; top: 0%; transform: translateY(-50%); display: inline-flex; align-items: center; padding: 10px 20px; background: #fff; border: 1px solid #dee2e6; border-radius: 50px; color: var(--p-blue); text-decoration: none; font-weight: 600; gap: 8px; transition: 0.3s; }
-    .btn-back-home:hover { background: var(--p-blue); color: white; border-color: var(--p-blue); }
-    .step-indicator { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; border: none; margin-bottom: 30px; }
-    .step-indicator .nav-link { display: flex; align-items: center; padding: 12px 30px; background: #fff; border: 1px solid #dee2e6; border-radius: 50px !important; color: #666; font-weight: 600; transition: all 0.3s ease; }
-    .step-marker { display: inline-flex; align-items: center; justify-content: center; margin-right: 8px; font-weight: 700; width: 20px; }
-    .nav-pills .nav-link.active { background-color: var(--p-blue); color: white !important; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,82,156,0.25); border-color: var(--p-blue); }
-    .nav-link.done { background-color: #f0fff4; border-color: var(--p-green); color: var(--p-green) !important; }
-    .nav-link.error { background-color: #fff5f5; border-color: var(--p-red); color: var(--p-red) !important; animation: shake 0.4s ease-in-out; }
-    .nav-link.error .step-marker { color: var(--p-red); }
-    @at keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-    .card-form { border: none; border-radius: 20px; box-shadow: 0 0 40px rgba(0,0,0,0.08); background: #fff; }
-    .form-control, .form-select { border-radius: 10px; padding: 12px 15px; border: 1px solid #e0e0e0; }
-    .form-control:focus { border-color: var(--p-blue); box-shadow: 0 0 0 4px rgba(0,82,156,0.1); }
-    .form-control.is-invalid, .form-select.is-invalid { border-color: var(--p-red); background-image: none; }
-    .invalid-feedback { font-size: 0.85rem; color: var(--p-red); }
-    .btn-next, .btn-submit { border: none; color: white; padding: 12px 40px; border-radius: 50px; font-weight: 500; }
-    .btn-next { background: linear-gradient(135deg, var(--p-blue), #003d75); }
-    .btn-submit { background: linear-gradient(135deg, var(--p-green), #4cae4c); }
-    .btn-back { border: 1px solid #ddd; background: #fff; color: #666; padding: 12px 30px; border-radius: 50px; }
-    @at media (max-width: 768px) { .step-indicator { flex-direction: column; } .nav-link { justify-content: center; } }
+    /* Active State */
+    .nav-link.active { 
+        background: var(--p-blue-tua) !important; 
+        color: white !important; 
+        border-color: var(--p-blue-tua);
+        box-shadow: 0 4px 10px rgba(15, 52, 96, 0.2);
+    }
+
+    /* Done State (Border HAPUS, Teks Tetap, Icon Hijau) */
+    .nav-link.done {
+        background-color: #fff !important; 
+        border-color: #e2e8f0 !important; /* [FIX] Border balik ke abu biasa */
+        color: #475569 !important;
+    }
+    .nav-link.done .step-marker {
+        background: transparent !important;
+        color: var(--p-green) !important; /* Cuma Icon yang Hijau */
+        /* font-size: 1.1rem; Icon dibesarkan dikit biar jelas */
+    }
+
+    /* Error State (Border HAPUS, Teks Tetap, Icon Merah) */
+    .nav-link.error {
+        background-color: #fff !important; 
+        border-color: #e2e8f0 !important; /* [FIX] Border balik ke abu biasa */
+        color: #475569 !important;
+    }
+    .nav-link.error .step-marker {
+        background: transparent !important;
+        color: var(--p-red) !important; /* Cuma Icon yang Merah */
+        /* font-size: 1.1rem; */
+    }
+
+    .step-marker { margin-right: 6px; display: flex; align-items: center; }
+
+    /* --- [UPDATE] INPUT COMPACT & FONT KECIL --- */
+    .form-control, .form-select { 
+        padding: 8px 12px; /* Padding dikecilkan */
+        border-radius: 8px; 
+        border: 1px solid #cbd5e1; 
+        background-color: #fff; 
+        font-size: 0.9rem; /* [FIX] Font Input tidak besar */
+    }
+    .form-control:focus, .form-select:focus { 
+        border-color: var(--p-blue-tua); 
+        box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1); 
+    }
+    
+    /* Label Compact */
+    label.form-label { 
+        font-weight: 700; 
+        color: #334155; 
+        margin-bottom: 4px; /* Jarak label ke input didempetin */
+        font-size: 0.85rem; /* [FIX] Font Label kecil rapi */
+        text-transform: capitalize; 
+        letter-spacing: 0.5px; 
+    }
+
+    label.form-label::after {
+        content: " *";
+        color: var(--p-red);
+        font-weight: bold;
+    }
+
+    /* VIP Input (Readonly) */
+    .readonly-input, input[readonly] {
+        background-color: #f1f5f9 !important; 
+        color: #64748b !important;
+        border-color: #cbd5e1 !important;
+        cursor: not-allowed !important;
+    }
+
+    /* Tombol Bawah (Solid, No Transparent Hover) */
+    .btn-next, .btn-submit, .btn-back {
+        border-radius: 8px; font-weight: 600; border: none; font-size: 0.95rem;
+        transition: background-color 0.2s; opacity: 1 !important;
+    }
+    .btn-next { background: var(--p-blue-tua); color: white; padding: 8px 16px; }
+    .btn-next:hover { background-color: #0a2545; }
+
+    .btn-submit { 
+        background-color: #1a7a4a !important; /* Hijau Emerald Gelap */
+        color: #ffffff !important; 
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        opacity: 1 !important; /* Memastikan tidak transparan */
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    /* Saat Kursor di Atas Tombol (Hover) */
+    .btn-submit:hover { 
+        background-color: #145d39 !important; /* Hijau lebih gelap sedikit */
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(26, 122, 74, 0.2);
+    }
+
+    .btn-back { background: #fff; border: 1px solid #cbd5e1; color: #64748b; padding: 8px 16px; }
+    .btn-back:hover { background-color: #164a8a !important; box-shadow: 0 4px 12px rgba(15, 52, 96, 0.2);}
+    
+    .d-none { display: none; }
+    .invalid-feedback { color: var(--p-red); margin-top: 3px; font-size: 0.75rem; }
+
+    /* Mengubah Background Alert Info menjadi Navy */
+    .alert-info {
+        background-color: var(--p-blue-tua) !important; /* Background Navy Solid */
+        color: #ffffff !important; /* Teks Putih agar kontras */
+        border: none !important;
+        border-radius: 8px;
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.85rem;   /* <--- Font dikecilkan (agar seimbang) */
+        margin-bottom: 10px; /* Opsional: Mengurangi jarak ke bawahnya */
+    }
+
+    /* Memastikan Icon di dalam alert juga berwarna putih */
+    .alert-info i, .alert-info small {
+        color: #ffffff !important;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .card-form { max-width: 95%; box-shadow: none; border: none; }
+        .page-title-section h2 { font-size: 1.5rem; }
+    }
+
+    /* Menambahkan bintang merah otomatis pada label */
+    label.form-label::after {
+        content: " *";
+        color: var(--p-red); /* Menggunakan variabel warna merah yang sudah Anda buat */
+        font-weight: bold;
+    }
+
+    /* Mewarnai placeholder standar (Nama, Email, dll) */
+    ::placeholder {
+        color: #94a3b8 !important; /* Warna abu-abu (Slate 400) */
+        opacity: 1; 
+    }
+
+    /* Khusus untuk input tipe Date (dd/mm/yyyy) */
+    input[type="date"] {
+        color: #94a3b8; /* Warna teks saat masih kosong */
+    }
+
+    /* Mengubah warna teks date menjadi gelap kembali setelah diisi */
+    input[type="date"]:focus, 
+    input[type="date"]:valid {
+        color: #334155; /* Warna teks gelap (Slate 700) */
+    }
+
+    /* Penyesuaian browser webkit (Chrome/Edge) untuk input tanggal */
+    ::-webkit-datetime-edit-text,
+    ::-webkit-datetime-edit-month-field,
+    ::-webkit-datetime-edit-day-field,
+    ::-webkit-datetime-edit-year-field {
+        color: #94a3b8;
+    }
+
+    /* Mengembalikan warna field tanggal saat ada isinya */
+    input[type="date"]:valid::-webkit-datetime-edit-text,
+    input[type="date"]:valid::-webkit-datetime-edit-month-field,
+    input[type="date"]:valid::-webkit-datetime-edit-day-field,
+    input[type="date"]:valid::-webkit-datetime-edit-year-field {
+        color: #334155;
+    }
 </style>
 
 <div class="penelitian-wrapper">
     <div class="container mb-5">
         <div class="row justify-content-center">
-            <div class="col-lg-9 col-md-11"> 
+            <div class="col-12">
                 
                 <div class="page-title-section">
                     <a asp-action="Index" class="btn-back-home"><i class="bi bi-arrow-left"></i> Back</a>
@@ -79,11 +296,40 @@
                     </ul>
                     
                     <div class="card card-form">
-                        <div class="card-body p-4 p-md-5"> 
+                        <div class="card-body p-4"> 
                             <div class="tab-content" id="pills-tabContent">
                                 
                                 <div class="tab-pane fade show active" id="step-1">
-                                    <div class="row g-4">
+                                    <div class="row g-2">
+                                        <div class="col-12 d-flex justify-content-center mb-1">
+                                        <div class="text-center mb-2">
+                                        <input type="file" asp-for="Foto3x4" id="inputFoto" class="d-none" accept="image/*" onchange="tampilkanPreview(this)" required>
+
+                                        <div class="mx-auto position-relative" 
+                                            onclick="document.getElementById('inputFoto').click()" 
+                                            style="width: 105px; height: 135px; cursor: pointer; border-radius: 12px; overflow: hidden; border: 2px dashed #cbd5e1; background: #f1f5f9; transition: all 0.2s;">
+                                            
+                                            <img id="previewFoto" 
+                                                src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" 
+                                                alt="Pas Foto" 
+                                                style="width: 100%; height: 100%; object-fit: cover;">
+                                            
+                                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
+                                                style="background: rgba(0,0,0,0.05); opacity: 0; transition: opacity 0.2s;" 
+                                                onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                                                <i class="bi bi-camera-fill text-dark fs-3"></i>
+                                            </div>
+                                        </div>
+
+                                        <div class="mt-2 small text-muted fw-semibold" style="font-size: 0.8rem; text-transform: capitalize;">
+                                            Pas Foto 3x4
+                                        </div>
+                                        <span id="pesanErrorFoto" 
+                                            class="text-danger fw-bold mt-1" 
+                                            style="display:none; font-size: 0.7rem;"> </span>
+                                        <span asp-validation-for="Foto3x4" class="text-danger small fw-bold d-block"></span>
+                                    </div>
+                                    </div>
                                         <div class="col-12">
                                             <label class="form-label">Nama Lengkap</label>
                                             <input type="text" class="form-control" asp-for="Nama" required>
@@ -95,8 +341,8 @@
                                             <div class="invalid-feedback">Email tidak valid.</div>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">No. WhatsApp</label>
-                                            <input type="number" class="form-control" asp-for="NoHp" placeholder="08..." required>
+                                            <label class="form-label">No. Telepone</label>
+                                            <input type="number" class="form-control" asp-for="NoHp" required>
                                             <div class="invalid-feedback">Harus diawali 08 (min 10 digit).</div>
                                         </div>
                                         <div class="col-md-6">
@@ -119,7 +365,7 @@
                                         </div>
                                     </div>
                                     <div class="mt-5 text-center">
-                                        <button type="button" class="btn btn-next" onclick="nextStep('tab-1', 'tab-2')">Selanjutnya <i class="bi bi-arrow-right ms-2"></i></button>
+                                        <button type="button" class="btn btn-next" onclick="cekStep1()">Selanjutnya <i class="bi bi-arrow-right ms-2"></i></button>
                                     </div>
                                 </div>
 
@@ -128,6 +374,9 @@
                                         <div class="col-12">
                                             <label class="form-label">Universitas</label>
                                             <input type="text" class="form-control" asp-for="Universitas" required>
+                                            <small class="text-muted mt-1 d-block" style="font-size: 0.8rem;">
+                                                <i class="bi bi-info-circle"></i> Mohon tuliskan nama Universitas secara lengkap (tidak boleh disingkat).
+                                            </small>
                                             <div class="invalid-feedback">Wajib diisi.</div>
                                         </div>
                                         <div class="col-md-6">
@@ -203,14 +452,19 @@
                                             <input type="text" class="form-control" asp-for="JudulPenelitian" required>
                                             <div class="invalid-feedback">Wajib diisi.</div>
                                         </div>
+                                        <div class="col-12 mt-2 mb-1">
+                                            <div class="alert alert-info mb-0" style="padding: 8px 12px;">
+                                                <small><i class="bi bi-info-circle"></i> <b>Info:</b> Jangka waktu maksimal adalah 1 bulan. </small>
+                                            </div>
+                                        </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Mulai</label>
-                                            <input type="date" class="form-control" asp-for="TglMulai" required>
+                                            <input type="date" class="form-control" asp-for="TglMulai" required onchange="cekTanggalMagang()">
                                             <div class="invalid-feedback">Wajib diisi.</div>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Selesai</label>
-                                            <input type="date" class="form-control" asp-for="TglSelesai" required>
+                                            <input type="date" class="form-control" asp-for="TglSelesai" required onchange="cekTanggalMagang()">
                                             <div class="invalid-feedback">Wajib diisi.</div> 
                                         </div>
                                     </div>
@@ -227,23 +481,26 @@
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-bold">Resume / CV (PDF)</label>
-                                            <input type="file" class="form-control" asp-for="FileCV" accept=".pdf" required>
+                                            <input type="file" class="form-control" asp-for="FileCV" accept=".pdf" required onchange="cekUkuranFile(this)">
                                             <div class="invalid-feedback">Wajib upload.</div>
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-bold">Proposal (PDF)</label>
-                                            <input type="file" class="form-control" asp-for="FileProposal" accept=".pdf" required>
+                                            <input type="file" class="form-control" asp-for="FileProposal" accept=".pdf" required onchange="cekUkuranFile(this)">
                                             <div class="invalid-feedback">Wajib upload.</div>
                                         </div>
                                         <div class="col-12">
                                             <label class="form-label fw-bold">Surat Pengantar (PDF)</label>
-                                            <input type="file" class="form-control" asp-for="FileSurat" accept=".pdf" required>
+                                            <input type="file" class="form-control" asp-for="FileSurat" accept=".pdf" required onchange="cekUkuranFile(this)">
                                             <div class="invalid-feedback">Wajib upload.</div>
                                         </div>
                                     </div>
                                     <div class="mt-5 d-flex justify-content-center gap-3">
                                         <button type="button" class="btn btn-back" onclick="prevStep('tab-3')">Kembali</button>
-                                        <button type="submit" class="btn btn-submit" id="btnSubmit">Kirim Pendaftaran <i class="bi bi-send-fill"></i></button>
+                                        
+                                        <button type="submit" class="btn btn-submit" id="btnSubmit">
+                                            Kirim Pendaftaran <i class="bi bi-send-fill"></i>
+                                        </button>
                                     </div>
                                 </div>
 
@@ -352,31 +609,30 @@
         window.scrollTo(0, 0);
     }
     function validatePane(tabBtnId) {
-        const paneId = tabBtnId.replace('tab', 'step'); const pane = document.getElementById(paneId);
-        const inputs = pane.querySelectorAll('input[required], select[required]');
-        let isPaneValid = true;
-        inputs.forEach(input => {
-            input.setCustomValidity(""); input.classList.remove('is-invalid'); 
-            if (input.name === "NoHp") {
-                const indoRegex = /^08[0-9]{8,13}$/;
-                if (input.value && !indoRegex.test(input.value)) { input.classList.add('is-invalid'); isPaneValid = false; }
-            }
-            if (input.name === "TglSelesai") {
-                const tglMulai = pane.querySelector('input[name="TglMulai"]').value;
-                const feedbackDiv = input.parentElement.querySelector('.invalid-feedback');
-                if (tglMulai && input.value) {
-                    if (new Date(tglMulai) >= new Date(input.value)) {
-                        if(feedbackDiv) feedbackDiv.textContent = "Tanggal Selesai harus lebih besar dari Mulai!";
-                        input.setCustomValidity("Invalid Range"); input.classList.add('is-invalid'); isPaneValid = false;
-                    } else { if(feedbackDiv) feedbackDiv.textContent = "Wajib diisi."; }
-                }
-            }
-            if (!input.checkValidity()) { input.classList.add('is-invalid'); isPaneValid = false; }
-        });
-        updateTabVisual(tabBtnId, isPaneValid);
-        if (!isPaneValid) { const firstError = pane.querySelector('.is-invalid, :invalid'); if(firstError) firstError.focus(); }
-        return isPaneValid;
-    }
+    const paneId = tabBtnId.replace('tab', 'step');
+    const pane = document.getElementById(paneId);
+    const inputs = pane.querySelectorAll('input[required], select[required]');
+    let isPaneValid = true;
+    
+    inputs.forEach(input => {
+        input.setCustomValidity(""); input.classList.remove('is-invalid'); 
+        
+        if (input.name === "NoHp") {
+            const indoRegex = /^08[0-9]{8,13}$/;
+            if (input.value && !indoRegex.test(input.value)) { input.classList.add('is-invalid'); isPaneValid = false; }
+        }
+        
+        // Cek validasi default (kosong atau tidak)
+        if (!input.value.trim() || !input.checkValidity()) { 
+            input.classList.add('is-invalid');
+            isPaneValid = false; 
+        }
+    });
+    
+    updateTabVisual(tabBtnId, isPaneValid);
+    if (!isPaneValid) { const firstError = pane.querySelector('.is-invalid, :invalid'); if(firstError) firstError.focus(); }
+    return isPaneValid;
+}
     function updateTabVisual(tabId, isValid) {
         const tabBtn = document.getElementById(tabId); const marker = tabBtn.querySelector('.step-marker');
         tabBtn.classList.remove('done', 'error');
@@ -389,8 +645,32 @@
         const allTabs = document.querySelectorAll('button[data-bs-toggle="pill"]');
         allTabs.forEach(tab => { tab.addEventListener('hide.bs.tab', function (e) { validatePane(e.target.id); }); });
         const btnSubmit = document.getElementById('btnSubmit');
-        if(btnSubmit){ btnSubmit.addEventListener('click', function(e) { if(!validatePane('tab-4')) e.preventDefault(); }); }
+        if (btnSubmit) { 
+            btnSubmit.addEventListener('click', function(e) { 
+                let isValid1 = validatePane('tab-1');
+                let isValid2 = validatePane('tab-2');
+                let isValid3 = validatePane('tab-3');
+                let isValid4 = validatePane('tab-4');
 
+                if (!isValid1 || !isValid2 || !isValid3 || !isValid4) {
+                    e.preventDefault(); 
+                    
+                    // --- ALERT PREMIUM SWEETALERT ---
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Data Belum Lengkap',
+                        text: 'Mohon periksa kembali, masih ada data yang belum terisi atau salah format di tab sebelumnya.',
+                        background: '#ffffff', // Background pop-up warna putih
+                        color: '#334155', // Warna teks abu-abu gelap biar elegan
+                        confirmButtonText: 'Cek lagi',
+                        confirmButtonColor: '#003B76', // Tombol warna Biru Navy 
+                        customClass: {
+                            popup: 'rounded-4' // Bikin sudut pop-up melengkung rapi
+                        }
+                    });
+                }
+            }); 
+        }
         const companySelect = document.getElementById('companySelect'); 
         const regionSelect = document.getElementById('regionSelect');   
         const regionInputLocked = document.getElementById('regionInputLocked');
@@ -433,4 +713,128 @@
             });
         }
     });
+
+    
 </script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // --- 1. FUNGSI PREVIEW FOTO ---
+        function tampilkanPreview(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewFoto').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+                document.getElementById('pesanErrorFoto').style.display = 'none';
+                input.classList.remove('is-invalid');
+            }
+        }
+
+        // --- 2. FUNGSI CEK VALIDASI STEP 1 ---
+        function cekStep1() {
+            var aman = true;
+            var inputFoto = document.getElementById('inputFoto');
+            var pesanErrorFoto = document.getElementById('pesanErrorFoto');
+            
+            if (inputFoto.files.length === 0) {
+                pesanErrorFoto.innerText = "Wajib upload foto 3x4!";
+                pesanErrorFoto.style.display = "block";
+                aman = false;
+            } else {
+                pesanErrorFoto.style.display = 'none';
+            }
+
+            var inputStep1 = document.querySelectorAll('#step-1 input[required], #step-1 select[required]');
+            inputStep1.forEach(function(input) {
+                if (!input.value) {
+                    input.classList.add('is-invalid');
+                    aman = false; 
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            if (aman) {
+                nextStep('tab-1', 'tab-2');
+            } else {
+                document.getElementById('step-1').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // --- 3. FUNGSI CEK UKURAN FILE DENGAN ALERT INSTAN ---
+        function cekUkuranFile(input) {
+            const maxSize = 2097152; // 2MB
+            if (input.files && input.files.length > 0) {
+                const fileSize = input.files[0].size;
+                if (fileSize > maxSize) {
+                    alert("Gagal! Ukuran file tidak boleh lebih dari 2MB.");
+                    input.value = ""; 
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            }
+        }
+
+        // --- 4. FUNGSI CEK TANGGAL MAGANG (Super Akurat & Kalender Terkunci) ---
+        function cekTanggalMagang() {
+            const inputMulai = document.querySelector('input[name="TglMulai"]');
+            const inputSelesai = document.querySelector('input[name="TglSelesai"]');
+            const feedbackSelesai = inputSelesai.nextElementSibling;
+
+            // KUNCI 1: Mengunci Kalender HTML secara otomatis
+            if (inputMulai && inputMulai.value) {
+                // Jangan izinkan pilih sebelum tanggal mulai
+                inputSelesai.setAttribute('min', inputMulai.value);
+                
+                // Hitung +1 bulan untuk batas maksimal
+                const tgl = new Date(inputMulai.value);
+                tgl.setMonth(tgl.getMonth() + 1);
+                
+                // Format tanggal YYYY-MM-DD
+                const maxYear = tgl.getFullYear();
+                const maxMonth = String(tgl.getMonth() + 1).padStart(2, '0');
+                const maxDay = String(tgl.getDate()).padStart(2, '0');
+                
+                // Kunci kalender! Tanggal lebih dari ini akan abu-abu
+                inputSelesai.setAttribute('max', `${maxYear}-${maxMonth}-${maxDay}`);
+            }
+
+            // KUNCI 2: Teks Peringatan Dinamis
+            // Jika kolom di-backspace sampai kosong, tampilkan "Wajib diisi."
+            if (!inputSelesai.value) {
+                if (feedbackSelesai) feedbackSelesai.textContent = "Wajib diisi.";
+                return; 
+            }
+
+            // Jika ada isinya, cek jaraknya
+            if (inputMulai.value && inputSelesai.value) {
+                const dateMulai = new Date(inputMulai.value);
+                const dateSelesai = new Date(inputSelesai.value);
+                
+                const batasMaksimal = new Date(dateMulai);
+                batasMaksimal.setMonth(batasMaksimal.getMonth() + 1);
+
+                if (dateSelesai < dateMulai) {
+                    if (feedbackSelesai) feedbackSelesai.textContent = "Tanggal selesai tidak boleh mundur.";
+                    inputSelesai.classList.add('is-invalid');
+                    
+                } else if (dateSelesai > batasMaksimal) {
+                    if (feedbackSelesai) feedbackSelesai.textContent = "Jangan lebih dari 1 bulan.";
+                    inputSelesai.classList.add('is-invalid');
+                    
+                } else {
+                    // Kalau rentang tanggalnya aman
+                    if (feedbackSelesai) feedbackSelesai.textContent = "Wajib diisi.";
+                    inputSelesai.classList.remove('is-invalid');
+                }
+            }
+        }
+    </script>
+}

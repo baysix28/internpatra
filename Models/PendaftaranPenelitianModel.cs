@@ -28,6 +28,9 @@ namespace sinta_asp.Models
         [Required(ErrorMessage = "Username Instagram wajib diisi.")]
         public string Instagram { get; set; }
 
+        [Required(ErrorMessage = "Upload foto 3x4")]
+        public IFormFile Foto3x4 { get; set; }
+
         // --- STEP 2: EDUCATION ---
         [Required(ErrorMessage = "Universitas wajib diisi.")]
         public string Universitas { get; set; }
@@ -72,5 +75,9 @@ namespace sinta_asp.Models
         
         [Required(ErrorMessage = "Surat Pengantar wajib diupload.")]
         public IFormFile FileSurat { get; set; }
+
+        public string? NomorPendaftaran { get; set; }
+
+        public string? Status { get; set; } = "Dalam Proses";
     }
 }
