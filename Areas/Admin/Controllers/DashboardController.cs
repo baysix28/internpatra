@@ -131,7 +131,6 @@ namespace sinta_asp.Areas.Admin.Controllers
         {
             var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
             var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
-            // FIX: key session sekarang "AdminNama" (konsisten dengan LoginController)
             var adminName     = HttpContext.Session.GetString("AdminNama")   ?? "";
 
             var staticRegions = _masterDataUnit.Keys.ToList();
@@ -148,10 +147,8 @@ namespace sinta_asp.Areas.Admin.Controllers
                 .ToList();
 
             string activeRegion;
-            // FIX: cek "SuperAdmin" konsisten (bukan "Admin" atau lainnya)
             if (adminRole != "SuperAdmin")
             {
-                // Admin regional — paksa pakai region dari session, abaikan query param
                 activeRegion = !string.IsNullOrEmpty(sessionRegion) ? sessionRegion : "All";
             }
             else if (!string.IsNullOrEmpty(region))
@@ -167,7 +164,6 @@ namespace sinta_asp.Areas.Admin.Controllers
 
             if (adminRole != "SuperAdmin")
             {
-                // FIX: filter pakai activeRegion (yang sudah pasti dari session untuk regional)
                 query = query.Where(x => x.Region == activeRegion);
             }
             else if (activeRegion != "All" && activeRegion != "Semua Region")
@@ -232,7 +228,7 @@ namespace sinta_asp.Areas.Admin.Controllers
                 model.LokasiDiterima   = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && x.Status == "Diterima")).ToList();
                 model.LokasiMenunggu   = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && (x.Status == "Menunggu" || x.Status == "Proses Review"))).ToList();
                 model.LokasiDitolak    = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && x.Status == "Ditolak")).ToList();
-                model.LokasiRevisi     = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && x.Status == "Revisi")).ToList(); // <-- TAMBAHKAN INI
+                model.LokasiRevisi     = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && x.Status == "Revisi")).ToList();
                 ViewBag.SebaranTitle   = "Rekap Sebaran Per Region";
                 ViewBag.SubTitle       = "Nasional";
             }
@@ -249,7 +245,7 @@ namespace sinta_asp.Areas.Admin.Controllers
                 model.LokasiDiterima = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Diterima")).ToList();
                 model.LokasiMenunggu = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && (x.Status == "Menunggu" || x.Status == "Proses Review"))).ToList();
                 model.LokasiDitolak  = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Ditolak")).ToList();
-                model.LokasiRevisi = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Revisi")).ToList();
+                model.LokasiRevisi   = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Revisi")).ToList();
                 ViewBag.SebaranTitle = $"Rekap Sebaran – {activeRegion}";
                 ViewBag.SubTitle     = "Rekap Per Fungsi / Unit Kerja";
             }
@@ -277,7 +273,7 @@ namespace sinta_asp.Areas.Admin.Controllers
 
             var notifsRaw = await query
                 .OrderByDescending(n => n.CreatedAt)
-                .Take(50)                              
+                .Take(50)
                 .ToListAsync();
 
             var readNotifIds = await _context.AdminNotificationReads
@@ -289,11 +285,11 @@ namespace sinta_asp.Areas.Admin.Controllers
                 id       = n.Id,
                 title    = n.Title,
                 message  = n.Message,
-                type     = n.Type,                      // ← Tambah ini
+                type     = n.Type,
                 isRead   = readNotifIds.Contains(n.Id),
                 timeAgo  = CalculateTimeAgo(n.CreatedAt),
                 magangId = n.MagangId,
-                iconClass = n.Type == "Baru"     ? "fa-user-plus"    // ← Tambah ini
+                iconClass = n.Type == "Baru"     ? "fa-user-plus"
                         : n.Type == "Diterima" ? "fa-check-circle"
                         : n.Type == "Ditolak"  ? "fa-times-circle"
                         : n.Type == "update"   ? "fa-pen-to-square"
@@ -327,6 +323,50 @@ namespace sinta_asp.Areas.Admin.Controllers
 
             return Json(new { success = true });
         }
+
+        // ── TAMBAHAN: Tandai semua notifikasi sudah dibaca ───────────────────────
+        [HttpPost]
+        public async Task<JsonResult> MarkAllAsRead()
+        {
+            var adminIdStr  = HttpContext.Session.GetString("AdminId");
+            var adminRole   = HttpContext.Session.GetString("AdminRole");
+            var adminRegion = HttpContext.Session.GetString("AdminRegion");
+
+            if (string.IsNullOrEmpty(adminIdStr)) return Json(new { success = false });
+            int adminId = int.Parse(adminIdStr);
+
+            // Ambil semua notif yang relevan untuk admin ini (sama seperti GetNotifications)
+            var query = _context.AdminNotifications.AsNoTracking().AsQueryable();
+
+            if (adminRole != "SuperAdmin" && !string.IsNullOrEmpty(adminRegion))
+                query = query.Where(n => n.TargetRegion == adminRegion);
+
+            var allNotifIds = await query.Select(n => n.Id).ToListAsync();
+
+            // Cari yang belum dibaca oleh admin ini
+            var sudahBacaIds = await _context.AdminNotificationReads
+                .Where(r => r.AdminId == adminId)
+                .Select(r => r.NotificationId)
+                .ToListAsync();
+
+            var belumBacaIds = allNotifIds.Except(sudahBacaIds).ToList();
+
+            if (belumBacaIds.Any())
+            {
+                var newReads = belumBacaIds.Select(notifId => new AdminNotificationRead
+                {
+                    NotificationId = notifId,
+                    AdminId        = adminId,
+                    ReadAt         = DateTime.Now
+                });
+
+                _context.AdminNotificationReads.AddRange(newReads);
+                await _context.SaveChangesAsync();
+            }
+
+            return Json(new { success = true });
+        }
+        // ────────────────────────────────────────────────────────────────────────
 
         [HttpGet]
         public async Task<IActionResult> GetDetailMahasiswa(int id)
@@ -367,44 +407,36 @@ namespace sinta_asp.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(unit) || string.IsNullOrEmpty(status))
                 return Json(new List<object>());
 
-            var adminRole = HttpContext.Session.GetString("AdminRole") ?? "AdminRegion";
+            var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
             var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
 
-            // Tentukan region aktif (Logika tetap sama seperti sebelumnya)
             string activeRegion = adminRole != "SuperAdmin"
                 ? sessionRegion
                 : (!string.IsNullOrEmpty(region) ? region : "All");
 
             var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
 
-            // 1. Filter dasar berdasarkan Role (Sekuriti data)
             if (adminRole != "SuperAdmin")
                 query = query.Where(x => x.Region == sessionRegion);
             else if (activeRegion != "All" && activeRegion != "Semua Region")
                 query = query.Where(x => x.Region == activeRegion);
 
-            string unitTrimmed = unit.Trim().ToLower();
+            string unitTrimmed   = unit.Trim().ToLower();
             string statusTrimmed = status.Trim().ToLower();
 
-            // 2. Filter STATUS (Pusat logika revisi kamu di sini)
             if (statusTrimmed == "menunggu")
             {
-                // Menunggu biasanya mencakup yang baru daftar dan yang sedang direview
                 query = query.Where(x => x.Status.ToLower() == "menunggu" || x.Status.ToLower() == "proses review");
             }
             else
             {
-                // Ini akan otomatis menangani "diterima", "ditolak", dan "revisi"
                 query = query.Where(x => x.Status.ToLower() == statusTrimmed);
             }
 
-            // 3. Filter UNIT/LOKASI
-            // Jika tampilan All, maka 'unit' yang dikirim dari chart adalah nama Region
             if (activeRegion == "All" || activeRegion == "Semua Region")
             {
                 query = query.Where(x => x.Region != null && x.Region.ToLower() == unitTrimmed);
             }
-            // Jika tampilan sudah spesifik region, maka 'unit' adalah nama Lokasi/Fungsi
             else
             {
                 query = query.Where(x => x.Lokasi != null && x.Lokasi.ToLower() == unitTrimmed);
@@ -422,7 +454,6 @@ namespace sinta_asp.Areas.Admin.Controllers
             var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
             var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
 
-            // FIX: regional admin selalu pakai sessionRegion
             string activeRegion = adminRole != "SuperAdmin"
                 ? sessionRegion
                 : (!string.IsNullOrEmpty(region) ? region : "All");
@@ -465,13 +496,11 @@ namespace sinta_asp.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(fileName))
             {
                 var nama = User?.FindFirst("AdminNama")?.Value ?? "User";
-
                 return $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(nama)}&background=0D8ABC&color=fff&bold=true";
             }
 
-            string fileNameOnly = System.IO.Path.GetFileName(fileName);
+            string fileNameOnly    = System.IO.Path.GetFileName(fileName);
             string encodedFileName = Uri.EscapeDataString(fileNameOnly);
-
             return $"/uploads/{folder}/{encodedFileName}";
         }
 

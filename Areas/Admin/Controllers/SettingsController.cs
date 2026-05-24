@@ -40,29 +40,38 @@ namespace sinta_asp.Areas.Admin.Controllers
             return View(admin);
         }
 
-        // --- Update Profil (Nama & Email) ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(int UserId, string FullName, string Email)
+        public async Task<IActionResult> UpdateProfile(string Nama, string Email)
         {
             try
             {
-                var admin = await _context.Admins.FindAsync(UserId);
+                var adminIdStr = HttpContext.Session.GetString("AdminId");
+                if (string.IsNullOrEmpty(adminIdStr) || !int.TryParse(adminIdStr, out int adminId))
+                    return Json(new { success = false, message = "Sesi tidak valid, silakan login ulang." });
+
+                var admin = await _context.Admins.FindAsync(adminId);
                 if (admin == null) 
-                    return Json(new { success = false, message = "User tidak ditemukan" });
+                    return Json(new { success = false, message = "User tidak ditemukan." });
+
+                if (string.IsNullOrWhiteSpace(Nama))
+                    return Json(new { success = false, message = "Nama tidak boleh kosong." });
+
+                if (string.IsNullOrWhiteSpace(Email))
+                    return Json(new { success = false, message = "Email tidak boleh kosong." });
 
                 // Update Data di Database
-                admin.Nama = FullName;
+                admin.Nama = Nama;
                 admin.Email = Email;
 
                 _context.Update(admin);
                 await _context.SaveChangesAsync();
 
                 // SINKRONISASI SESSION: Agar nama di header dashboard langsung berubah
-                HttpContext.Session.SetString("AdminNama", FullName);
+                HttpContext.Session.SetString("AdminNama", Nama);
                 HttpContext.Session.SetString("AdminEmail", Email);
 
-                return Json(new { success = true, message = "Profil berhasil diperbarui" });
+                return Json(new { success = true, message = "Profil berhasil diperbarui.", nama = Nama, email = Email });
             }
             catch (Exception ex)
             {
@@ -70,42 +79,69 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
         }
 
-        // --- Ganti Password ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(int id, string OldPassword, string NewPassword)
+        public async Task<IActionResult> ChangePassword(string OldPassword, string NewPassword, string ConfirmPassword)
         {
             try
             {
-                var admin = await _context.Admins.FindAsync(id);
-                if (admin == null) 
-                    return Json(new { success = false, message = "User tidak ditemukan" });
+                var adminIdStr = HttpContext.Session.GetString("AdminId");
+                if (string.IsNullOrEmpty(adminIdStr) || !int.TryParse(adminIdStr, out int adminId))
+                    return Json(new { success = false, message = "Sesi tidak valid, silakan login ulang." });
 
-                // 1. Verifikasi apakah password lama benar
-                var verificationResult = _passwordHasher.VerifyHashedPassword(admin, admin.PasswordHash, OldPassword);
-                if (verificationResult != PasswordVerificationResult.Success)
-                {
-                    return Json(new { success = false, message = "Kata sandi lama yang Anda masukkan salah" });
-                }
+                var admin = await _context.Admins.FindAsync(adminId);
+                if (admin == null)
+                    return Json(new { success = false, message = "Admin tidak ditemukan." });
 
-                // 2. Validasi panjang password baru
                 if (string.IsNullOrEmpty(NewPassword) || NewPassword.Length < 6)
+                    return Json(new { success = false, message = "Kata sandi baru minimal harus 6 karakter." });
+
+                if (NewPassword != ConfirmPassword)
+                    return Json(new { success = false, message = "Konfirmasi kata sandi tidak cocok." });
+
+                // Cek format password di database: sudah hash atau masih plain text
+                bool isOldPasswordValid = false;
+
+                if (IsValidIdentityHash(admin.PasswordHash))
                 {
-                    return Json(new { success = false, message = "Kata sandi baru minimal harus 6 karakter" });
+                    // Sudah di-hash dengan PasswordHasher -> verifikasi normal
+                    var result = _passwordHasher.VerifyHashedPassword(admin, admin.PasswordHash, OldPassword);
+                    isOldPasswordValid = result == PasswordVerificationResult.Success
+                                     || result == PasswordVerificationResult.SuccessRehashNeeded;
+                }
+                else
+                {
+                    // Masih plain text di database -> bandingkan langsung
+                    isOldPasswordValid = admin.PasswordHash == OldPassword;
                 }
 
-                // 3. Hash password baru dan simpan
+                if (!isOldPasswordValid)
+                    return Json(new { success = false, message = "Kata sandi lama yang Anda masukkan salah." });
+
+                // Simpan sebagai hash yang benar (mulai sekarang sudah aman)
                 admin.PasswordHash = _passwordHasher.HashPassword(admin, NewPassword);
-                
                 _context.Update(admin);
                 await _context.SaveChangesAsync();
 
-                // Catatan: User tidak perlu logout karena AdminId di session tetap valid
-                return Json(new { success = true, message = "Kata sandi berhasil diperbarui" });
+                return Json(new { success = true, message = "Kata sandi berhasil diperbarui." });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Gagal memperbarui kata sandi: " + ex.Message });
+            }
+        }
+        private static bool IsValidIdentityHash(string? hash)
+        {
+            if (string.IsNullOrWhiteSpace(hash)) return false;
+            try
+            {
+                var bytes = Convert.FromBase64String(hash);
+                // ASP.NET Identity v2 hash: 49 bytes, v3 hash: 61 bytes
+                return bytes.Length == 49 || bytes.Length == 61;
+            }
+            catch
+            {
+                return false;
             }
         }
     }

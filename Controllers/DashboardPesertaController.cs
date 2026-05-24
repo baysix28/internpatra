@@ -537,5 +537,20 @@ namespace sinta_asp.Controllers
             if (span.TotalHours < 24) return $"{(int)span.TotalHours} jam lalu";
             return dt.ToString("dd MMM yyyy");
         }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAllRead()
+        {
+            var userEmail = User.Identity?.Name;
+
+            var notifs = await _context.Notifications
+                .Where(n => n.UserEmail == userEmail && !n.IsRead)
+                .ToListAsync();
+
+            notifs.ForEach(n => n.IsRead = true);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
     }
 }

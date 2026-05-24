@@ -154,6 +154,39 @@
         .notif-icon-circle { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; background: #f1f5f9; font-size: 14px; }
         .sidebar-notif-bubble { background: var(--p-red); color: white; font-size: 10px; padding: 2px 7px; border-radius: 20px; margin-left: auto; font-weight: 700; }
 
+        /* --- Tombol Tandai Dibaca --- */
+        .btn-mark-all-read {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: calc(100% - 24px);
+            margin: 8px 12px;
+            padding: 9px 16px;
+            background: var(--p-blue);
+            color: #fff !important;
+            border: none;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none !important;
+        }
+        .btn-mark-all-read:hover:not(:disabled) {
+            background: #004080;
+            box-shadow: 0 4px 12px rgba(0, 84, 155, 0.3);
+            transform: translateY(-1px);
+        }
+        .btn-mark-all-read:disabled {
+            background: #cbd5e1;
+            color: #94a3b8 !important;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         /* --- Animations --- */
         .row-highlight-flash { animation: flashHighlight 2s ease-out; }
         @@keyframes flashHighlight {
@@ -191,7 +224,7 @@
         <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Settings" ? "active" : "")" asp-area="Admin" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-gear mr-2"></i> Pengaturan</a></li>
     </ul>
 
-    <a asp-area="Admin" asp-controller="Login" asp-action="Logout" class="nav-link-custom nav-link-logout">
+    <a href="javascript:void(0)" data-toggle="modal" data-target="#modalKonfirmasiKeluar" class="nav-link-custom nav-link-logout">
         <i class="fa-solid fa-right-from-bracket mr-2"></i> Keluar
     </a>
 </nav>
@@ -217,14 +250,9 @@
                 <div id="notificationList" style="max-height: 300px; overflow-y: auto;">
                     <div class="text-center p-3 text-muted small">Memuat...</div>
                 </div>
-                    <button type="button" 
-                            class="btn btn-link btn-sm btn-block p-2 text-center small font-weight-bold text-primary" 
-                            style="text-decoration:none;" 
-                            data-toggle="modal" 
-                            data-target="#modalAllNotifications"
-                            onclick="fetchAllNotifications()">        
-                        Lihat Semua
-                    </button>
+                <button type="button" id="btnMarkAllRead" class="btn-mark-all-read" onclick="markAllAsRead()">
+                    <i class="fas fa-check-double"></i> Tandai Sudah Dibaca
+                </button>
             </div>
         </div>
 
@@ -239,7 +267,7 @@
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow border-0" style="border-radius:10px">
                 <a class="dropdown-item small" asp-area="Admin" asp-controller="Settings" asp-action="Index"><i class="fa-solid fa-user-shield mr-2"></i> Profil</a>
-                <a class="dropdown-item small text-danger" asp-area="Admin" asp-controller="Login" asp-action="Logout"><i class="fa-solid fa-power-off mr-2"></i> Keluar</a>
+                <a href="javascript:void(0)" data-toggle="modal" data-target="#modalKonfirmasiKeluar" class="dropdown-item small text-danger"><i class="fa-solid fa-power-off mr-2"></i> Keluar</a>
             </div>
         </div>
     </div>
@@ -261,6 +289,25 @@
             </div>
             <div class="modal-body p-0" id="fullNotifContainer" style="max-height: 60vh; overflow-y: auto;">
                 <div class="text-center p-4 text-muted small">Memuat riwayat...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Modal Konfirmasi Keluar *@
+<div class="modal fade" id="modalKonfirmasiKeluar" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-body text-center p-4">
+                <div style="width:60px;height:60px;background:#fff0f0;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                    <i class="fas fa-right-from-bracket" style="font-size:22px;color:var(--p-red);"></i>
+                </div>
+                <h6 class="font-weight-bold mb-1">Konfirmasi Keluar</h6>
+                <p class="text-muted small mb-4">Apakah Anda yakin ingin keluar dari sesi ini?</p>
+                <div class="d-flex" style="gap:10px;">
+                    <button type="button" class="btn btn-light btn-sm flex-fill" data-dismiss="modal" style="border-radius:8px;">Batal</button>
+                    <a asp-area="Admin" asp-controller="Login" asp-action="Logout" class="btn btn-danger btn-sm flex-fill" style="border-radius:8px;">Ya, Keluar</a>
+                </div>
             </div>
         </div>
     </div>
@@ -296,96 +343,99 @@
         }
     });
 
-function fetchAdminNotifications() {
-    $.ajax({
-        url: '/Admin/Dashboard/GetNotifications',
-        type: 'GET',
-        success: function (data) {
-            renderNotifDropdown(data);
-        }
-    });
-}
-
-// Render notif di dropdown (ringkas, 7 hari terakhir)
-function renderNotifDropdown(data) {
-    const list         = $('#notificationList');
-    const badge        = $('#notifBadge');
-    const sidebarBadge = $('#sidebarNotifBadge');
-    const countLabel   = $('#notifCountLabel');
-
-    list.empty();
-
-    let unreadCount = data.filter(n => !n.isRead).length;
-
-    if (unreadCount > 0) {
-        badge.text(unreadCount).removeClass('d-none');
-        sidebarBadge.text(unreadCount).removeClass('d-none');
-        countLabel.text(unreadCount + ' Baru');
-    } else {
-        badge.addClass('d-none');
-        sidebarBadge.addClass('d-none');
-        countLabel.text('Semua dibaca');
+    function fetchAdminNotifications() {
+        $.ajax({
+            url: '/Admin/Dashboard/GetNotifications',
+            type: 'GET',
+            success: function (data) {
+                renderNotifDropdown(data);
+            }
+        });
     }
 
-    if (data.length === 0) {
-        list.append(`
-            <div class="text-center p-4 text-muted">
-                <i class="fa fa-bell-slash mb-2" style="font-size:28px;opacity:0.3;"></i>
-                <div class="small">Tidak ada notifikasi 7 hari terakhir</div>
-            </div>
-        `);
-        return;
-    }
+    // Render notif di dropdown (ringkas, 7 hari terakhir)
+    function renderNotifDropdown(data) {
+        const list         = $('#notificationList');
+        const badge        = $('#notifBadge');
+        const sidebarBadge = $('#sidebarNotifBadge');
+        const countLabel   = $('#notifCountLabel');
+        const btnMarkAll   = $('#btnMarkAllRead');
 
-    data.forEach(n => {
-        // Icon & warna berdasarkan type
-        let iconBg    = '#f1f5f9';
-        let iconColor = 'text-muted';
-        let iconClass = 'fa-bell';
-        let borderLeft = '#94a3b8';
+        list.empty();
 
-        if (n.type === 'Baru') {
-            iconBg = '#dbeafe'; iconColor = 'text-primary';
-            iconClass = 'fa-user-plus'; borderLeft = '#3b82f6';
-        } else if (n.type === 'Diterima') {
-            iconBg = '#dcfce7'; iconColor = 'text-success';
-            iconClass = 'fa-check'; borderLeft = '#22c55e';
-        } else if (n.type === 'Ditolak') {
-            iconBg = '#fee2e2'; iconColor = 'text-danger';
-            iconClass = 'fa-times'; borderLeft = '#ef4444';
-        } else if (n.type === 'update') {
-            iconBg = '#fef9c3'; iconColor = 'text-warning';
-            iconClass = 'fa-rotate'; borderLeft = '#eab308';
+        let unreadCount = data.filter(n => !n.isRead).length;
+
+        if (unreadCount > 0) {
+            badge.text(unreadCount).removeClass('d-none');
+            sidebarBadge.text(unreadCount).removeClass('d-none');
+            countLabel.text(unreadCount + ' Baru');
+            btnMarkAll.prop('disabled', false);
+        } else {
+            badge.addClass('d-none');
+            sidebarBadge.addClass('d-none');
+            countLabel.text('Semua dibaca');
+            // Tombol disabled & abu-abu kalau sudah semua dibaca
+            btnMarkAll.prop('disabled', true);
         }
 
-        const unreadBg  = n.isRead ? '#fff' : '#f0f7ff';
-        const dotHtml   = n.isRead ? '' : `<span style="width:8px;height:8px;background:var(--p-blue);border-radius:50%;flex-shrink:0;margin-left:8px;"></span>`;
-
-        const itemHtml = `
-            <a href="javascript:void(0)"
-               onclick="handleNotifClick(${n.id}, ${n.magangId})"
-               class="d-flex align-items-start text-decoration-none"
-               style="padding:12px 16px; border-bottom:1px solid #f1f5f9;
-                      background:${unreadBg}; border-left:3px solid ${borderLeft};
-                      transition:background 0.2s;">
-                <div style="width:36px;height:36px;border-radius:10px;background:${iconBg};
-                            display:flex;align-items:center;justify-content:center;
-                            margin-right:12px;flex-shrink:0;">
-                    <i class="fas ${iconClass} ${iconColor}" style="font-size:13px;"></i>
+        if (data.length === 0) {
+            list.append(`
+                <div class="text-center p-4 text-muted">
+                    <i class="fa fa-bell-slash mb-2" style="font-size:28px;opacity:0.3;"></i>
+                    <div class="small">Tidak ada notifikasi 7 hari terakhir</div>
                 </div>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-size:13px;font-weight:700;color:#1e293b;line-height:1.3;">${n.title}</div>
-                    <div style="font-size:12px;color:#64748b;margin-top:2px;line-height:1.4;">${n.message}</div>
-                    <div style="font-size:10px;color:#94a3b8;margin-top:4px;">
-                        <i class="fas fa-clock mr-1"></i>${n.timeAgo}
+            `);
+            return;
+        }
+
+        data.forEach(n => {
+            let iconBg    = '#f1f5f9';
+            let iconColor = 'text-muted';
+            let iconClass = 'fa-bell';
+            let borderLeft = '#94a3b8';
+
+            if (n.type === 'Baru') {
+                iconBg = '#dbeafe'; iconColor = 'text-primary';
+                iconClass = 'fa-user-plus'; borderLeft = '#3b82f6';
+            } else if (n.type === 'Diterima') {
+                iconBg = '#dcfce7'; iconColor = 'text-success';
+                iconClass = 'fa-check'; borderLeft = '#22c55e';
+            } else if (n.type === 'Ditolak') {
+                iconBg = '#fee2e2'; iconColor = 'text-danger';
+                iconClass = 'fa-times'; borderLeft = '#ef4444';
+            } else if (n.type === 'update') {
+                iconBg = '#fef9c3'; iconColor = 'text-warning';
+                iconClass = 'fa-rotate'; borderLeft = '#eab308';
+            }
+
+            const unreadBg  = n.isRead ? '#fff' : '#f0f7ff';
+            const dotHtml   = n.isRead ? '' : `<span style="width:8px;height:8px;background:var(--p-blue);border-radius:50%;flex-shrink:0;margin-left:8px;"></span>`;
+
+            const itemHtml = `
+                <a href="javascript:void(0)"
+                   onclick="handleNotifClick(${n.id}, ${n.magangId})"
+                   class="d-flex align-items-start text-decoration-none"
+                   style="padding:12px 16px; border-bottom:1px solid #f1f5f9;
+                          background:${unreadBg}; border-left:3px solid ${borderLeft};
+                          transition:background 0.2s;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:${iconBg};
+                                display:flex;align-items:center;justify-content:center;
+                                margin-right:12px;flex-shrink:0;">
+                        <i class="fas ${iconClass} ${iconColor}" style="font-size:13px;"></i>
                     </div>
-                </div>
-                ${dotHtml}
-            </a>
-        `;
-        list.append(itemHtml);
-    });
-}
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:700;color:#1e293b;line-height:1.3;">${n.title}</div>
+                        <div style="font-size:12px;color:#64748b;margin-top:2px;line-height:1.4;">${n.message}</div>
+                        <div style="font-size:10px;color:#94a3b8;margin-top:4px;">
+                            <i class="fas fa-clock mr-1"></i>${n.timeAgo}
+                        </div>
+                    </div>
+                    ${dotHtml}
+                </a>
+            `;
+            list.append(itemHtml);
+        });
+    }
 
     // Render notif di modal "Lihat Semua" — ambil semua tanpa filter tanggal
     function fetchAllNotifications() {
@@ -465,6 +515,28 @@ function renderNotifDropdown(data) {
     function handleNotifClick(notifId, magangId) {
         $.post('/Admin/Dashboard/MarkAsRead', { id: notifId }, function () {
             window.location.href = '/Admin/Mahasiswa?highlightId=' + magangId;
+        });
+    }
+
+    // Tandai semua notifikasi sudah dibaca
+    function markAllAsRead() {
+        const btn = $('#btnMarkAllRead');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Memproses...');
+
+        $.ajax({
+            url: '/Admin/Dashboard/MarkAllAsRead',
+            type: 'POST',
+            success: function (res) {
+                if (res.success) {
+                    fetchAdminNotifications(); // refresh otomatis, badge hilang, titik biru hilang
+                } else {
+                    // Kalau gagal, kembalikan tombol
+                    btn.prop('disabled', false).html('<i class="fas fa-check-double"></i> Tandai Sudah Dibaca');
+                }
+            },
+            error: function () {
+                btn.prop('disabled', false).html('<i class="fas fa-check-double"></i> Tandai Sudah Dibaca');
+            }
         });
     }
 </script>

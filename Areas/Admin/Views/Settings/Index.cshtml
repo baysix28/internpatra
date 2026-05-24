@@ -9,6 +9,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 
 <style>
     :root { 
@@ -110,6 +111,7 @@
     .password-toggle {
         position: absolute;
         right: 15px;
+        /* sesuaikan top agar sejajar dengan input */
         top: 38px;
         cursor: pointer;
         color: #94a3b8;
@@ -128,6 +130,7 @@
         font-size: 0.9rem;
         transition: var(--transition);
         box-shadow: 0 4px 12px rgba(0, 84, 155, 0.2);
+        cursor: pointer;
     }
 
     .btn-save-pertamina:hover {
@@ -149,6 +152,7 @@
         border-radius: 15px;
         overflow: hidden;
         border: 4px solid #f1f5f9;
+        flex-shrink: 0;
     }
 
     .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
@@ -161,10 +165,42 @@
         color: #64748b;
         font-weight: 700;
         transition: var(--transition);
+        font-size: 0.75rem;
+        cursor: pointer;
     }
     .btn-outline-modern:hover { background: #f8fafc; color: var(--p-blue); border-color: var(--p-blue); }
     
     .fw-800 { font-weight: 800 !important; }
+
+    /* Seksi ganti password — muncul saat edit mode */
+    .password-section {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px dashed var(--border);
+    }
+
+    .section-title-sm {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #334155;
+        margin-bottom: 0.25rem;
+    }
+    .section-sub-sm {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Password input punya padding kanan ekstra untuk icon toggle */
+    .pass-wrapper { position: relative; }
+    .pass-wrapper .stg-input { padding-right: 2.8rem; }
+    .pass-wrapper .password-toggle { top: 50%; transform: translateY(-50%); }
+
+    .divider-action {
+        border-top: 1px solid var(--border);
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+    }
 </style>
 
 <div class="dashboard-wrapper">
@@ -175,13 +211,13 @@
         </div>
     </div>
 
+    @* Antiforgery Token — dipakai oleh semua AJAX POST *@
+    @Html.AntiForgeryToken()
+
     <div class="main-settings-card">
         <nav class="nav nav-tabs-pertamina" id="settingTabs" role="tablist">
             <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#tab-profile" type="button" role="tab">
                 <i class="fas fa-id-card-alt me-2"></i>Profil Saya
-            </button>
-            <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#tab-security" type="button" role="tab">
-                <i class="fas fa-shield-alt me-2"></i>Keamanan
             </button>
         </nav>
 
@@ -191,71 +227,79 @@
             <div class="tab-pane fade show active" id="tab-profile" role="tabpanel">
                 <div class="profile-header-box">
                     <div class="avatar-wrapper">
-                        <img src="https://ui-avatars.com/api/?name=@namaLengkap&background=00549B&color=fff&size=128" alt="Avatar">
+                        <img id="avatarImg" src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(namaLengkap)&background=00549B&color=fff&size=128" alt="Avatar">
                     </div>
                     <div>
-                        <h4 class="fw-800 text-dark mb-1">@namaLengkap</h4>
-                        <div class="badge bg-light-blue text-primary px-3 py-2 rounded-pill fw-700" style="font-size: 0.65rem; background: rgba(0, 84, 155, 0.1);">
-                            <i class="fas fa-user-shield me-1"></i> SUPER ADMINISTRATOR
-                        </div>
+                        <h4 class="fw-800 text-dark mb-1" id="displayNama">@namaLengkap</h4>
+
                     </div>
                     <div class="ms-auto">
-                        <button id="btnEdit" class="btn btn-outline-modern" style="font-size: 0.75rem;">
+                        <button id="btnEdit" class="btn-outline-modern">
                             <i class="fas fa-edit me-2"></i>Edit Informasi
                         </button>
                     </div>
                 </div>
 
-                <form id="profileForm">
+                @* Form gabungan: update profil + opsional ganti password *@
+                <form id="profileForm" autocomplete="off">
+
+                    @* ===== BAGIAN INFORMASI DASAR ===== *@
                     <div class="row">
                         <div class="col-md-6 form-group-modern">
                             <label class="stg-label">Nama Lengkap Admin</label>
-                            <input type="text" name="Nama" class="stg-input edit-field" value="@namaLengkap" readonly required>
+                            <input type="text" name="Nama" id="inputNama" class="stg-input edit-field" value="@namaLengkap" readonly required>
                         </div>
                         <div class="col-md-6 form-group-modern">
                             <label class="stg-label">Username / Email</label>
-                            <input type="email" name="Email" class="stg-input edit-field" value="@emailUser" readonly required>
+                            <input type="email" name="Email" id="inputEmail" class="stg-input edit-field" value="@emailUser" readonly required>
                         </div>
                     </div>
 
-                    <div id="actionArea" class="d-none mt-4 animate__animated animate__fadeIn">
-                        <hr class="mb-4">
+                    @* ===== BAGIAN GANTI PASSWORD — hanya muncul saat edit mode ===== *@
+                    <div id="passwordSection" class="password-section d-none animate__animated animate__fadeIn">
+                        <p class="section-title-sm"><i class="fas fa-lock me-2 text-primary"></i>Ganti Kata Sandi</p>
+                        <p class="section-sub-sm">Kosongkan jika tidak ingin mengganti kata sandi.</p>
+
+                        <div class="row">
+                            <div class="col-md-4 form-group-modern">
+                                <label class="stg-label">Kata Sandi Saat Ini</label>
+                                <div class="pass-wrapper">
+                                    <input type="password" name="OldPassword" id="OldPassword" class="stg-input" placeholder="Kata sandi lama" autocomplete="current-password">
+                                    <i class="fas fa-eye password-toggle" data-target="OldPassword"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-4 form-group-modern">
+                                <label class="stg-label">Kata Sandi Baru</label>
+                                <div class="pass-wrapper">
+                                    <input type="password" name="NewPassword" id="NewPassword" class="stg-input" placeholder="Minimal 6 karakter" autocomplete="new-password">
+                                    <i class="fas fa-eye password-toggle" data-target="NewPassword"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-4 form-group-modern">
+                                <label class="stg-label">Konfirmasi Kata Sandi Baru</label>
+                                <div class="pass-wrapper">
+                                    <input type="password" name="ConfirmPassword" id="ConfirmPassword" class="stg-input" placeholder="Ulangi kata sandi baru" autocomplete="new-password">
+                                    <i class="fas fa-eye password-toggle" data-target="ConfirmPassword"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* ===== ACTION BUTTONS ===== *@
+                    <div id="actionArea" class="d-none divider-action animate__animated animate__fadeIn">
                         <div class="d-flex align-items-center gap-3">
-                            <button type="submit" class="btn-save-pertamina">Simpan Perubahan</button>
-                            <button type="button" id="btnCancel" class="btn text-muted fw-800" style="font-size: 0.85rem;">Batalkan</button>
+                            <button type="submit" class="btn-save-pertamina">
+                                <i class="fas fa-save me-2"></i>Simpan Perubahan
+                            </button>
+                            <button type="button" id="btnCancel" class="btn text-muted fw-800" style="font-size: 0.85rem;">
+                                Batalkan
+                            </button>
                         </div>
                     </div>
                 </form>
-            </div>
 
-            @* TAB KEAMANAN *@
-            <div class="tab-pane fade" id="tab-security" role="tabpanel">
-                <div class="mb-4">
-                    <h5 class="fw-800 text-dark mb-1">Ganti Kata Sandi</h5>
-                    <p class="text-muted small">Disarankan untuk mengganti kata sandi secara berkala untuk menjaga keamanan akun.</p>
-                </div>
-
-                <form id="securityForm" style="max-width: 600px;">
-                    <div class="form-group-modern">
-                        <label class="stg-label">Kata Sandi Saat Ini</label>
-                        <input type="password" name="OldPassword" class="stg-input pass-input" placeholder="Masukkan kata sandi lama" required>
-                        <i class="fas fa-eye password-toggle"></i>
-                    </div>
-                    <div class="form-group-modern">
-                        <label class="stg-label">Kata Sandi Baru</label>
-                        <input type="password" name="NewPassword" id="NewPassword" class="stg-input pass-input" placeholder="Minimal 6 karakter kombinasi" required>
-                        <i class="fas fa-eye password-toggle"></i>
-                    </div>
-                    <div class="form-group-modern mb-4">
-                        <label class="stg-label">Konfirmasi Kata Sandi Baru</label>
-                        <input type="password" name="ConfirmPassword" class="stg-input pass-input" placeholder="Ulangi kata sandi baru" required>
-                        <i class="fas fa-eye password-toggle"></i>
-                    </div>
-
-                    <button type="submit" class="btn-save-pertamina">Perbarui Kata Sandi</button>
-                </form>
-
-                <div class="mt-5 p-3 rounded-3 bg-light border-start border-4 border-primary">
+                @* Info login *@
+                <div class="mt-4 p-3 rounded-3 bg-light border-start border-4 border-primary">
                     <div class="small fw-700 text-dark mb-1"><i class="fas fa-info-circle text-primary me-1"></i> Informasi Login</div>
                     <div class="text-muted" style="font-size: 0.75rem;">
                         Terakhir kali <b class="fw-800">@namaLengkap</b> melakukan perubahan data pada sesi ini.
@@ -272,94 +316,178 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    $(document).ready(function() {
-        // Feature: Show/Hide Password Toggle
-        $('.password-toggle').click(function() {
-            const input = $(this).siblings('.pass-input');
-            if (input.attr('type') === 'password') {
-                input.attr('type', 'text');
-                $(this).removeClass('fa-eye').addClass('fa-eye-slash');
-            } else {
-                input.attr('type', 'password');
-                $(this).removeClass('fa-eye-slash').addClass('fa-eye');
-            }
-        });
+$(document).ready(function () {
 
-        // Toggle Edit Mode
-        $('#btnEdit').click(function() {
-            $(this).fadeOut(200);
-            $('.edit-field').removeAttr('readonly').focus().css('background', '#fff');
-            $('#actionArea').removeClass('d-none');
-        });
+    // ============================================================
+    // Ambil antiforgery token dari hidden field yang di-render Razor
+    // ============================================================
+    function getToken() {
+        return $('input[name="__RequestVerificationToken"]').val();
+    }
 
-        // Cancel Edit Mode
-        $('#btnCancel').click(function() {
-            $('.edit-field').attr('readonly', true).css('background', '#f8fafc');
-            $('#actionArea').addClass('d-none');
-            $('#btnEdit').fadeIn(200);
-        });
+    // ============================================================
+    // Toggle show/hide password
+    // ============================================================
+    $(document).on('click', '.password-toggle', function () {
+        var targetId = $(this).data('target');
+        var input = $('#' + targetId);
+        if (input.attr('type') === 'password') {
+            input.attr('type', 'text');
+            $(this).removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            input.attr('type', 'password');
+            $(this).removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    });
 
-        // Submit Profil
-        $('#profileForm').on('submit', function(e) {
-            e.preventDefault();
-            const formData = $(this).serialize();
+    // ============================================================
+    // Masuk mode edit
+    // ============================================================
+    $('#btnEdit').on('click', function () {
+        $(this).fadeOut(200);
+        $('.edit-field').removeAttr('readonly').css('background', '#fff');
+        $('#passwordSection').removeClass('d-none');
+        $('#actionArea').removeClass('d-none');
+        $('#inputNama').focus();
+    });
 
+    // ============================================================
+    // Batalkan edit — kembalikan ke kondisi semula
+    // ============================================================
+    $('#btnCancel').on('click', function () {
+        resetForm();
+    });
+
+    function resetForm() {
+        $('.edit-field').attr('readonly', true).css('background', '#f8fafc');
+        $('#passwordSection').addClass('d-none');
+        $('#actionArea').addClass('d-none');
+        $('#btnEdit').fadeIn(200);
+        // Kosongkan field password
+        $('#OldPassword, #NewPassword, #ConfirmPassword').val('').attr('type', 'password');
+        $('.password-toggle').removeClass('fa-eye-slash').addClass('fa-eye');
+    }
+
+    // ============================================================
+    // Submit form
+    // ============================================================
+    $('#profileForm').on('submit', function (e) {
+        e.preventDefault();
+
+        var nama  = $('#inputNama').val().trim();
+        var email = $('#inputEmail').val().trim();
+        var oldPw = $('#OldPassword').val();
+        var newPw = $('#NewPassword').val();
+        var conPw = $('#ConfirmPassword').val();
+
+        // --- Validasi dasar profil ---
+        if (!nama) { Swal.fire('Oops!', 'Nama tidak boleh kosong.', 'error'); return; }
+        if (!email) { Swal.fire('Oops!', 'Email tidak boleh kosong.', 'error'); return; }
+
+        // --- Jika ada isian password, validasi dulu ---
+        var changePassword = (oldPw !== '' || newPw !== '' || conPw !== '');
+        if (changePassword) {
+            if (!oldPw) { Swal.fire('Oops!', 'Masukkan kata sandi lama terlebih dahulu.', 'error'); return; }
+            if (newPw.length < 6) { Swal.fire('Oops!', 'Kata sandi baru minimal 6 karakter.', 'error'); return; }
+            if (newPw !== conPw) { Swal.fire('Oops!', 'Konfirmasi kata sandi tidak cocok.', 'error'); return; }
+        }
+
+        // --- Konfirmasi sebelum simpan ---
+        var confirmMsg = changePassword
+            ? 'Profil dan kata sandi akan diperbarui.'
+            : 'Informasi profil akan diperbarui.';
+
+        Swal.fire({
+            title: 'Simpan Perubahan?',
+            text: confirmMsg,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Simpan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#00549B'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+
+            // 1. Update profil dulu
             $.ajax({
                 url: '/Admin/Settings/UpdateProfile',
                 method: 'POST',
-                data: formData,
-                success: function(res) {
-                    if(res.success) {
+                data: {
+                    __RequestVerificationToken: getToken(),
+                    Nama: nama,
+                    Email: email
+                },
+                success: function (res) {
+                    if (!res.success) {
+                        Swal.fire('Gagal!', res.message, 'error');
+                        return;
+                    }
+
+                    // Update tampilan header profil langsung tanpa reload
+                    $('#displayNama').text(nama);
+                    $('#avatarImg').attr('src',
+                        'https://ui-avatars.com/api/?name=' + encodeURIComponent(nama) +
+                        '&background=00549B&color=fff&size=128'
+                    );
+
+                    // 2. Kalau ada perubahan password, proses juga
+                    if (changePassword) {
+                        $.ajax({
+                            url: '/Admin/Settings/ChangePassword',
+                            method: 'POST',
+                            data: {
+                                __RequestVerificationToken: getToken(),
+                                OldPassword: oldPw,
+                                NewPassword: newPw,
+                                ConfirmPassword: conPw
+                            },
+                            success: function (pwRes) {
+                                if (!pwRes.success) {
+                                    // Profil sudah tersimpan, password gagal — beri tahu user
+                                    Swal.fire({
+                                        title: 'Profil Tersimpan',
+                                        html: 'Informasi profil berhasil diperbarui, namun kata sandi gagal diubah:<br><b>' + pwRes.message + '</b>',
+                                        icon: 'warning',
+                                        confirmButtonColor: '#00549B'
+                                    });
+                                    resetForm();
+                                    return;
+                                }
+
+                                // Semua berhasil
+                                Swal.fire({
+                                    title: 'Berhasil!',
+                                    text: 'Profil dan kata sandi berhasil diperbarui.',
+                                    icon: 'success',
+                                    confirmButtonColor: '#00549B'
+                                }).then(function () {
+                                    resetForm();
+                                });
+                            },
+                            error: function () {
+                                Swal.fire('Error', 'Terjadi kesalahan saat memperbarui kata sandi.', 'error');
+                            }
+                        });
+                    } else {
+                        // Hanya update profil
                         Swal.fire({
                             title: 'Berhasil!',
-                            text: res.message,
+                            text: 'Profil berhasil diperbarui.',
                             icon: 'success',
-                            confirmButtonColor: '#00549B'
-                        }).then(() => { location.reload(); });
-                    } else {
-                        Swal.fire('Gagal!', res.message, 'error');
+                            confirmButtonColor: '#00549B',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(function () {
+                            resetForm();
+                        });
                     }
-                }
-            });
-        });
-
-        // Ganti Password
-        $('#securityForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            // Validasi sederhana client-side
-            if ($('#NewPassword').val().length < 6) {
-                Swal.fire('Oops!', 'Password baru minimal 6 karakter', 'error');
-                return;
-            }
-
-            const formData = $(this).serialize();
-
-            Swal.fire({
-                title: 'Konfirmasi',
-                text: 'Apakah Anda yakin ingin mengganti kata sandi?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Ganti',
-                confirmButtonColor: '#00549B'
-            }).then((result) => {
-                if(result.isConfirmed) {
-                    $.ajax({
-                        url: '/Admin/Settings/ChangePassword',
-                        method: 'POST',
-                        data: formData,
-                        success: function(res) {
-                            if(res.success) {
-                                Swal.fire('Berhasil!', res.message, 'success').then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire('Gagal!', res.message, 'error');
-                            }
-                        }
-                    });
+                },
+                error: function () {
+                    Swal.fire('Error', 'Terjadi kesalahan saat memperbarui profil.', 'error');
                 }
             });
         });
     });
+
+});
 </script>
