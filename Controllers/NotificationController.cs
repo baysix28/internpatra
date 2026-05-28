@@ -101,6 +101,21 @@ namespace sinta_asp.Controllers
             return Ok();
         }
 
+        // --- TAMBAHAN BARU: Hapus Notifikasi Spesifik ---
+        [HttpPost]
+        public IActionResult DeleteNotification(int id)
+        {
+            var userEmail = User.Identity?.Name;
+            var notif = _context.Notifications.FirstOrDefault(n => n.Id == id && n.UserEmail == userEmail);
+
+            if (notif == null)
+                return NotFound();
+
+            _context.Notifications.Remove(notif);
+            _context.SaveChanges();
+            return Ok();
+        }
+
         [HttpGet]
         public IActionResult UnreadCount()
         {

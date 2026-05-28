@@ -75,7 +75,8 @@ main[role="main"] {
 .flip-card-front, .flip-card-back {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
-  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  -webkit-backface-visibility: hidden; 
+  backface-visibility: hidden;
   border-radius: 12px;
   overflow: hidden;
   background: white;
@@ -94,10 +95,9 @@ main[role="main"] {
   background: linear-gradient(180deg, 
     #608ecf 0%,    /* 1. Biru Paling Gelap (Atas) */
     #648dc5 50%,   /* 2. Biru Sedang (Tengah) */
-    #7ba7ce 99%   /* 3. Biru Langit Pucat (Jembatan biar gak nabrak) */
-);
+    #7ba7ce 99%   /* 3. Biru Langit Pucat */
+  );
 
-  /* Style lainnya tetap sama */
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -111,19 +111,16 @@ main[role="main"] {
 }
 
 /* 2. UPDATE WARNA JUDUL (WAJIB PUTIH) */
-/* Karena background atasnya gelap, teks judul harus putih biar kebaca */
 .card-title {
   color: #ffffff !important; /* Ubah jadi Putih */
-  
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 15px; /* Tambah jarak sedikit biar gak nempel ke area putih */
   line-height: 1.4;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Opsional: Bayangan teks biar makin jelas */
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Bayangan teks biar makin jelas */
 }
 
 /* 3. INFO ROW (TETAP GELAP) */
-/* Karena background bawahnya putih, teks info tetap warna gelap */
 .info-row {
   font-size: 0.8rem;
   color: #e0e0e0 !important;           /* Tetap abu-abu tua/hitam */
@@ -131,14 +128,6 @@ main[role="main"] {
   display: flex;
   align-items: flex-start;
   font-weight: 500;      /* Sedikit ditebalkan biar jelas di transisi gradasi */
-}
-
-.info-icon {
-  margin-right: 8px;
-  color: #da2335!important;        /* Ikon Hijau tetap oke */
-  width: 15px;
-  font-size: 0.8rem;
-  margin-top: 2px;
 }
 
 .info-icon {
@@ -182,13 +171,15 @@ main[role="main"] {
   text-align: left;
   display: -webkit-box;
   -webkit-line-clamp: 4;
+  line-clamp: 4;                /* FIX: Menambahkan properti standar */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-/* Tombol Hitam Biasa */
+
+/* Tombol Biru Corporate */
 .btn-card-clean {
   width: 100%;
-  background: #3273BA; /* Hitam Pekat */
+  background: #3273BA;
   color: white;
   padding: 10px 0;
   text-align: center;
@@ -202,31 +193,29 @@ main[role="main"] {
 
 /* EFEK SAAT MOUSE DI ARAHKAN (HOVER) */
 .btn-card-clean:hover {
-  background: #333; /* GANTI DISINI: Jadi Abu Gelap (Bukan Merah #d81c22 lagi) */
+  background: #333; /* Jadi Abu Gelap saat hover */
   color: white;
-  /* Tidak ada transformasi aneh-aneh, cuma ganti warna dikit */
 }
 
 /* --- HEADER STICKY MODERN --- */
 
 /* 1. Kondisi Awal (Saat di Paling Atas) */
 .header-utama {
-  position: sticky;
-  position: -webkit-sticky;
+  position: -webkit-sticky;     /* FIX: Webkit prefix ditaruh di atas */
+  position: sticky;             /* FIX: Properti standar ditaruh setelahnya */
   top: 0;
   z-index: 9999;
-  
-  background-color: #ffffff; /* Putih Solid */
-  box-shadow: none;          /* Belum ada bayangan */
-  
-  transition: all 0.4s ease; /* Animasi perubahan halus */
+  background-color: #ffffff;    /* Putih Solid */
+  box-shadow: none;             /* Belum ada bayangan */
+  transition: all 0.4s ease;    /* Animasi perubahan halus */
 }
 
 /* 2. Kondisi Saat Di-Scroll (Ditambah via JS nanti) */
 .header-utama.scrolled {
-  background-color: rgba(255, 255, 255, 0.5); /* Putih Transparan 85% */
-  backdrop-filter: blur(15px);  /* EFEK KACA BURAM (BLUR) */
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08); /* Bayangan halus muncul */
+  background-color: rgba(255, 255, 255, 0.5); /* Putih Transparan 50% */
+  -webkit-backdrop-filter: blur(15px);        /* FIX: Dukungan untuk Safari/iOS */
+  backdrop-filter: blur(15px);                /* EFEK KACA BURAM (BLUR) */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);    /* Bayangan halus muncul */
 }
 
 /* Atur Garis Merah */
@@ -235,7 +224,6 @@ main[role="main"] {
   background-color: var(--pertamina-merah, #CB2C30);
   transition: all 0.4s ease; /* Animasi halus saat hilang */
   overflow: hidden;
-
 }
 
 /* Saat class 'scrolled' aktif, garis merah jadi 0px (Hilang) */

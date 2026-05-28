@@ -856,9 +856,18 @@
             <p class="hero-lead">Empowering the future of energy through your brilliant ideas.</p>
             
             <div class="d-flex justify-content-center align-items-center gap-3">
-                <a asp-controller="Penelitian" asp-action="Daftar" class="btn-apply-hero">
-                    DAFTAR SEKARANG
-                </a>
+                @if (Context.User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-controller="Penelitian" asp-action="Daftar" class="btn-apply-hero">
+                        DAFTAR SEKARANG
+                    </a>
+                }
+                else
+                {
+                    <a href="javascript:void(0);" onclick="showLoginWarning()" class="btn-apply-hero">
+                        DAFTAR SEKARANG
+                    </a>
+                }
             </div>
     </header>
     <div class="main-container" id="area-lowongan">
@@ -1048,19 +1057,35 @@
                                         <div class="flip-card-back">
                                             <h6 class="back-title" style="color: #003B76;">Detail Fungsi</h6>
                                             <p class="back-desc">@item.Description</p>
-                                            <a asp-action="Daftar" 
-                                            asp-route-preCompany="@item.Company" 
-                                            asp-route-preRegion="@item.Region"
-                                            asp-route-preTargetLokasi="@item.Title"   
-                                            asp-route-preTargetJurusan="@item.Title"
-                                            class="btn-card-clean"
-                                            style="
-                                                background-color: #003B76;  !important; 
-                                                color: #ffffff !important; 
-                                                border: 1px solid #003B76 !important;
-                                            ">
-                                            Pilih Fungsi
-                                            </a>
+                                            @if (Context.User.Identity?.IsAuthenticated == true)
+                                            {
+                                                <a asp-action="Daftar" 
+                                                asp-route-preCompany="@item.Company" 
+                                                asp-route-preRegion="@item.Region"
+                                                asp-route-preTargetLokasi="@item.Title"   
+                                                asp-route-preTargetJurusan="@item.Title"
+                                                class="btn-card-clean"
+                                                style="
+                                                    background-color: #003B76 !important; 
+                                                    color: #ffffff !important; 
+                                                    border: 1px solid #003B76 !important;
+                                                ">
+                                                    Pilih Fungsi
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a href="javascript:void(0);" 
+                                                onclick="showLoginWarning()" 
+                                                class="btn-card-clean"
+                                                style="
+                                                    background-color: #003B76 !important; 
+                                                    color: #ffffff !important; 
+                                                    border: 1px solid #003B76 !important;
+                                                ">
+                                                    Pilih Fungsi
+                                                </a>
+                                            }
                                         </div>
 
                                     </div>
@@ -1129,6 +1154,39 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function showLoginWarning() {
+        Swal.fire({
+            title: 'Akses Terbatas',
+            text: 'Silakan login untuk mengakses formulir pendaftaran penelitian.',
+            icon: 'info',
+            iconColor: '#003B76',
+            width: '340px',
+            showCancelButton: true,
+            confirmButtonText: 'Login Sekarang',
+            cancelButtonText: 'Kembali',
+            confirmButtonColor: '#003B76',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true,
+            padding: '1.5rem',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            customClass: {
+                popup: 'rounded-3 shadow',
+                title: 'fs-5 fw-bold text-dark',
+                htmlContainer: 'small text-muted',
+                confirmButton: 'btn btn-primary btn-sm px-3 py-2',
+                cancelButton: 'btn btn-link btn-sm text-decoration-none text-muted'
+            },
+            buttonsStyling: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/Auth/Login';
+            }
+        });
+    }
+</script>
 <script>
     // ==========================================
     // BAGIAN 1: DATA & LOGIKA TAMPILAN (LOGIKA ASLI 100%)

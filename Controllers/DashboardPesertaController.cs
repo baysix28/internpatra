@@ -6,6 +6,10 @@ using sinta_asp.Models;
 using System.Linq;
 using System.Security.Claims;
 using System.IO;
+using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace sinta_asp.Controllers
 {
@@ -13,103 +17,122 @@ namespace sinta_asp.Controllers
     public class DashboardPesertaController : Controller
     {
         private readonly AppDbContext _context;
-        // private readonly IWebHostEnvironment _environment;
 
         public DashboardPesertaController(AppDbContext context)
         {
             _context = context;
-            // _environment = environment; // Tambahkan ini
         }
 
-    public async Task<IActionResult> Index()
-    {
-        var userEmail = User.Identity?.Name;
-
-        var profil = await _context.UserProfile
-            .FirstOrDefaultAsync(u => u.Email == userEmail);
-
-        var riwayatMagang = await _context.PendaftaranMagang
-            .Where(m => m.EmailPribadi == userEmail)
-            .OrderByDescending(m => m.CreatedAt)
-            .ToListAsync();
-
-        // --- INOVASI: AMBIL DATA MAGANG AKTIF (TERBARU & DITERIMA) ---
-        var today = DateTime.Today;
-
-        var magangDiterima = riwayatMagang
-            .Where(m => m.Status == "Diterima")
-            .OrderByDescending(m => m.SelesaiMagang)
-            .FirstOrDefault();
-
-        ViewBag.MagangAktif = null;
-        ViewBag.MagangAkanDatang = null;
-        ViewBag.MagangSelesai = null;
-
-        if (magangDiterima != null)
+        public async Task<IActionResult> Index()
         {
-            if (magangDiterima.MulaiMagang.Date > today)
-                ViewBag.MagangAkanDatang = magangDiterima;
-            else if (magangDiterima.SelesaiMagang.Date < today)
-                ViewBag.MagangSelesai = magangDiterima;
-            else
-                ViewBag.MagangAktif = magangDiterima;
+            var userEmail = User.Identity?.Name;
+
+            var profil = await _context.UserProfile
+                .FirstOrDefaultAsync(u => u.Email == userEmail);
+
+            var today = DateTime.Today;
+
+            // ==========================================
+            // 1. LOGIKA & DATA MAGANG
+            // ==========================================
+            var riwayatMagang = await _context.PendaftaranMagang
+                .Where(m => m.EmailPribadi == userEmail)
+                .OrderByDescending(m => m.CreatedAt)
+                .ToListAsync();
+
+            var magangDiterima = riwayatMagang
+                .Where(m => m.Status == "Diterima")
+                .OrderByDescending(m => m.SelesaiMagang)
+                .FirstOrDefault();
+
+            ViewBag.MagangAktif = (object?)null;
+            ViewBag.MagangAkanDatang = (object?)null;
+            ViewBag.MagangSelesai = (object?)null;
+
+            if (magangDiterima != null)
+            {
+                // BUG FIX: cast ke Magang (bukan dynamic) agar View bisa akses properti dengan benar
+                if (magangDiterima.MulaiMagang.Date > today)
+                    ViewBag.MagangAkanDatang = magangDiterima;
+                else if (magangDiterima.SelesaiMagang.Date < today)
+                    ViewBag.MagangSelesai = magangDiterima;
+                else
+                    ViewBag.MagangAktif = magangDiterima;
+            }
+
+            // Perhitungan statistik magang untuk counter dashboard
+            ViewBag.TotalMagang = riwayatMagang.Count;
+            ViewBag.Menunggu = riwayatMagang.Count(m => m.Status == "Menunggu" || m.Status == "Review Berkas");
+            ViewBag.Diterima = riwayatMagang.Count(m => m.Status == "Diterima");
+            ViewBag.Ditolak = riwayatMagang.Count(m => m.Status == "Ditolak");
+            ViewBag.Revisi = riwayatMagang.Count(m => m.Status == "Revisi");
+            ViewBag.RiwayatMagang = (object)riwayatMagang;
+
+
+            // ==========================================
+            // 2. LOGIKA & DATA PENELITIAN
+            // ==========================================
+            var riwayatPenelitian = await _context.Pendaftarans
+                .Where(p => p.Email == userEmail)
+                .OrderByDescending(p => p.TglMulai)
+                .ToListAsync();
+
+            var penelitianDiterima = riwayatPenelitian
+                .Where(p => p.Status == "Diterima")
+                .OrderByDescending(p => p.TglSelesai)
+                .FirstOrDefault();
+
+            ViewBag.PenelitianAktif = (object?)null;
+            ViewBag.PenelitianAkanDatang = (object?)null;
+            ViewBag.PenelitianSelesai = (object?)null;
+
+            if (penelitianDiterima != null)
+            {
+                // BUG FIX: cast ke Pendaftaran bukan dynamic
+                if (penelitianDiterima.TglMulai.HasValue && penelitianDiterima.TglMulai.Value.Date > today)
+                    ViewBag.PenelitianAkanDatang = penelitianDiterima;
+                else if (penelitianDiterima.TglSelesai.HasValue && penelitianDiterima.TglSelesai.Value.Date < today)
+                    ViewBag.PenelitianSelesai = penelitianDiterima;
+                else
+                    ViewBag.PenelitianAktif = penelitianDiterima;
+            }
+
+            // Perhitungan statistik penelitian untuk counter dashboard
+            ViewBag.TotalPenelitian = riwayatPenelitian.Count;
+            ViewBag.PenelitianMenunggu = riwayatPenelitian.Count(p => p.Status == "Dalam Proses" || p.Status == "Review Berkas" || p.Status == "Menunggu");
+            ViewBag.PenelitianDiterima = riwayatPenelitian.Count(p => p.Status == "Diterima");
+            ViewBag.PenelitianDitolak = riwayatPenelitian.Count(p => p.Status == "Ditolak");
+            ViewBag.PenelitianRevisi = riwayatPenelitian.Count(p => p.Status == "Revisi");
+            ViewBag.RiwayatPenelitian = (object)riwayatPenelitian;
+
+            return View(profil);
         }
 
-        // --- LOGIKA PERHITUNGAN UNTUK DASHBOARD ---
-        ViewBag.TotalMagang = riwayatMagang.Count;
-        ViewBag.Menunggu = riwayatMagang.Count(m => m.Status == "Menunggu" || m.Status == "Review Berkas");
-        ViewBag.Diterima = riwayatMagang.Count(m => m.Status == "Diterima");
-        ViewBag.Ditolak = riwayatMagang.Count(m => m.Status == "Ditolak");
-        
-        // Menghitung jumlah status revisi
-        ViewBag.Revisi = riwayatMagang.Count(m => m.Status == "Revisi");
-
-        ViewBag.RiwayatMagang = riwayatMagang;
-        return View(profil);
-    }
         [HttpGet]
         public IActionResult GetInformasiTersedia()
         {
             var data = new List<object>();
 
-            // =========================
-            // MASTER DATA MAGANG - KPI
-            // =========================
+            // ==========================================
+            // A. DATA PROGRAM MAGANG (KPI & PPN)
+            // ==========================================
             var dataKPI = new Dictionary<string, List<string>>
             {
                 {
                     "Refinery Unit VI Balongan", new List<string>
                     {
-                        "Akuntansi / Ekonomi & Bisnis",
-                        "Elektro (Arus Kuat)",
-                        "Elektro (Arus Lemah)",
-                        "Emergency & Insurance",
-                        "Health",
-                        "Hukum",
-                        "Ilmu Komunikasi / FISIP / Administrasi Publik",
-                        "Internal Audit",
-                        "Kelautan / Perkapalan",
-                        "Kimia Murni / MIPA",
+                        "Akuntansi / Ekonomi & Bisnis", "Elektro (Arus Kuat)", "Elektro (Arus Lemah)",
+                        "Emergency & Insurance", "Health", "Hukum", "Ilmu Komunikasi / FISIP / Administrasi Publik",
+                        "Internal Audit", "Kelautan / Perkapalan", "Kimia Murni / MIPA",
                         "Konversi Energi / Migas / Kimia Air Bersih / Blanding / Loading",
-                        "Logistik / Pergudangan / Procurement",
-                        "Manajemen / SDM / Psikologi",
-                        "Metalurgi / Material / Dirgantara",
-                        "Safety (K3) / SMK3",
-                        "Teknik Fisika",
-                        "Teknik Industri",
-                        "Teknik Informatika",
-                        "Teknik Kimia",
-                        "Teknik Lingkungan",
-                        "Teknik Mesin",
-                        "Teknik Mesin (Rotating)",
-                        "Teknik Sipil"
+                        "Logistik / Pergudangan / Procurement", "Manajemen / SDM / Psikologi",
+                        "Metalurgi / Material / Dirgantara", "Safety (K3) / SMK3", "Teknik Fisika",
+                        "Teknik Industri", "Teknik Informatika", "Teknik Kimia", "Teknik Lingkungan",
+                        "Teknik Mesin", "Teknik Mesin (Rotating)", "Teknik Sipil"
                     }
                 }
             };
 
-            // =========================
-            // MASTER DATA MAGANG - PPN
-            // =========================
             var dataPPN = new Dictionary<string, List<string>>
             {
                 {
@@ -126,7 +149,7 @@ namespace sinta_asp.Controllers
                         "Legal Counsel Regional Jatimbalinus","Marine Region V","Medical Jatimbalinus",
                         "Procurement MOR V","Rel & Project Dev Region V","Retail Bali","Retail Kediri",
                         "Retail Malang","Retail NTB","Retail NTT","Retail Sales Region V","Retail Surabaya",
-                        "S&D Region V","SSC ICT VI Jatimbalinus","XXX"
+                        "S&D Region V","SSC ICT VI Jatimbalinus"
                     }
                 },
                 {
@@ -228,6 +251,7 @@ namespace sinta_asp.Controllers
                 }
             };
 
+            // Mapping Data Magang ke List Output
             foreach (var region in dataKPI)
             {
                 foreach (var posisi in region.Value)
@@ -238,6 +262,7 @@ namespace sinta_asp.Controllers
                         companyName = "PT Kilang Pertamina Internasional",
                         region = region.Key,
                         lokasi = posisi,
+                        programType = "Magang", 
                         status = "Tersedia"
                     });
                 }
@@ -253,9 +278,42 @@ namespace sinta_asp.Controllers
                         companyName = "PT Pertamina Patra Niaga",
                         region = region.Key,
                         lokasi = posisi,
+                        programType = "Magang", 
                         status = "Tersedia"
                     });
                 }
+            }
+
+            // ==========================================
+            // B. DATA PROGRAM PENELITIAN (BARU)
+            // Menggunakan data dummy baru yang dikirimkan
+            // ==========================================
+            var dataPenelitianDummy = new List<object>
+            {
+                new { code = "KPI", name = "PT Kilang Pertamina Internasional (KPI)", region = "Refinery Unit VI Balongan", lokasi = "Akuntansi/ Ekonomi & Bisnis", description = "Mempelajari proses distilasi minyak mentah dan monitoring unit operasi di kilang Balongan untuk menjaga kualitas produk BBM.", imageUrl = "https://images.unsplash.com/photo-1581092921461-eab62e97a782?w=400" },
+                new { code = "KPI", name = "PT Kilang Pertamina Internasional (KPI)", region = "Refinery Unit VI Balongan", lokasi = "Elektro (Arus Kuat)", description = "Fokus pada pemeliharaan dan analisis performa mesin rotasi seperti pompa, kompresor, dan turbin di area kilang.", imageUrl = "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=400" },
+                new { code = "PPN", name = "PT Pertamina Patra Niaga (C&T)", region = "Regional Jatimbalinus", lokasi = "Asset Operation MOR V", description = "Terminal BBM strategis dan terpenting di Indonesia yang menyuplai kebutuhan energi untuk wilayah Jabodetabek.", imageUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400" },
+                new { code = "PPN", name = "PT Pertamina Patra Niaga (C&T)", region = "Regional Jawa Bagian Barat", lokasi = "Asset Operation JBB", description = "Terminal BBM strategis dan terpenting di Indonesia yang menyuplai kebutuhan energi untuk wilayah Jabodetabek.", imageUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=400" },
+                new { code = "PPN", name = "PT Pertamina Patra Niaga (C&T)", region = "Regional Maluku Papua", lokasi = "Aviation FT Babullah", description = "Depot Pengisian Pesawat Udara (DPPU) tersibuk kedua di Indonesia, melayani avtur untuk penerbangan internasional.", imageUrl = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=400" },
+                new { code = "PPN", name = "PT Pertamina Patra Niaga (C&T)", region = "Regional Jawa Bagian Tengah", lokasi = "Kantor Unit - SSC ICT V JBT", description = "Mendukung operasional IT dan infrastruktur jaringan untuk kelancaran distribusi energi di Jawa Tengah.", imageUrl = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400" },
+                new { code = "PPN", name = "PT Pertamina Patra Niaga (C&T)", region = "Regional Sumbagut", lokasi = "Asset Operation Region Sumbagut - Kantor Unit", description = "Menangani aspek legalitas aset dan hubungan industrial di salah satu terminal BBM vital di Kalimantan.", imageUrl = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400" },
+                new { code = "PPN", name = "PT Pertamina Patra Niaga (C&T)", region = "Regional Kalimantan", lokasi = "DPPU APT Pranoto", description = "Menangani aspek legalitas aset dan hubungan industrial di salah satu terminal BBM vital di Kalimantan.", imageUrl = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=400" }
+            };
+
+            foreach (var item in dataPenelitianDummy)
+            {
+                var p = (dynamic)item;
+                data.Add(new
+                {
+                    companyCode = p.code,
+                    companyName = p.name,
+                    region = p.region,
+                    lokasi = p.lokasi,
+                    programType = "Penelitian", 
+                    status = "Tersedia",
+                    description = p.description,
+                    imageUrl = p.imageUrl
+                });
             }
 
             return Json(data);
@@ -282,7 +340,6 @@ namespace sinta_asp.Controllers
             {
                 var userEmail = User.Identity?.Name;
 
-                // Ambil data magang milik user ini saja (keamanan)
                 var data = await _context.PendaftaranMagang
                     .FirstOrDefaultAsync(m => m.Id == id && m.EmailPribadi == userEmail);
 
@@ -292,13 +349,10 @@ namespace sinta_asp.Controllers
                 if (data.Status != "Revisi")
                     return Json(new { success = false, message = "Status bukan Revisi, tidak bisa diubah." });
 
-                // Parse field revisi yang diminta admin jadi list lowercase
                 var revisiFields = (data.RevisiFields ?? "")
                     .Split(',')
                     .Select(x => x.Trim().ToLower())
                     .ToList();
-
-                // --- Update field sesuai yang diminta admin saja ---
 
                 if (revisiFields.Any(r => r.Contains("akademik")) && !string.IsNullOrEmpty(nim))
                     data.NIM = nim;
@@ -314,7 +368,6 @@ namespace sinta_asp.Controllers
                         data.SelesaiMagang = tglSelesai;
                 }
 
-                // --- Upload file jika diminta ---
                 string uploadBase = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
 
                 if (revisiFields.Any(r => r.Contains("cv")) && fileCv != null && fileCv.Length > 0)
@@ -322,7 +375,6 @@ namespace sinta_asp.Controllers
                     string folder = Path.Combine(uploadBase, "cv");
                     if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
 
-                    // Hapus file lama
                     if (!string.IsNullOrEmpty(data.FileCv))
                     {
                         var oldPath = Path.Combine(folder, Path.GetFileName(data.FileCv));
@@ -369,7 +421,6 @@ namespace sinta_asp.Controllers
                     data.FileProposal = "uploads/proposal/" + fileName;
                 }
 
-                // --- Selesai revisi: kembalikan ke Menunggu & bersihkan field revisi ---
                 data.Status = "Menunggu";
                 data.RevisiFields = null;
                 data.CatatanRevisi = null;
@@ -422,7 +473,7 @@ namespace sinta_asp.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdatePassword(string oldPass, string newPass) // Pastikan nama ini sama dengan di AJAX
+        public IActionResult UpdatePassword(string oldPass, string newPass)
         {
             try 
             {
@@ -438,7 +489,6 @@ namespace sinta_asp.Controllers
                     return Json(new { success = false, message = "User tidak ditemukan." });
                 }
 
-                // Cek apakah data dari AJAX masuk atau null
                 if (string.IsNullOrEmpty(oldPass) || string.IsNullOrEmpty(newPass))
                 {
                     return Json(new { success = false, message = "Data tidak diterima oleh server." });
@@ -456,7 +506,6 @@ namespace sinta_asp.Controllers
             }
             catch (Exception ex)
             {
-                // Ini akan membantu kamu melihat error apa yang terjadi di server via Debugger
                 return Json(new { success = false, message = "Error Server: " + ex.Message });
             }
         }
@@ -464,33 +513,30 @@ namespace sinta_asp.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateFoto(IFormFile fotoProfil)
         {
+            // BUG FIX: return type was IFormFile? — harus IActionResult agar bisa return Json
             if (fotoProfil == null || fotoProfil.Length == 0)
-                return Json(new { success = false, message = "File tidak ditemukan" });
+                return Json(new { success = false, message = "File tidak valid atau kosong." });
 
             try
             {
                 var userEmail = User.Identity?.Name;
-                
-                // 1. Tentukan folder (Gunakan Path.Combine agar aman)
+
                 string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profile");
                 if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
 
-                // 2. Nama File Unik
                 string extension = Path.GetExtension(fotoProfil.FileName);
                 string fileName = $"profile_{Guid.NewGuid()}{extension}";
                 string fullPath = Path.Combine(folderPath, fileName);
 
-                // 3. Simpan File Fisik
                 using (var stream = new FileStream(fullPath, FileMode.Create))
                 {
                     await fotoProfil.CopyToAsync(stream);
                 }
 
-                // 4. Update Database
                 var profile = await _context.UserProfile.FirstOrDefaultAsync(u => u.Email == userEmail);
-                if (profile != null) 
+                if (profile != null)
                 {
-                    // Hapus foto lama dari folder jika ada
+                    // Hapus foto lama kalau ada
                     if (!string.IsNullOrEmpty(profile.FotoProfil))
                     {
                         string oldPath = Path.Combine(folderPath, profile.FotoProfil);
@@ -502,40 +548,38 @@ namespace sinta_asp.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // Return path lengkap untuk preview di Frontend
-                return Json(new { success = true, fileName = fileName, filePath = "/uploads/profile/" + fileName });
+                // BUG FIX: return Json dengan filePath agar JS bisa update avatar
+                return Json(new { success = true, filePath = "/uploads/profile/" + fileName });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = "Gagal upload foto: " + ex.Message });
             }
         }
 
         [HttpPost]
         public async Task<IActionResult> DeleteFoto()
         {
-            var userEmail = User.Identity?.Name;
-            var profile = await _context.UserProfile.FirstOrDefaultAsync(u => u.Email == userEmail);
-            
-            if (profile != null && !string.IsNullOrEmpty(profile.FotoProfil))
+            try
             {
-                // Hapus file fisik
-                string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profile", profile.FotoProfil);
-                if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
+                var userEmail = User.Identity?.Name;
+                var profile = await _context.UserProfile.FirstOrDefaultAsync(u => u.Email == userEmail);
+                
+                if (profile != null && !string.IsNullOrEmpty(profile.FotoProfil))
+                {
+                    string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profile", profile.FotoProfil);
+                    if (System.IO.File.Exists(filePath)) System.IO.File.Delete(filePath);
 
-                profile.FotoProfil = null;
-                await _context.SaveChangesAsync();
+                    profile.FotoProfil = null;
+                    _context.UserProfile.Update(profile);
+                    await _context.SaveChangesAsync();
+                }
+                return Json(new { success = true });
             }
-            return Json(new { success = true });
-        }
-
-        private string CalculateTimeAgo(DateTime dt)
-        {
-            var span = DateTime.Now - dt;
-            if (span.TotalMinutes < 1) return "Baru saja";
-            if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} menit lalu";
-            if (span.TotalHours < 24) return $"{(int)span.TotalHours} jam lalu";
-            return dt.ToString("dd MMM yyyy");
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost]

@@ -140,38 +140,43 @@ namespace sinta_asp.Areas.Admin.Controllers
                 .Where(x => !string.IsNullOrEmpty(x))
                 .Select(x => x!)
                 .ToListAsync();
-
+            var dbRegionsPen = await _context.Pendaftarans
+                .Select(x => x.Region)
+                .Distinct()
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Select(x => x!)
+                .ToListAsync();
             var allRegionsFromMaster = staticRegions
                 .Union(dbRegions, StringComparer.OrdinalIgnoreCase)
+                .Union(dbRegionsPen, StringComparer.OrdinalIgnoreCase) 
                 .OrderBy(x => x)
                 .ToList();
 
             string activeRegion;
             if (adminRole != "SuperAdmin")
-            {
                 activeRegion = !string.IsNullOrEmpty(sessionRegion) ? sessionRegion : "All";
-            }
             else if (!string.IsNullOrEmpty(region))
-            {
                 activeRegion = region;
-            }
             else
-            {
                 activeRegion = "All";
-            }
 
-            var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
-
+            // ── MAGANG ───────────────────────────────────────────────────────
+            var magangQuery = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
             if (adminRole != "SuperAdmin")
-            {
-                query = query.Where(x => x.Region == activeRegion);
-            }
+                magangQuery = magangQuery.Where(x => x.Region == activeRegion);
             else if (activeRegion != "All" && activeRegion != "Semua Region")
-            {
-                query = query.Where(x => x.Region == activeRegion);
-            }
+                magangQuery = magangQuery.Where(x => x.Region == activeRegion);
 
-            var data = await query.ToListAsync();
+            var magangData = await magangQuery.ToListAsync();
+
+            // ── PENELITIAN ───────────────────────────────────────────────────
+            var penQuery = _context.Pendaftarans.AsNoTracking().AsQueryable();
+            if (adminRole != "SuperAdmin")
+                penQuery = penQuery.Where(x => x.Region == activeRegion);
+            else if (activeRegion != "All" && activeRegion != "Semua Region")
+                penQuery = penQuery.Where(x => x.Region == activeRegion);
+
+            var penData = await penQuery.ToListAsync();
 
             var now         = DateTime.Now;
             var currentYear = now.Year;
@@ -192,70 +197,115 @@ namespace sinta_asp.Areas.Admin.Controllers
                 AdminName   = adminName,
                 Regions     = allRegionsFromMaster,
 
-                StatusDiproses = data.Count(x => x.Status == "Menunggu" || x.Status == "Proses Review"),
-                StatusDiterima = data.Count(x => x.Status == "Diterima"),
-                StatusDitolak  = data.Count(x => x.Status == "Ditolak"),
-                StatusRevisi   = data.Count(x => x.Status == "Revisi"),
+                // ── MAGANG STATS ─────────────────────────────────────────────
+                StatusDiproses = magangData.Count(x => x.Status == "Menunggu" || x.Status == "Proses Review"),
+                StatusDiterima = magangData.Count(x => x.Status == "Diterima"),
+                StatusDitolak  = magangData.Count(x => x.Status == "Ditolak"),
+                StatusRevisi   = magangData.Count(x => x.Status == "Revisi"),
 
-                WeeklyLabels = last7Days.Select(d => d.ToString("dddd", idCulture)).ToList(),
-                WeeklyCounts = last7Days.Select(d => data.Count(x => x.CreatedAt.Date == d)).ToList(),
-
+                WeeklyLabels  = last7Days.Select(d => d.ToString("dddd", idCulture)).ToList(),
+                WeeklyCounts  = last7Days.Select(d => magangData.Count(x => x.CreatedAt.Date == d)).ToList(),
                 MonthlyLabels = months.Select(m => new DateTime(currentYear, m, 1).ToString("MMMM", idCulture)).ToList(),
-                MonthlyCounts = months.Select(m => data.Count(x => x.CreatedAt.Month == m && x.CreatedAt.Year == currentYear)).ToList(),
+                MonthlyCounts = months.Select(m => magangData.Count(x => x.CreatedAt.Month == m && x.CreatedAt.Year == currentYear)).ToList(),
+                YearlyLabels  = years.Select(y => y.ToString()).ToList(),
+                YearlyCounts  = years.Select(y => magangData.Count(x => x.CreatedAt.Year == y)).ToList(),
 
-                YearlyLabels = years.Select(y => y.ToString()).ToList(),
-                YearlyCounts = years.Select(y => data.Count(x => x.CreatedAt.Year == y)).ToList(),
-
-                KampusLabels = data
+                KampusLabels = magangData
                     .GroupBy(x => x.NamaPerguruanTinggi)
                     .OrderByDescending(x => x.Count())
                     .Take(10)
                     .Select(x => x.Key ?? "N/A")
                     .ToList()!,
-                KampusCounts = data
+                KampusCounts = magangData
                     .GroupBy(x => x.NamaPerguruanTinggi)
                     .OrderByDescending(x => x.Count())
                     .Take(10)
                     .Select(x => x.Count())
                     .ToList(),
 
-                DaftarMagang = data.OrderByDescending(x => x.CreatedAt).ToList()
+                DaftarMagang = magangData.OrderByDescending(x => x.CreatedAt).ToList(),
+
+                // ── PENELITIAN STATS ─────────────────────────────────────────
+                PenStatusDiproses = penData.Count(x => x.Status == "Dalam Proses" || x.Status == "Menunggu"),
+                PenStatusDiterima = penData.Count(x => x.Status == "Diterima"),
+                PenStatusDitolak  = penData.Count(x => x.Status == "Ditolak"),
+
+                PenWeeklyLabels  = last7Days.Select(d => d.ToString("dddd", idCulture)).ToList(),
+                PenWeeklyCounts  = last7Days.Select(d => penData.Count(x => x.CreatedAt.Date == d)).ToList(),
+                PenMonthlyLabels = months.Select(m => new DateTime(currentYear, m, 1).ToString("MMMM", idCulture)).ToList(),
+                PenMonthlyCounts = months.Select(m => penData.Count(x => x.CreatedAt.Month == m && x.CreatedAt.Year == currentYear)).ToList(),
+                PenYearlyLabels  = years.Select(y => y.ToString()).ToList(),
+                PenYearlyCounts  = years.Select(y => penData.Count(x => x.CreatedAt.Year == y)).ToList(),
+
+                PenKampusLabels = penData
+                    .GroupBy(x => x.Universitas)
+                    .OrderByDescending(x => x.Count())
+                    .Take(10)
+                    .Select(x => x.Key ?? "N/A")
+                    .ToList()!,
+                PenKampusCounts = penData
+                    .GroupBy(x => x.Universitas)
+                    .OrderByDescending(x => x.Count())
+                    .Take(10)
+                    .Select(x => x.Count())
+                    .ToList(),
             };
 
+            // ── MAGANG: Sebaran ───────────────────────────────────────────────
             if (activeRegion == "All" || activeRegion == "Semua Region")
             {
                 model.LokasiStatLabels = allRegionsFromMaster;
-                model.LokasiDiterima   = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && x.Status == "Diterima")).ToList();
-                model.LokasiMenunggu   = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && (x.Status == "Menunggu" || x.Status == "Proses Review"))).ToList();
-                model.LokasiDitolak    = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && x.Status == "Ditolak")).ToList();
-                model.LokasiRevisi     = model.LokasiStatLabels.Select(r => data.Count(x => x.Region == r && x.Status == "Revisi")).ToList();
+                model.LokasiDiterima   = model.LokasiStatLabels.Select(r => magangData.Count(x => x.Region == r && x.Status == "Diterima")).ToList();
+                model.LokasiMenunggu   = model.LokasiStatLabels.Select(r => magangData.Count(x => x.Region == r && (x.Status == "Menunggu" || x.Status == "Proses Review"))).ToList();
+                model.LokasiDitolak    = model.LokasiStatLabels.Select(r => magangData.Count(x => x.Region == r && x.Status == "Ditolak")).ToList();
+                model.LokasiRevisi     = model.LokasiStatLabels.Select(r => magangData.Count(x => x.Region == r && x.Status == "Revisi")).ToList();
                 ViewBag.SebaranTitle   = "Rekap Sebaran Per Region";
                 ViewBag.SubTitle       = "Nasional";
+
+                // Penelitian sebaran per region
+                model.PenLokasiStatLabels = allRegionsFromMaster;
+                model.PenLokasiDiterima   = allRegionsFromMaster.Select(r => penData.Count(x => x.Region == r && x.Status == "Diterima")).ToList();
+                model.PenLokasiMenunggu   = allRegionsFromMaster.Select(r => penData.Count(x => x.Region == r && (x.Status == "Dalam Proses" || x.Status == "Menunggu"))).ToList();
+                model.PenLokasiDitolak    = allRegionsFromMaster.Select(r => penData.Count(x => x.Region == r && x.Status == "Ditolak")).ToList();
             }
             else
             {
                 model.LokasiStatLabels = _masterDataUnit.ContainsKey(activeRegion)
                     ? _masterDataUnit[activeRegion]
-                    : data.Where(x => x.Region == activeRegion)
-                          .Select(x => x.Lokasi)
-                          .Distinct()
-                          .Where(l => !string.IsNullOrEmpty(l))
-                          .ToList()!;
+                    : magangData.Where(x => x.Region == activeRegion)
+                          .Select(x => x.Lokasi).Distinct()
+                          .Where(l => !string.IsNullOrEmpty(l)).ToList()!;
 
-                model.LokasiDiterima = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Diterima")).ToList();
-                model.LokasiMenunggu = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && (x.Status == "Menunggu" || x.Status == "Proses Review"))).ToList();
-                model.LokasiDitolak  = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Ditolak")).ToList();
-                model.LokasiRevisi   = model.LokasiStatLabels.Select(u => data.Count(x => x.Lokasi == u && x.Status == "Revisi")).ToList();
+                model.LokasiDiterima = model.LokasiStatLabels.Select(u => magangData.Count(x => x.Lokasi == u && x.Status == "Diterima")).ToList();
+                model.LokasiMenunggu = model.LokasiStatLabels.Select(u => magangData.Count(x => x.Lokasi == u && (x.Status == "Menunggu" || x.Status == "Proses Review"))).ToList();
+                model.LokasiDitolak  = model.LokasiStatLabels.Select(u => magangData.Count(x => x.Lokasi == u && x.Status == "Ditolak")).ToList();
+                model.LokasiRevisi   = model.LokasiStatLabels.Select(u => magangData.Count(x => x.Lokasi == u && x.Status == "Revisi")).ToList();
                 ViewBag.SebaranTitle = $"Rekap Sebaran – {activeRegion}";
                 ViewBag.SubTitle     = "Rekap Per Fungsi / Unit Kerja";
+
+                // Penelitian sebaran per lokasi dalam region
+                var penLokasiLabels = _masterDataUnit.ContainsKey(activeRegion)
+                    ? _masterDataUnit[activeRegion]
+                    : penData.Where(x => x.Region == activeRegion)
+                        .Select(x => x.LokasiPenelitian).Distinct()
+                        .Where(l => !string.IsNullOrEmpty(l))
+                        .Select(l => l!)
+                        .ToList();
+                model.PenLokasiStatLabels = penLokasiLabels!;
+                model.PenLokasiDiterima   = penLokasiLabels.Select(u => penData.Count(x => x.LokasiPenelitian == u && x.Status == "Diterima")).ToList();
+                model.PenLokasiMenunggu   = penLokasiLabels.Select(u => penData.Count(x => x.LokasiPenelitian == u && (x.Status == "Dalam Proses" || x.Status == "Menunggu"))).ToList();
+                model.PenLokasiDitolak    = penLokasiLabels.Select(u => penData.Count(x => x.LokasiPenelitian == u && x.Status == "Ditolak")).ToList();
             }
 
-            ViewBag.TotalSemua    = model.StatusDiproses + model.StatusDiterima + model.StatusDitolak + model.StatusRevisi;
-            ViewBag.WeeklyTooltip = last7Days.Select(d => d.ToString("dddd, d MMMM yyyy", idCulture)).ToList();
+            ViewBag.TotalSemua       = model.StatusDiproses + model.StatusDiterima + model.StatusDitolak + model.StatusRevisi;
+            ViewBag.PenTotalSemua    = model.PenStatusDiproses + model.PenStatusDiterima + model.PenStatusDitolak;
+            ViewBag.WeeklyTooltip    = last7Days.Select(d => d.ToString("dddd, d MMMM yyyy", idCulture)).ToList();
+            ViewBag.PenWeeklyTooltip = last7Days.Select(d => d.ToString("dddd, d MMMM yyyy", idCulture)).ToList();
 
             return View(model);
         }
 
+        // ── NOTIFIKASI ───────────────────────────────────────────────────────────
         [HttpGet]
         public async Task<JsonResult> GetNotifications()
         {
@@ -267,14 +317,10 @@ namespace sinta_asp.Areas.Admin.Controllers
             int adminId = int.Parse(adminIdStr);
 
             var query = _context.AdminNotifications.AsNoTracking().AsQueryable();
-
             if (adminRole != "SuperAdmin" && !string.IsNullOrEmpty(adminRegion))
                 query = query.Where(n => n.TargetRegion == adminRegion);
 
-            var notifsRaw = await query
-                .OrderByDescending(n => n.CreatedAt)
-                .Take(50)
-                .ToListAsync();
+            var notifsRaw = await query.OrderByDescending(n => n.CreatedAt).Take(50).ToListAsync();
 
             var readNotifIds = await _context.AdminNotificationReads
                 .Where(r => r.AdminId == adminId)
@@ -290,10 +336,10 @@ namespace sinta_asp.Areas.Admin.Controllers
                 timeAgo  = CalculateTimeAgo(n.CreatedAt),
                 magangId = n.MagangId,
                 iconClass = n.Type == "Baru"     ? "fa-user-plus"
-                        : n.Type == "Diterima" ? "fa-check-circle"
-                        : n.Type == "Ditolak"  ? "fa-times-circle"
-                        : n.Type == "update"   ? "fa-pen-to-square"
-                        : "fa-bell"
+                          : n.Type == "Diterima" ? "fa-check-circle"
+                          : n.Type == "Ditolak"  ? "fa-times-circle"
+                          : n.Type == "update"   ? "fa-pen-to-square"
+                          : "fa-bell"
             });
 
             return Json(result);
@@ -304,7 +350,6 @@ namespace sinta_asp.Areas.Admin.Controllers
         {
             var adminIdStr = HttpContext.Session.GetString("AdminId");
             if (string.IsNullOrEmpty(adminIdStr)) return Json(new { success = false });
-
             int adminId = int.Parse(adminIdStr);
 
             var sudahBaca = await _context.AdminNotificationReads
@@ -320,11 +365,9 @@ namespace sinta_asp.Areas.Admin.Controllers
                 });
                 await _context.SaveChangesAsync();
             }
-
             return Json(new { success = true });
         }
 
-        // ── TAMBAHAN: Tandai semua notifikasi sudah dibaca ───────────────────────
         [HttpPost]
         public async Task<JsonResult> MarkAllAsRead()
         {
@@ -335,39 +378,27 @@ namespace sinta_asp.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(adminIdStr)) return Json(new { success = false });
             int adminId = int.Parse(adminIdStr);
 
-            // Ambil semua notif yang relevan untuk admin ini (sama seperti GetNotifications)
             var query = _context.AdminNotifications.AsNoTracking().AsQueryable();
-
             if (adminRole != "SuperAdmin" && !string.IsNullOrEmpty(adminRegion))
                 query = query.Where(n => n.TargetRegion == adminRegion);
 
-            var allNotifIds = await query.Select(n => n.Id).ToListAsync();
-
-            // Cari yang belum dibaca oleh admin ini
-            var sudahBacaIds = await _context.AdminNotificationReads
-                .Where(r => r.AdminId == adminId)
-                .Select(r => r.NotificationId)
-                .ToListAsync();
-
-            var belumBacaIds = allNotifIds.Except(sudahBacaIds).ToList();
+            var allNotifIds   = await query.Select(n => n.Id).ToListAsync();
+            var sudahBacaIds  = await _context.AdminNotificationReads
+                .Where(r => r.AdminId == adminId).Select(r => r.NotificationId).ToListAsync();
+            var belumBacaIds  = allNotifIds.Except(sudahBacaIds).ToList();
 
             if (belumBacaIds.Any())
             {
-                var newReads = belumBacaIds.Select(notifId => new AdminNotificationRead
+                _context.AdminNotificationReads.AddRange(belumBacaIds.Select(notifId => new AdminNotificationRead
                 {
-                    NotificationId = notifId,
-                    AdminId        = adminId,
-                    ReadAt         = DateTime.Now
-                });
-
-                _context.AdminNotificationReads.AddRange(newReads);
+                    NotificationId = notifId, AdminId = adminId, ReadAt = DateTime.Now
+                }));
                 await _context.SaveChangesAsync();
             }
-
             return Json(new { success = true });
         }
-        // ────────────────────────────────────────────────────────────────────────
 
+        // ── DETAIL MAHASISWA ─────────────────────────────────────────────────────
         [HttpGet]
         public async Task<IActionResult> GetDetailMahasiswa(int id)
         {
@@ -401,6 +432,41 @@ namespace sinta_asp.Areas.Admin.Controllers
             });
         }
 
+        // ── DETAIL PENELITIAN ────────────────────────────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> GetDetailPenelitian(int id)
+        {
+            var p = await _context.Pendaftarans.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            if (p == null) return NotFound(new { message = "Data tidak ditemukan" });
+
+            return Json(new {
+                id                  = p.Id,
+                fotoProfil          = GetFilePath(p.PathFoto3x4, "foto"),
+                namaLengkap         = p.Nama,
+                emailPribadi        = p.Email,
+                tempatLahir         = p.TempatLahir,
+                tanggalLahir        = p.TglLahir?.ToString("dd MMMM yyyy") ?? "-",
+                noHp                = p.NoHp,
+                instagram           = p.Instagram,
+                namaPerguruanTinggi = p.Universitas,
+                fakultas            = p.Fakultas,
+                jurusan             = p.Jurusan,
+                nim                 = p.Nim,
+                company             = p.Company,
+                region              = p.Region,
+                lokasi              = p.LokasiPenelitian,
+                judulPenelitian     = p.JudulPenelitian,
+                tglMulai            = p.TglMulai?.ToString("dd MMMM yyyy") ?? "-",
+                tglSelesai          = p.TglSelesai?.ToString("dd MMMM yyyy") ?? "-",
+                fileCv              = p.PathCV ?? "#",
+                fileSuratPengantar  = p.PathSurat ?? "#",
+                fileProposal        = p.PathProposal ?? "#",
+                status              = p.Status,
+                tanggalDaftar       = p.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+            });
+        }
+
+        // ── GET BY UNIT/KAMPUS MAGANG ─────────────────────────────────────────
         [HttpGet]
         public async Task<IActionResult> GetMahasiswaByUnit(string unit, string status, string? region)
         {
@@ -409,13 +475,11 @@ namespace sinta_asp.Areas.Admin.Controllers
 
             var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
             var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
-
             string activeRegion = adminRole != "SuperAdmin"
                 ? sessionRegion
                 : (!string.IsNullOrEmpty(region) ? region : "All");
 
             var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
-
             if (adminRole != "SuperAdmin")
                 query = query.Where(x => x.Region == sessionRegion);
             else if (activeRegion != "All" && activeRegion != "Semua Region")
@@ -424,26 +488,27 @@ namespace sinta_asp.Areas.Admin.Controllers
             string unitTrimmed   = unit.Trim().ToLower();
             string statusTrimmed = status.Trim().ToLower();
 
-            if (statusTrimmed == "menunggu")
-            {
-                query = query.Where(x => x.Status.ToLower() == "menunggu" || x.Status.ToLower() == "proses review");
-            }
-            else
-            {
-                query = query.Where(x => x.Status.ToLower() == statusTrimmed);
-            }
+            query = statusTrimmed == "menunggu"
+                ? query.Where(x => x.Status.ToLower() == "menunggu" || x.Status.ToLower() == "proses review")
+                : query.Where(x => x.Status.ToLower() == statusTrimmed);
 
-            if (activeRegion == "All" || activeRegion == "Semua Region")
+            // FIX: cek apakah label yang diklik adalah nama region atau nama lokasi/unit
+            bool isRegionLabel = _masterDataUnit.Keys
+                .Any(r => r.Trim().ToLower() == unitTrimmed);
+
+            if (isRegionLabel || activeRegion == "All" || activeRegion == "Semua Region")
             {
+                // Chart sebaran "All" mengirim nama region → filter by Region
                 query = query.Where(x => x.Region != null && x.Region.ToLower() == unitTrimmed);
             }
             else
             {
+                // Chart sebaran per-region mengirim nama lokasi/fungsi → filter by Lokasi
                 query = query.Where(x => x.Lokasi != null && x.Lokasi.ToLower() == unitTrimmed);
             }
 
             var rawData = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
-            return Json(MapToResult(rawData));
+            return Json(MapMagangToResult(rawData));
         }
 
         [HttpGet]
@@ -453,13 +518,9 @@ namespace sinta_asp.Areas.Admin.Controllers
 
             var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
             var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
-
-            string activeRegion = adminRole != "SuperAdmin"
-                ? sessionRegion
-                : (!string.IsNullOrEmpty(region) ? region : "All");
+            string activeRegion = adminRole != "SuperAdmin" ? sessionRegion : (!string.IsNullOrEmpty(region) ? region : "All");
 
             var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
-
             if (adminRole != "SuperAdmin")
                 query = query.Where(x => x.Region == sessionRegion);
             else if (activeRegion != "All" && activeRegion != "Semua Region")
@@ -468,15 +529,80 @@ namespace sinta_asp.Areas.Admin.Controllers
             string k = kampus.Trim().ToLower();
             var rawData = await query
                 .Where(x => x.NamaPerguruanTinggi != null && x.NamaPerguruanTinggi.Trim().ToLower() == k)
-                .OrderByDescending(x => x.CreatedAt)
-                .ToListAsync();
+                .OrderByDescending(x => x.CreatedAt).ToListAsync();
 
-            return Json(MapToResult(rawData));
+            return Json(MapMagangToResult(rawData));
         }
 
-        // ── Helpers ─────────────────────────────────────────────────────────────
+        // ── GET BY UNIT/KAMPUS PENELITIAN ─────────────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> GetPenelitianByUnit(string unit, string status, string? region)
+        {
+            if (string.IsNullOrEmpty(unit) || string.IsNullOrEmpty(status))
+                return Json(new List<object>());
 
-        private List<object> MapToResult(List<Magang> rawData)
+            var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
+            var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
+            string activeRegion = adminRole != "SuperAdmin"
+                ? sessionRegion
+                : (!string.IsNullOrEmpty(region) ? region : "All");
+
+            var query = _context.Pendaftarans.AsNoTracking().AsQueryable();
+            if (adminRole != "SuperAdmin")
+                query = query.Where(x => x.Region == sessionRegion);
+            else if (activeRegion != "All" && activeRegion != "Semua Region")
+                query = query.Where(x => x.Region == activeRegion);
+
+            string unitTrimmed   = unit.Trim().ToLower();
+            string statusTrimmed = status.Trim().ToLower();
+
+            query = statusTrimmed == "menunggu"
+                ? query.Where(x => x.Status.ToLower() == "menunggu" || x.Status.ToLower() == "dalam proses")
+                : query.Where(x => x.Status.ToLower() == statusTrimmed);
+
+            // FIX: sama seperti magang
+            bool isRegionLabel = _masterDataUnit.Keys
+                .Any(r => r.Trim().ToLower() == unitTrimmed);
+
+            if (isRegionLabel || activeRegion == "All" || activeRegion == "Semua Region")
+            {
+                query = query.Where(x => x.Region != null && x.Region.ToLower() == unitTrimmed);
+            }
+            else
+            {
+                query = query.Where(x => x.LokasiPenelitian != null && x.LokasiPenelitian.ToLower() == unitTrimmed);
+            }
+
+            var rawData = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
+            return Json(MapPenelitianToResult(rawData));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPenelitianByKampus(string kampus, string? region)
+        {
+            if (string.IsNullOrEmpty(kampus)) return Json(new List<object>());
+
+            var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
+            var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
+            string activeRegion = adminRole != "SuperAdmin" ? sessionRegion : (!string.IsNullOrEmpty(region) ? region : "All");
+
+            var query = _context.Pendaftarans.AsNoTracking().AsQueryable();
+            if (adminRole != "SuperAdmin")
+                query = query.Where(x => x.Region == sessionRegion);
+            else if (activeRegion != "All" && activeRegion != "Semua Region")
+                query = query.Where(x => x.Region == activeRegion);
+
+            string k = kampus.Trim().ToLower();
+            var rawData = await query
+                .Where(x => x.Universitas != null && x.Universitas.Trim().ToLower() == k)
+                .OrderByDescending(x => x.CreatedAt).ToListAsync();
+
+            return Json(MapPenelitianToResult(rawData));
+        }
+
+        // ── Helpers ──────────────────────────────────────────────────────────────
+
+        private List<object> MapMagangToResult(List<Magang> rawData)
         {
             return rawData.Select(x => (object)new {
                 id                  = x.Id,
@@ -491,6 +617,22 @@ namespace sinta_asp.Areas.Admin.Controllers
             }).ToList();
         }
 
+        private List<object> MapPenelitianToResult(List<Pendaftaran> rawData)
+        {
+            return rawData.Select(x => (object)new {
+                id                  = x.Id,
+                fotoProfil          = GetFilePath(x.PathFoto3x4, "foto"),
+                namaLengkap         = x.Nama,
+                emailPribadi        = x.Email,
+                nim                 = x.Nim,
+                namaPerguruanTinggi = x.Universitas,
+                lokasi              = x.LokasiPenelitian,
+                judulPenelitian     = x.JudulPenelitian,
+                status              = x.Status,
+                tanggalDaftar       = x.CreatedAt.ToString("dd/MM/yyyy")
+            }).ToList();
+        }
+
         private string? GetFilePath(string? fileName, string folder)
         {
             if (string.IsNullOrEmpty(fileName))
@@ -498,7 +640,6 @@ namespace sinta_asp.Areas.Admin.Controllers
                 var nama = User?.FindFirst("AdminNama")?.Value ?? "User";
                 return $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(nama)}&background=0D8ABC&color=fff&bold=true";
             }
-
             string fileNameOnly    = System.IO.Path.GetFileName(fileName);
             string encodedFileName = Uri.EscapeDataString(fileNameOnly);
             return $"/uploads/{folder}/{encodedFileName}";
