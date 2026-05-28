@@ -228,10 +228,10 @@ namespace sinta_asp.Controllers
             }
             catch (Exception ex)
             {
-                // Jika ada error fatal (database/file), baru masuk ke sini
                 Console.WriteLine("CRITICAL ERROR: " + ex.Message);
-                TempData["Error"] = "Gagal simpan data: " + ex.Message;
-                return View("DataMagang", model);
+                Console.WriteLine("STACK: " + ex.StackTrace);
+                // Tampilkan langsung di browser buat debug
+                return Content($"ERROR: {ex.Message} | INNER: {ex.InnerException?.Message} | STACK: {ex.StackTrace}");
             }
         }
 
@@ -284,7 +284,8 @@ namespace sinta_asp.Controllers
                 Console.WriteLine($"Error hapus file: {ex.Message}");
             }
         }
-
+        
+        [AllowAnonymous]
         public IActionResult Sukses() => View();
     }
 }

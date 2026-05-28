@@ -76,11 +76,13 @@ function generateDeskripsiPPN(nama) {
 // Script Tooltip Select2
 // ===============================
 $(document).ready(function() {
-    // Inisialisasi Select2 pada dropdown lokasi
-    $('#lokasi').select2({
-        placeholder: "Pilih Lokasi",
-        width: '100%'
-    });
+    if ($('#lokasi').length) {  // ✅ cek dulu ada atau tidak
+        $('#lokasi').select2({
+            placeholder: "Pilih Lokasi",
+            width: '100%'
+        });
+    }
+
 
     const tooltipHover = document.getElementById('tooltipHover');
     const tTitle = document.getElementById('tooltipHoverTitle');

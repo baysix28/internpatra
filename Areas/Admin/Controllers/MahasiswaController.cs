@@ -189,7 +189,7 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
             else if (status == "Ditolak")
             {
-                title   = "Pengajuan Ditolak";
+                title   = "Pengajuan Magang Ditolak";
                 message = $"Mohon maaf {mhs.NamaLengkap}, pengajuan magang di {mhs.Company} ({mhs.Region}) tidak dapat kami terima saat ini.";
                 type    = "error";
             }
