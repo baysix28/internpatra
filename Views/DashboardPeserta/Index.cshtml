@@ -258,8 +258,11 @@
         }
 
         .dashboard-clickable-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.10) !important;
+            transform: translateY(-5px);
+
+            box-shadow:
+                0 12px 24px rgba(15, 23, 42, 0.08),
+                0 20px 40px rgba(15, 23, 42, 0.10) !important;
         }
 
         .dashboard-clickable-card:active {
@@ -684,7 +687,11 @@
             font-weight: 800;
             color: #000000;;
             margin-bottom: 4px;
-            letter-spacing: -0.5px;
+            <h4 class="font-weight-bold mt-2 mb-2"
+            style="
+                color: #1e293b;
+                letter-spacing: -0.5px;
+            ">
         }
 
         .info-company-code {
@@ -1387,22 +1394,60 @@
             }
 
             <div class="row">
-                <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
+                <div class="col-12 mb-3">
+                    <div class="glass-card shadow-sm dashboard-mini-card dashboard-clickable-card"
                         onclick="window.location.href='/PendaftaranMagang/DataMagang'"
-                        style="border-radius: 18px; background: #fff; border-left: 6px solid #00549B; min-height: 160px; display: flex; flex-direction: column;">
-                        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.8px;">Pendaftaran</small>
-                        <h4 class="font-weight-bold mt-2 mb-3" style="color: #333;">Magang</h4>
+                        style="
+                            border-radius: 24px;
+                            background: linear-gradient(135deg, #eef6ff 0%, #ffffff 55%, #f3f8ff 100%);
+                            border: 1.5px solid #cfe0f3;
+                            min-height: 160px;
+                            padding: 28px 36px;
+                            display: flex;
+                            flex-direction: row;
+                            align-items: center;
+                            justify-content: space-between;
+                            overflow: hidden;
+                            position: relative;
+                            box-shadow: 0 14px 35px rgba(0, 84, 155, 0.13);
+                            transition: all 0.3s ease;
+                        ">
+                        <div>
+                            <h4 class="font-weight-bold mt-2 mb-2"
+                                style="color: #1e293b;">
+                                Daftar Program Magang
+                            </h4>
 
-                        <div class="mt-auto">
-                            <span class="text-primary font-weight-bold" style="font-size: 14px;">
-                                Daftar Sekarang <i class="fa fa-arrow-right ml-1"></i>
-                            </span>
+                            <p style="color:#64748b; max-width:520px; line-height:1.5; font-size:14px; margin-bottom:10px;">
+                                Mulai proses pendaftaran magang Pertamina dan pilih lokasi/unit
+                                yang tersedia sesuai minat dan kompetensi Anda.
+                            </p>
+
+                            <button class="btn btn-primary mt-2 px-4 py-2"
+                                style="
+                                    border-radius: 12px;
+                                    background:#00549B;
+                                    border:none;
+                                    font-weight:700;
+                                    font-size:14px;
+                                ">
+                                Daftar Sekarang
+                                <i class="fa fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+
+                        <div class="d-none d-md-flex align-items-center justify-content-center">
+                            <i class="fa-solid fa-briefcase"
+                                style="
+                                    font-size: 95px;
+                                    color: rgba(0,84,155,0.06);
+                                ">
+                            </i>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6 col-lg-4 mb-3">
+                @* <div class="col-md-6 col-lg-4 mb-3">
                     <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
                         onclick="showPage('informasi')"
                         style="border-radius: 18px; background: #fff; border-left: 6px solid #00A859; min-height: 160px; display: flex; flex-direction: column;">
@@ -1430,7 +1475,7 @@
                             </span>
                         </div>
                     </div>
-                </div>
+                </div> *@
             </div>
         </div>
 
@@ -1503,9 +1548,9 @@
                     <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 5px;">Riwayat Pengajuan Magang</h4>
                     <p class="text-muted small mb-0">Pantau status pengajuan magang industri Anda.</p>
                 </div>
-                <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue); font-size: 14px;" onclick="window.location.href='/PendaftaranMagang/DataMagang'">
+                @* <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue); font-size: 14px;" onclick="window.location.href='/PendaftaranMagang/DataMagang'">
                     <i class="fa fa-plus mr-2"></i> Daftar Magang Baru
-                </button>
+                </button> *@
             </div>
             <div class="row flex-nowrap mb-4 g-2">
 
