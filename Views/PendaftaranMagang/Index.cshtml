@@ -375,40 +375,47 @@
     const emptyState = document.getElementById('emptyState');
     const searchInput = document.getElementById('searchPosisi');
 
-    // Hapus fungsi getDefaultCards lama, ganti ini:
-    function getAllCards() {
-        const cards = [];
-        Object.keys(dataMagang).forEach(company => {
-            Object.keys(dataMagang[company]).forEach(region => {
-                dataMagang[company][region].forEach(pos => {
-                    cards.push({ company, region, lokasi: region, posisi: pos });
-                });
-            });
-        });
-        return cards;
+    function getDefaultCards() {
+        const company = "PPN";
+        const region = "Regional Jawa Bagian Tengah";
+
+        return dataMagang[company][region]
+            .slice(0, 8)
+            .map(pos => ({
+                company: company,
+                region: region,
+                lokasi: region,
+                posisi: pos
+            }));
     }
 
     function renderCards() {
         const company = companySelect.value;
         const region = regionSelect.value;
-        const lokasi = lokasiSelect.value;
         const search = searchInput.value.toLowerCase().trim();
 
         container.innerHTML = '';
         let itemsToRender = [];
 
-        if (!company && !region && !lokasi && !search) {
+        if (!company && !region && !search) {
             emptyState.style.display = 'none';
-            itemsToRender = getAllCards();
+            itemsToRender = getDefaultCards();
         } else {
             Object.keys(dataMagang).forEach(comp => {
                 if (company && comp !== company) return;
+
                 Object.keys(dataMagang[comp]).forEach(reg => {
                     if (region && reg !== region) return;
+
                     dataMagang[comp][reg].forEach(pos => {
-                        if (lokasi && reg !== lokasi) return;
                         if (search && !pos.toLowerCase().includes(search)) return;
-                        itemsToRender.push({ company: comp, region: reg, lokasi: reg, posisi: pos });
+
+                        itemsToRender.push({
+                            company: comp,
+                            region: reg,
+                            lokasi: reg,
+                            posisi: pos
+                        });
                     });
                 });
             });
