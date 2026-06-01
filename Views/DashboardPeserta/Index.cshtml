@@ -2887,6 +2887,23 @@
         loadNotifications();
         loadUnreadCount();
 
+        $('#markAllReadBtn').on('click', function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                url: '/Notification/MarkAllRead',
+                type: 'POST',
+                success: function() {
+                    $('#notifBadge').hide().text('');
+                    loadUnreadCount();
+                    loadNotifications();
+                },
+                error: function(xhr) {
+                    console.log('MarkAllRead error:', xhr.status, xhr.responseText);
+                }
+            });
+        });
+
         setInterval(function() {
             loadUnreadCount();
             loadNotifications();
@@ -2980,7 +2997,7 @@
 
 </script>
 
-<!-- ✅ Modal dipindah ke sini — langsung di dalam <body>, di luar semua container -->
+<!-- Modal dipindah ke sini — langsung di dalam <body>, di luar semua container -->
 <div class="modal fade" id="modalDetailLokasi" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
