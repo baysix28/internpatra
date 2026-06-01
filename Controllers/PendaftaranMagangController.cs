@@ -159,7 +159,14 @@ namespace sinta_asp.Controllers
                 await _context.SaveChangesAsync(); 
 
                 // Nomor pendaftaran resmi
-                model.NoPendaftaran = $"PEN/{DateTime.Now:yyyy}/{DateTime.Now:MM}/{model.Id:D4}";
+                string[] romawi =
+                {
+                    "I", "II", "III", "IV", "V", "VI",
+                    "VII", "VIII", "IX", "X", "XI", "XII"
+                };
+
+                model.NoPendaftaran =
+                    $"MAG/{DateTime.Now.Year}/{romawi[DateTime.Now.Month - 1]}/{model.Id:D4}";
 
                 // Simpan Notifikasi
                 _context.Notifications.Add(new Notification
