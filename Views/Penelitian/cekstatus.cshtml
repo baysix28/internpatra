@@ -1,0 +1,50 @@
+@model sinta_asp.Models.Pendaftaran
+@{
+    ViewData["Title"] = "Cek Status Pendaftaran";
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-3"><b>Hasil Pendaftaran</b></h2>
+
+    <div style="height: 30px; background-color: #ff3b30; width: 100%; margin-bottom: 30px;"></div>
+
+    <form asp-action="CekStatus" method="post" class="d-flex align-items-center mb-5">
+        <label class="me-3" style="min-width: 120px;">No Pendaftaran</label>
+        <input type="text" name="noPendaftaran" class="form-control me-3" style="max-width: 250px;" required />
+        <button type="submit" class="btn btn-danger px-4">PERIKSA</button>
+    </form>
+
+    @if (ViewBag.PesanError != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.PesanError
+        </div>
+    }
+
+    @if (Model != null)
+    {
+        <h3 class="mb-4">Hasil Pendaftaran Penelitian</h3>
+        
+        <table class="table table-borderless" style="max-width: 600px;">
+            <tr>
+                <td style="width: 150px; padding-left: 0;">No Pendaftaran</td>
+                <td style="width: 10px;">:</td>
+                <td>@Model.NomorPendaftaran</td>
+            </tr>
+            <tr>
+                <td style="padding-left: 0;">Nama</td>
+                <td>:</td>
+                <td>@Model.Nama</td> 
+            </tr>
+            <tr>
+                <td style="padding-left: 0;">Hasil</td>
+                <td>:</td>
+                <td><strong>@Model.Status</strong></td> 
+            </tr>
+        </table>
+        
+        <p class="text-muted mt-3" style="border-top: 1px solid #ddd; padding-top: 15px;">
+            Silakan memeriksa email untuk melihat keterangan lebih lanjut.
+        </p>
+    }
+</div>

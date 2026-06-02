@@ -4,6 +4,9 @@
 # User-specific files
 *.rsuser
 *.suo
+.vs/
+bin/
+obj/
 *.user
 *.userosscache
 *.sln.docstates
@@ -93,3 +96,4 @@ __pycache__/
 
 # Fody
 FodyWeavers.xsd
+*.suo

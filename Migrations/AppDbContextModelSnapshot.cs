@@ -131,6 +131,38 @@ namespace sinta_asp.Migrations
                     b.ToTable("AdminNotificationReads");
                 });
 
+            modelBuilder.Entity("sinta_asp.Models.Lowongan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Company")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Region")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lowongan");
+                });
+
             modelBuilder.Entity("sinta_asp.Models.Magang", b =>
                 {
                     b.Property<int>("Id")
@@ -414,7 +446,13 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NomorPendaftaran")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PathCV")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PathFoto3x4")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PathProposal")

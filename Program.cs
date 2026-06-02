@@ -6,24 +6,33 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//////////////////////////////
-// MVC + DB
-//////////////////////////////
+// ==========================================
+// 1. SERVICES CONFIGURATION (builder.Services)
+// ==========================================
+
+// MVC & Controllers
 builder.Services.AddControllersWithViews()
     .AddRazorRuntimeCompilation();
 
+// DATABASE (FIX POOL + RETRY)
 builder.Services.AddDbContextPool<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null)
-    ));
+        sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null
+            );
+        }
+    )
+);
 
-//////////////////////////////
-// AUTHENTICATION (MULTI-SCHEME)
-//////////////////////////////
+// AUTHENTICATION: PESERTA + ADMIN
 builder.Services.AddAuthentication(options =>
 {
-    // Default tetap ke AdminScheme agar dashboard admin aman
+    // Default ke AdminScheme agar dashboard admin aman
     options.DefaultScheme = "AdminScheme";
     options.DefaultChallengeScheme = "AdminScheme";
     options.DefaultAuthenticateScheme = "AdminScheme";
@@ -44,7 +53,6 @@ builder.Services.AddAuthentication(options =>
     options.LogoutPath = "/Admin/Login/Logout";
 
     options.Cookie.Name = "SINTA_ADMIN_AUTH";
-
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -69,9 +77,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-//////////////////////////////
 // AUTHORIZATION POLICIES
-//////////////////////////////
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminPolicy", policy =>
@@ -95,16 +101,16 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-//////////////////////////////
-// SERVICES + SESSION + SECURITY
-//////////////////////////////
-// Membaca setting email dari appsettings.json
+// EMAIL SERVICE
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+// HTTP CONTEXT ACCESSOR
 builder.Services.AddHttpContextAccessor();
+
+// SESSION
 builder.Services.AddDistributedMemoryCache();
 
-// Keamanan tambahan untuk form (Anti-CSRF)
+// ANTI-CSRF
 builder.Services.AddAntiforgery(options => {
     options.HeaderName = "X-XSRF-TOKEN";
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
@@ -117,18 +123,20 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// ==========================================
+// 2. BUILD THE APPLICATION
+// ==========================================
 var app = builder.Build();
 
-//////////////////////////////
-// MIDDLEWARE
-//////////////////////////////
+// ==========================================
+// 3. MIDDLEWARE PIPELINE
+// ==========================================
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-// Penting jika deploy di infrastruktur server perusahaan (Proxy/Load Balancer)
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -144,23 +152,25 @@ app.Use(async (context, next) =>
     context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
     context.Response.Headers["Pragma"] = "no-cache";
     context.Response.Headers["Expires"] = "0";
-
     await next();
 });
 
-app.UseSession();
+// Urutan Middleware WAJIB BERURUTAN
+app.UseSession();         // 1. Session dulu
+app.UseAuthentication();  // 2. Mengenali siapa yang login
+app.UseAuthorization();   // 3. Mengecek hak aksesnya
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-
-//////////////////////////////
-// ROUTING
-//////////////////////////////
+// ==========================================
+// 4. ROUTING & MAPPING
+// ==========================================
 app.MapAreaControllerRoute(
     name: "admin_area",
     areaName: "Admin",
     pattern: "Admin/{controller=Login}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

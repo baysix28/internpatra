@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace sinta_asp.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialFinalSinta : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -66,6 +66,24 @@ namespace sinta_asp.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Admins", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Lowongan",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Company = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Region = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Lowongan", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -165,12 +183,14 @@ namespace sinta_asp.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    NomorPendaftaran = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Nama = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NoHp = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TempatLahir = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TglLahir = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Instagram = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PathFoto3x4 = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Universitas = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Fakultas = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Jurusan = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -244,6 +264,9 @@ namespace sinta_asp.Migrations
 
             migrationBuilder.DropTable(
                 name: "Admins");
+
+            migrationBuilder.DropTable(
+                name: "Lowongan");
 
             migrationBuilder.DropTable(
                 name: "Mahasiswa");
