@@ -6,10 +6,14 @@
     ViewData["Title"] = "Manajemen Akses Administrator";
     
     var adminRole = HttpContextAccessor.HttpContext.Session.GetString("AdminRole");
+    var adminRegion = HttpContextAccessor.HttpContext.Session.GetString("AdminRegion");
     var currentAdminId = HttpContextAccessor.HttpContext.Session.GetString("AdminId");
+    
+    // Cek apakah dia SuperAdmin ATAU Admin Jawa Tengah
+    bool isSuperAdmin = (adminRole == "SuperAdmin") || (adminRegion == "Regional Jawa Bagian Tengah");
 }
 
-@if (adminRole != "SuperAdmin")
+@if (!isSuperAdmin)
 {
     <script>window.location.href = '@Url.Action("Index", "Dashboard")';</script>
 }

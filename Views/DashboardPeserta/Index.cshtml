@@ -96,7 +96,6 @@
             height: 100%; display: flex; flex-direction: column;
         }
 
-        .status-badge.status-revisi { background: #ede9fe; color: #5b21b6; }
         /* Warna Default (Kuning) */
         .status-badge.status-review { background: #fff3cd; color: #856404; }
 
@@ -105,6 +104,7 @@
 
         /* Warna Ditolak (Merah) */
         .status-badge.status-danger { background: #f8d7da; color: #721c24; }
+
 
         .badge-count {
             position: absolute;
@@ -152,7 +152,6 @@
             padding: 4px 8px;
         }
 
-        .bg-light-revisi { background: #ede9fe; color: #5b21b6; }
         .status-badge { padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; }
         .status-approved { background: #dcfce7; color: #166534; }
         .status-review { background: #fef9c3; color: #854d0e; }
@@ -678,11 +677,6 @@
             font-weight: 800;
             color: #000000;
             margin-bottom: 4px;
-            <h4 class="font-weight-bold mt-2 mb-2"
-            style="
-                color: #1e293b;
-                letter-spacing: -0.5px;
-            ">
         }
 
         .info-company-code {
@@ -962,62 +956,6 @@
             color: #64748b;
         }
 
-        /* ===== REVISI PANEL MAHASISWA ===== */
-        .revisi-panel-mhs {
-            background: #fff9f0;
-            border: 1.5px dashed #f59e0b;
-            border-radius: 16px;
-            padding: 20px 24px;
-            margin-top: 48px;
-            animation: slideUp 0.3s ease-out;
-        }
-        .revisi-chips-wrap {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 8px 0 12px 0;
-        }
-        .revisi-chip-item {
-            background: #fee2e2;
-            color: #991b1b;
-            border-radius: 50px;
-            padding: 3px 14px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .revisi-catatan-box {
-            background: white;
-            border-left: 4px solid #f59e0b;
-            border-radius: 0 10px 10px 0;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #64748b;
-        }
-        .revisi-field-row {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px 14px;
-            margin-bottom: 10px;
-        }
-        .revisi-field-row.field-aktif {
-            background: #f0f7ff;
-            border: 1.5px solid #00549B;
-        }
-        .revisi-field-row.field-aktif .revisi-field-label {
-            color: #00549B;
-        }
-        .revisi-field-label {
-            font-size: 10px;
-            font-weight: 800;
-            color: #94a3b8;
-            text-transform: uppercase;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
         .badge-edit-aktif {
             background: #00549B;
             color: white;
@@ -1035,45 +973,7 @@
             font-weight: 700;
             border: 1px solid #e2e8f0;
         }
-        .revisi-input {
-            width: 100%;
-            border: none;
-            background: transparent;
-            font-size: 13px;
-            font-weight: 600;
-            color: #334155;
-            outline: none;
-            padding: 0;
-        }
-        .revisi-input:disabled {
-            color: #94a3b8;
-            cursor: not-allowed;
-        }
-        .revisi-upload-trigger {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            margin-top: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #00549B;
-            cursor: pointer;
-        }
-        .btn-submit-revisi {
-            background: #00549B;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 28px;
-            font-weight: 700;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-submit-revisi:hover {
-            background: #003d70;
-            transform: translateY(-1px);
-        }
+        
 
         @@media (max-width: 768px) {
             .info-lokasi-item {
@@ -1125,7 +1025,6 @@
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
 <nav class="sidebar">
-
     <div class="brand-container">
         <img src="~/images/logo-pertamina.png"
             class="brand-logo-pertamina"
@@ -1134,105 +1033,82 @@
 
     <!-- MENU -->
     <div style="flex-grow: 1; display:flex; flex-direction:column;">
-
-        <button onclick="showPage('dashboard')"
+        <button type="button" onclick="showPage('dashboard')"
                 class="nav-link-custom active"
                 id="nav-dashboard">
             <i class="fa-solid fa-house mr-3"></i> Dashboard
         </button>
 
-        <button onclick="showPage('informasi')"
+        <button type="button" onclick="showPage('informasi')"
                 class="nav-link-custom"
                 id="nav-informasi">
             <i class="fa-solid fa-info-circle mr-3"></i> Informasi Tersedia
         </button>
 
-        <button onclick="showPage('riwayat')"
+        <button type="button" onclick="showPage('riwayat')"
                 class="nav-link-custom"
                 id="nav-riwayat">
             <i class="fa-solid fa-clipboard-list mr-3"></i> Riwayat Magang
         </button>
 
-        <button onclick="showPage('profil')"
+        <button type="button" onclick="showPage('profil')"
                 class="nav-link-custom"
                 id="nav-profil">
             <i class="fa-solid fa-user-gear mr-3"></i> Pengaturan Profil
         </button>
-
     </div>
 
     <!-- LOGOUT -->
-    <button onclick="handleLogout()"
+    <button type="button" onclick="handleLogout()"
             class="nav-link-custom nav-link-logout"
-            style="
-                color:#ec1c24 !important;
-                border:1px solid #fee2e2;
-                background:#fffafa;
-                margin-top:auto;
-            ">
+            style="color:#ec1c24 !important; border:1px solid #fee2e2; background:#fffafa; margin-top:auto;">
         <i class="fa-solid fa-right-from-bracket mr-3"></i>
         Keluar
     </button>
-
 </nav>
 
 <header class="topbar">
-
     <!-- KIRI -->
     <div class="d-flex align-items-center">
-
         <i class="fa-solid fa-bars-staggered mr-3 text-muted"
            onclick="toggleSidebar()"
            style="cursor:pointer; font-size:18px;">
         </i>
-
         <img src="~/images/logo-sinta.png"
              style="height:40px;"
              class="mr-3">
-
     </div>
 
     <!-- KANAN -->
     <div class="d-flex align-items-center">
-
         <div class="dropdown mr-3 notif-dropdown">
-
             <div class="notification-btn position-relative"
                  id="notiDropdown"
                  data-toggle="dropdown">
-
                 <i class="fa-solid fa-bell text-muted"></i>
-
                 <span id="notifBadge"
                       class="badge badge-danger position-absolute"
                       style="top:-5px; right:-5px; font-size:10px;">
                 </span>
-
             </div>
 
             <div class="dropdown-menu dropdown-menu-right shadow border-0 p-0"
                  style="width: 360px;">
-
                 <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 font-weight-bold">Notifikasi</h6>
                 </div>
-
                 <div class="tab-content"
                      style="max-height: 400px; overflow-y: auto;">
-
                     <div class="tab-pane fade show active" id="pendaftaran">
                         <div class="list-group list-group-flush" id="notifList">
                         </div>
                     </div>
-
                     <div class="tab-pane fade p-4 text-center" id="update">
                         <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-state-2130362-1800923.png"
                              width="100"
                              class="mb-2 opacity-50">
                     </div>
-
                 </div>
-
                 <div class="notif-footer text-center">
                     <a href="#"
                        id="markAllReadBtn"
@@ -1241,72 +1117,52 @@
                         Tandai semua dibaca
                     </a>
                 </div>
-
             </div>
         </div>
 
         <div class="text-right mr-3 border-left pl-3">
-
             <div class="small font-weight-bold">
                 @namaUser
             </div>
-
             <small class="text-success font-weight-bold">
                 <i class="fa-solid fa-circle text-success mr-1"
                    style="font-size: 8px;">
                 </i>
                 Online
             </small>
-
         </div>
 
         <div class="dropdown">
-
             <div style="cursor: pointer;"
                  data-toggle="dropdown"
                  aria-haspopup="true"
                  aria-expanded="false">
-
                 <img src="@avatarUrl"
                      id="navbarAvatar"
                      class="rounded-circle shadow-sm border"
                      width="45">
-
             </div>
-
             <div class="dropdown-menu dropdown-menu-right shadow border-0"
                  style="border-radius: 12px; min-width: 200px;">
-
                 <div class="dropdown-header font-weight-bold text-dark">
                     Menu Akun
                 </div>
-
                 <a class="dropdown-item py-2"
                    href="javascript:void(0)"
                    onclick="showPage('profil')">
-
                     <i class="fa-solid fa-user-gear mr-2 text-muted"></i>
                     Kelola Akun
-
                 </a>
-
                 <div class="dropdown-divider"></div>
-
                 <a class="dropdown-item py-2 text-danger"
                    href="javascript:void(0)"
                    onclick="handleLogout()">
-
                     <i class="fa-solid fa-right-from-bracket mr-2"></i>
                     Keluar
-
                 </a>
-
             </div>
-
         </div>
-
     </div>
-
 </header>
 
 <main class="main-content">
@@ -1388,73 +1244,7 @@
             <div class="row">
                 <div class="col-12 mb-3">
                     <div class="glass-card shadow-sm dashboard-mini-card dashboard-clickable-card"
-                <div class="col-12 mb-3">
-                    <div class="glass-card shadow-sm dashboard-mini-card dashboard-clickable-card"
                         onclick="window.location.href='/PendaftaranMagang/DataMagang'"
-                        style="
-                            border-radius: 24px;
-                            background: linear-gradient(135deg, #eef6ff 0%, #ffffff 55%, #f3f8ff 100%);
-                            border: 1.5px solid #cfe0f3;
-                            min-height: 160px;
-                            padding: 28px 36px;
-                            display: flex;
-                            flex-direction: row;
-                            align-items: center;
-                            justify-content: space-between;
-                            overflow: hidden;
-                            position: relative;
-                            box-shadow: 0 14px 35px rgba(0, 84, 155, 0.13);
-                            transition: all 0.3s ease;
-                        ">
-                        <div>
-                            <h4 class="font-weight-bold mt-2 mb-2"
-                                style="color: #1e293b;">
-                                Daftar Program Magang
-                            </h4>
-
-                            <p style="color:#64748b; max-width:520px; line-height:1.5; font-size:14px; margin-bottom:10px;">
-                                Mulai proses pendaftaran magang Pertamina dan pilih lokasi/unit
-                                yang tersedia sesuai minat dan kompetensi Anda.
-                            </p>
-
-                            <button class="btn btn-primary mt-2 px-4 py-2"
-                                style="
-                                    border-radius: 12px;
-                                    background:#00549B;
-                                    border:none;
-                                    font-weight:700;
-                                    font-size:14px;
-                                ">
-                                Daftar Sekarang
-                                <i class="fa fa-arrow-right ml-2"></i>
-                            </button>
-                        </div>
-
-                        <div class="d-none d-md-flex align-items-center justify-content-center">
-                            <i class="fa-solid fa-briefcase"
-                                style="
-                                    font-size: 95px;
-                                    color: rgba(0,84,155,0.06);
-                                ">
-                            </i>
-                        </div>
-                    </div>
-                </div>
-
-                @* <div class="col-md-6 col-lg-4 mb-3">
-                    <div class="glass-card shadow-sm p-4 dashboard-mini-card dashboard-clickable-card"
-                        onclick="showPage('informasi')"
-                        style="border-radius: 18px; background: #fff; border-left: 6px solid #00A859; min-height: 160px; display: flex; flex-direction: column;">
-                        <small class="text-muted font-weight-bold text-uppercase" style="font-size: 11px; letter-spacing: 0.8px;">Informasi</small>
-                        <h4 class="font-weight-bold mt-2 mb-3" style="color: #333;">Informasi Tersedia</h4>
-
-                        <div class="mt-auto">
-                            <span class="text-success font-weight-bold" style="font-size: 14px;">
-                                Lihat informasi tersedia <i class="fa fa-arrow-right ml-1"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
                         style="
                             border-radius: 24px;
                             background: linear-gradient(135deg, #eef6ff 0%, #ffffff 55%, #f3f8ff 100%);
@@ -1474,35 +1264,23 @@
                             <h4 class="font-weight-bold mt-2 mb-2" style="color: #1e293b;">
                                 Daftar Program Magang
                             </h4>
-
                             <p style="color:#64748b; max-width:520px; line-height:1.5; font-size:14px; margin-bottom:10px;">
                                 Mulai proses pendaftaran magang Pertamina dan pilih lokasi/unit
                                 yang tersedia sesuai minat dan kompetensi Anda.
                             </p>
-
                             <button class="btn btn-primary mt-2 px-4 py-2"
-                                style="
-                                    border-radius: 12px;
-                                    background:#00549B;
-                                    border:none;
-                                    font-weight:700;
-                                    font-size:14px;
-                                ">
+                                style="border-radius: 12px; background:#00549B; border:none; font-weight:700; font-size:14px;">
                                 Daftar Sekarang
                                 <i class="fa fa-arrow-right ml-2"></i>
                             </button>
                         </div>
-
                         <div class="d-none d-md-flex align-items-center justify-content-center">
                             <i class="fa-solid fa-briefcase"
-                                style="
-                                    font-size: 95px;
-                                    color: rgba(0,84,155,0.06);
-                                ">
+                                style="font-size: 95px; color: rgba(0,84,155,0.06);">
                             </i>
                         </div>
                     </div>
-                </div> *@
+                </div>
             </div>
         </div>
 
@@ -1547,21 +1325,21 @@
                         <input type="text" id="filterSearchInformasi" class="form-control-bubble" placeholder="Cari unit...">
                     </div>
                     
-                    <div class="col-md-3.5 mb-2">
+                    <div class="col-md-3 mb-2">
                         <label class="info-summary-title">Company</label>
                         <select id="filterCompanyInformasi" class="form-control-bubble">
                             <option value="">Semua Company</option>
                         </select>
                     </div>
                     
-                    <div class="col-md-4 mb-2">
+                    <div class="col-md-3 mb-2">
                         <label class="info-summary-title">Regional</label>
                         <select id="filterRegionInformasi" class="form-control-bubble" disabled>
                             <option value="">Pilih Regional...</option>
                         </select>
                     </div>
                     
-                    <div class="col-md-0 mb-2 d-flex justify-content-start">
+                    <div class="col-md-2 mb-2 d-flex justify-content-start">
                         <button type="button" class="btn-reset-soft" onclick="resetInformasiFilter()">
                             <i class="fa-solid fa-rotate-left"></i>
                         </button>
@@ -1578,12 +1356,8 @@
                     <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 5px;">Riwayat Pengajuan Magang</h4>
                     <p class="text-muted small mb-0">Pantau status pengajuan magang industri Anda.</p>
                 </div>
-                @* <button class="btn btn-primary px-4 shadow-sm" style="border-radius:10px; background: var(--p-blue); font-size: 14px;" onclick="window.location.href='/PendaftaranMagang/DataMagang'">
-                    <i class="fa fa-plus mr-2"></i> Daftar Magang Baru
-                </button> *@
             </div>
             <div class="row flex-nowrap mb-4 g-2">
-
                 <!-- Total -->
                 <div class="col" style="min-width:0;">
                     <div onclick="filterTabel('Semua', this)"
@@ -1614,16 +1388,6 @@
                     </div>
                 </div>
 
-                <!-- Revisi -->
-                <div class="col" style="min-width:0;">
-                    <div onclick="filterTabel('Revisi', this)"
-                        data-color="#6366f1"
-                        style="cursor:pointer; background:#fff; border-radius:10px; padding:16px 4px; height:100%; border-top:4px solid #6366f1; box-shadow:0 1px 4px rgba(0,0,0,0.08); text-align:center; transition:all 0.2s ease;">
-                        <p style="font-size:10px; font-weight:700; text-transform:uppercase; color:#6b7280; margin:0 0 6px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Revisi</p>
-                        <h5 style="font-weight:700; color:#6366f1; font-size:16px; margin:0;">@ViewBag.Revisi</h5>
-                    </div>
-                </div>
-
                 <!-- Ditolak -->
                 <div class="col" style="min-width:0;">
                     <div onclick="filterTabel('Ditolak', this)"
@@ -1633,18 +1397,17 @@
                         <h5 style="font-weight:700; color:#dc3545; font-size:16px; margin:0;">@ViewBag.Ditolak</h5>
                     </div>
                 </div>
-
             </div>
            
             <div class="glass-card p-0 overflow-hidden">
                 <table class="table table-hover mb-0" style="table-layout: fixed; font-size: 13.5px;">
                     <thead class="bg-light">
                         <tr>
-                            <th class="border-0 px-4 text-secondary" style="width: 10%; font-weight: 600;">Company</th>
+                            <th class="border-0 px-4 text-secondary" style="width: 15%; font-weight: 600;">Company</th>
                             <th class="border-0 text-secondary" style="width: 25%; font-weight: 600;">Region</th>
                             <th class="border-0 text-secondary" style="width: 25%; font-weight: 600;">Posisi</th>
                             <th class="border-0 text-secondary text-center" style="width: 15%; font-weight: 600;">Tanggal</th>
-                            <th class="border-0 text-secondary text-center" style="width: 15%; font-weight: 600;">Status</th>
+                            <th class="border-0 text-secondary text-center" style="width: 10%; font-weight: 600;">Status</th>
                             <th class="border-0 text-secondary text-center" style="width: 10%; font-weight: 600;">Aksi</th>
                         </tr>
                     </thead>
@@ -1662,7 +1425,6 @@
                                         @{
                                             var statusClass = item.Status == "Diterima" ? "status-success" : 
                                                             item.Status == "Ditolak" ? "status-danger" : 
-                                                            item.Status == "Revisi" ? "status-revisi" :
                                                             "status-review";
                                         }
                                         <span class="status-badge @statusClass" style="display: inline-block; min-width: 80px; font-size: 11px; padding: 3px 8px; font-weight: 600;">
@@ -1788,341 +1550,264 @@
                                 </a>
                             </div>
                         </div>
-
-                        <!-- PANEL REVISI MAHASISWA — hanya muncul saat status Revisi -->
-                        <input type="hidden" id="d-magang-id">
-
-                        <div id="revisiPanelMhs" class="revisi-panel-mhs" style="display:none;">
-                            <!-- Header banner -->
-                            <div class="d-flex align-items-start" style="gap:12px; margin-bottom:12px;">
-                                <i class="fas fa-exclamation-triangle" 
-                                style="color:#f59e0b; font-size:20px; margin-top:2px; flex-shrink:0;"></i>
-                                <div>
-                                    <div style="font-size:12px; font-weight:800; color:#92400e; text-transform:uppercase;">
-                                        Admin meminta revisi pada:
-                                    </div>
-                                    <div id="revisiChipsMhs" class="revisi-chips-wrap"></div>
-                                </div>
-                            </div>
-
-                            <!-- Catatan admin -->
-                            <div id="revisiCatatanBox" class="revisi-catatan-box">
-                                <strong style="font-size:11px; color:#92400e; text-transform:uppercase;">
-                                    Catatan dari Admin:
-                                </strong><br>
-                                <span id="revisiCatatanText"></span>
-                            </div>
-
-                            <div style="font-size:12px; color:#64748b; margin-bottom:16px;">
-                                Field yang ditandai <strong style="color:#00549B;">biru</strong> bisa diedit. 
-                                Sisanya terkunci dan tidak perlu diubah.
-                            </div>
-
-                            <!-- Field-field revisi (2 kolom) -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <!-- NIM -->
-                                    <div id="rowRevisiNIM" class="revisi-field-row">
-                                        <div class="revisi-field-label">
-                                            <i class="fas fa-id-badge"></i> NIM
-                                            <span id="badgeNIM" class="badge-terkunci">TERKUNCI</span>
-                                        </div>
-                                        <input id="revisiNIM" type="text" class="revisi-input" disabled>
-                                    </div>
-
-                                    <!-- No HP -->
-                                    <div id="rowRevisiHP" class="revisi-field-row">
-                                        <div class="revisi-field-label">
-                                            <i class="fas fa-phone"></i> No. WhatsApp
-                                            <span id="badgeHP" class="badge-terkunci">TERKUNCI</span>
-                                        </div>
-                                        <input id="revisiHP" type="text" class="revisi-input" disabled>
-                                    </div>
-
-                                    <!-- Durasi -->
-                                    <div id="rowRevisiDurasi" class="revisi-field-row">
-                                        <div class="revisi-field-label">
-                                            <i class="fas fa-calendar-alt"></i> Durasi Magang
-                                            <span id="badgeDurasi" class="badge-terkunci">TERKUNCI</span>
-                                        </div>
-                                        <div class="d-flex" style="gap:8px;">
-                                            <input id="revisiMulai" type="date" class="revisi-input" 
-                                                style="flex:1; border:1px solid #e2e8f0; border-radius:6px; padding:4px 8px;" disabled>
-                                            <input id="revisiSelesai" type="date" class="revisi-input" 
-                                                style="flex:1; border:1px solid #e2e8f0; border-radius:6px; padding:4px 8px;" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <!-- CV -->
-                                    <div id="rowRevisiCV" class="revisi-field-row">
-                                        <div class="revisi-field-label">
-                                            <i class="fas fa-file-pdf"></i> File CV
-                                            <span id="badgeCV" class="badge-terkunci">TERKUNCI</span>
-                                        </div>
-                                        <div style="font-size:12px; color:#64748b;" id="namaFileCV">cv saat ini</div>
-                                        <div id="triggerCV" class="revisi-upload-trigger" 
-                                            onclick="document.getElementById('revisiFileCV').click()">
-                                            <i class="fas fa-upload"></i> Pilih file CV baru (PDF, maks 5MB)
-                                        </div>
-                                        <input id="revisiFileCV" type="file" accept=".pdf" style="display:none;" 
-                                            onchange="previewNamaFile(this, 'namaFileCV')">
-                                    </div>
-
-                                    <!-- Surat -->
-                                    <div id="rowRevisiSurat" class="revisi-field-row">
-                                        <div class="revisi-field-label">
-                                            <i class="fas fa-file-contract"></i> Surat Pengantar
-                                            <span id="badgeSurat" class="badge-terkunci">TERKUNCI</span>
-                                        </div>
-                                        <div style="font-size:12px; color:#64748b;" id="namaFileSurat">surat saat ini</div>
-                                        <div id="triggerSurat" class="revisi-upload-trigger" 
-                                            onclick="document.getElementById('revisiFileSurat').click()">
-                                            <i class="fas fa-upload"></i> Pilih file surat baru (PDF, maks 5MB)
-                                        </div>
-                                        <input id="revisiFileSurat" type="file" accept=".pdf" style="display:none;" 
-                                            onchange="previewNamaFile(this, 'namaFileSurat')">
-                                    </div>
-
-                                    <!-- Proposal -->
-                                    <div id="rowRevisiProposal" class="revisi-field-row">
-                                        <div class="revisi-field-label">
-                                            <i class="fas fa-file-signature"></i> Proposal Magang
-                                            <span id="badgeProposal" class="badge-terkunci">TERKUNCI</span>
-                                        </div>
-                                        <div style="font-size:12px; color:#64748b;" id="namaFileProposal">proposal saat ini</div>
-                                        <div id="triggerProposal" class="revisi-upload-trigger" 
-                                            onclick="document.getElementById('revisiFileProposal').click()">
-                                            <i class="fas fa-upload"></i> Pilih file proposal baru (PDF, maks 5MB)
-                                        </div>
-                                        <input id="revisiFileProposal" type="file" accept=".pdf" style="display:none;" 
-                                            onchange="previewNamaFile(this, 'namaFileProposal')">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tombol submit -->
-                            <div class="text-right mt-3">
-                                <button class="btn-submit-revisi" onclick="submitRevisiMahasiswa()">
-                                    <i class="fas fa-paper-plane mr-2"></i> Submit Revisi ke Admin
-                                </button>
-                            </div>
-                        </div>
-
-                    </div><!-- /detail-body -->
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- ===== PROFIL PAGE ===== -->
         <div id="page-profil" class="page-section">
-    <div class="mb-4">
-        <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 0;">Pengaturan Akun</h4>
-        <p class="subtitle-portal" style="font-size: 14px; color: #64748b; margin-top: 4px;">
-            Kelola informasi kredensial dan keamanan <span class="text-danger">@namaUser</span>
-        </p>
-    </div>
+            <div class="mb-4">
+                <h4 class="font-weight-bold" style="color: var(--p-blue); margin-bottom: 0;">Pengaturan Akun</h4>
+                <p class="subtitle-portal" style="font-size: 14px; color: #64748b; margin-top: 4px;">
+                    Kelola informasi kredensial dan keamanan <span class="text-danger">@namaUser</span>
+                </p>
+            </div>
 
-    <div class="profile-card">
-        <div class="profile-nav-tabs">
-            <ul class="nav" id="profileTab" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="data-tab" data-toggle="tab" href="#tab-data" role="tab">
-                        <i class="fa-solid fa-address-card mr-2"></i> Profil Saya
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="security-tab" data-toggle="tab" href="#tab-security" role="tab">
-                        <i class="fa-solid fa-shield-halved mr-2"></i> Keamanan
-                    </a>
-                </li>
-            </ul>
-        </div>
+            <div class="profile-card">
+                <div class="profile-nav-tabs">
+                    <ul class="nav" id="profileTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="data-tab" data-toggle="tab" href="#tab-data" role="tab">
+                                <i class="fa-solid fa-address-card mr-2"></i> Profil Saya
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="security-tab" data-toggle="tab" href="#tab-security" role="tab">
+                                <i class="fa-solid fa-shield-halved mr-2"></i> Keamanan
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-        <div class="tab-content" id="profileTabContent">
-            
-            <div class="tab-pane fade show active" id="tab-data" role="tabpanel">
-                <div class="p-4">
-                    <div class="d-flex align-items-center mb-4">
-                        <div class="position-relative">
-                            <div class="dropdown">
-                                <input type="file" id="fileInputFoto" hidden accept="image/*" onchange="uploadFoto(this)">
+                <div class="tab-content" id="profileTabContent">
+                    
+                    <div class="tab-pane fade show active" id="tab-data" role="tabpanel">
+                        <div class="p-4">
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="position-relative">
+                                    <div class="dropdown">
+                                        <input type="file" id="fileInputFoto" hidden accept="image/*" onchange="uploadFoto(this)">
 
-                                <div id="avatarContainer" class="avatar-box mr-3 shadow-sm"
-                                    style="cursor: pointer; overflow: hidden; width: 80px; height: 80px; border: 2px solid #e2e8f0;"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <div id="avatarContainer" class="avatar-box mr-3 shadow-sm"
+                                            style="cursor: pointer; overflow: hidden; width: 80px; height: 80px; border: 2px solid #e2e8f0;"
+                                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 
-                                    @if (Model != null && !string.IsNullOrEmpty(Model.FotoProfil))
-                                    {
-                                        <img src="/uploads/profile/@Model.FotoProfil" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">
-                                    }
-                                    else
-                                    {
-                                        <span id="initialsText">
-                                            @{
-                                                var inisial = "??";
-                                                if (!string.IsNullOrEmpty(namaUser))
-                                                {
-                                                    inisial = namaUser.Length >= 2 ? namaUser.Substring(0, 2).ToUpper() : namaUser.ToUpper();
-                                                }
+                                            @if (Model != null && !string.IsNullOrEmpty(Model.FotoProfil))
+                                            {
+                                                <img src="/uploads/profile/@Model.FotoProfil" id="imgPreview" style="width:100%; height:100%; object-fit:cover;">
                                             }
-                                            @inisial
-                                        </span>
-                                    }
-                                </div>
+                                            else
+                                            {
+                                                <span id="initialsText">
+                                                    @{
+                                                        var inisial = "??";
+                                                        if (!string.IsNullOrEmpty(namaUser))
+                                                        {
+                                                            inisial = namaUser.Length >= 2 ? namaUser.Substring(0, 2).ToUpper() : namaUser.ToUpper();
+                                                        }
+                                                    }
+                                                    @inisial
+                                                </span>
+                                            }
+                                        </div>
 
-                                <div class="dropdown-menu shadow border-0" style="border-radius: 12px; font-size: 14px; min-width: 160px; margin-top: 10px;">
-                                    <a class="dropdown-item py-2" href="javascript:void(0)" onclick="document.getElementById('fileInputFoto').click()">
-                                        <i class="fa-solid fa-file-import mr-2 text-muted"></i> Pilih Foto
-                                    </a>
-                                    <a class="dropdown-item py-2" href="javascript:void(0)" onclick="viewPhoto()">
-                                        <i class="fa-solid fa-image mr-2 text-muted"></i> Lihat Foto
-                                    </a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="deletePhoto()">
-                                        <i class="fa-solid fa-trash-can mr-2"></i> Hapus Foto
-                                    </a>
+                                        <div class="dropdown-menu shadow border-0" style="border-radius: 12px; font-size: 14px; min-width: 160px; margin-top: 10px;">
+                                            <a class="dropdown-item py-2" href="javascript:void(0)" onclick="document.getElementById('fileInputFoto').click()">
+                                                <i class="fa-solid fa-file-import mr-2 text-muted"></i> Pilih Foto
+                                            </a>
+                                            <a class="dropdown-item py-2" href="javascript:void(0)" onclick="viewPhoto()">
+                                                <i class="fa-solid fa-image mr-2 text-muted"></i> Lihat Foto
+                                            </a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item py-2 text-danger" href="javascript:void(0)" onclick="deletePhoto()">
+                                                <i class="fa-solid fa-trash-can mr-2"></i> Hapus Foto
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5 class="font-weight-bold mb-1">@namaUser</h5>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge-role-peserta mr-2">PESERTA MAGANG</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div>
-                            <h5 class="font-weight-bold mb-1">@namaUser</h5>
-                            <div class="d-flex align-items-center">
-                                <span class="badge-role-peserta mr-2">PESERTA MAGANG</span>
+
+                            <hr class="my-4 opacity-50">
+                            <div class="row">
+                                <!-- NAMA LENGKAP PESERTA -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="label-custom">NAMA LENGKAP PESERTA</label>
+                                    <div class="input-group-security">
+                                        <input type="text" id="inputNama" class="form-control input-security-clean" 
+                                            value="@Model?.NamaLengkap" placeholder="Nama Lengkap" readonly>
+                                    </div>
+                                </div>
+
+                                <!-- USERNAME / EMAIL -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="label-custom">USERNAME / EMAIL</label>
+                                    <div class="input-group-security">
+                                        <input type="email" id="inputEmail" class="form-control input-security-clean" 
+                                            value="@userEmail" readonly>
+                                    </div>
+                                </div>
+
+                                <!-- NOMOR HANDPHONE -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="label-custom">NOMOR HANDPHONE</label>
+                                    <div class="input-group-security">
+                                        <input type="text" id="inputNoHP" class="form-control input-security-clean" 
+                                            value="@Model?.NoHP" placeholder="Contoh: 08123456789" readonly>
+                                    </div>
+                                </div>
+
+                                <!-- INSTANSI / PERGURUAN TINGGI -->
+                                <div class="col-md-6 mb-4">
+                                    <label class="label-custom">INSTANSI / PERGURUAN TINGGI</label>
+                                    <div class="input-group-security">
+                                        <input type="text" id="inputUniv" class="form-control input-security-clean" 
+                                            value="@Model?.NamaPerguruanTinggi" placeholder="Nama Perguruan Tinggi" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-4">
+                                <div class="col-12 text-right">
+                                    <button type="button" id="btnBatal" class="btn btn-batal-custom mr-2" style="display: none;">
+                                        <i class="fa-solid fa-xmark"></i> Batal
+                                    </button>
+
+                                    <button type="button" id="btnSimpan" class="btn btn-simpan-pertamina" onclick="saveProfile()" style="display: none;">
+                                        <i class="fa-solid fa-floppy-disk me-2"></i> Simpan Perubahan
+                                    </button>
+
+                                    <button type="button" id="btnEditTrigger" class="btn-edit-link">
+                                        <i class="fa-solid fa-pencil mr-1"></i> Edit Informasi
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <hr class="my-4 opacity-50">
-                    <div class="row">
-                        <!-- NAMA LENGKAP PESERTA -->
-                        <div class="col-md-6 mb-4">
-                            <label class="label-custom">NAMA LENGKAP PESERTA</label>
-                            <div class="input-group-security">
-                                <input type="text" id="inputNama" class="form-control input-security-clean" 
-                                    value="@Model?.NamaLengkap" placeholder="Nama Lengkap" readonly>
+                    <div class="tab-pane fade" id="tab-security" role="tabpanel">
+                        <div class="p-4">
+                            <div class="mb-4">
+                                <h5 class="font-weight-bold">Keamanan Akun</h5>
+                                <p class="text-muted small">Disarankan untuk mengganti kata sandi secara berkala untuk menjaga keamanan akun Anda.</p>
                             </div>
-                        </div>
+                            <form id="securityForm" onsubmit="updatePassword(event)" style="max-width: 100%;">
+                                <!-- KATA SANDI SAAT INI -->
+                                <div class="mb-4">
+                                    <label class="label-custom">KATA SANDI SAAT INI</label>
+                                    <div class="input-group-security">
+                                        <input type="password" id="oldPass" class="form-control input-security-clean" 
+                                            placeholder="••••••••" readonly required>
+                                        <div class="append-security" style="display: none;">
+                                            <span onclick="togglePassword('oldPass')" style="cursor: pointer;">
+                                                <i class="fa-solid fa-eye" id="icon-oldPass"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <!-- KATA SANDI BARU -->
+                                    <div class="col-md-6 mb-4">
+                                        <label class="label-custom">KATA SANDI BARU</label>
+                                        <div class="input-group-security">
+                                            <input type="password" id="newPass" class="form-control input-security-clean" 
+                                                placeholder="••••••••" readonly required>
+                                            <div class="append-security" style="display: none;">
+                                                <span onclick="togglePassword('newPass')" style="cursor: pointer;">
+                                                    <i class="fa-solid fa-eye" id="icon-newPass"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                        <!-- USERNAME / EMAIL -->
-                        <div class="col-md-6 mb-4">
-                            <label class="label-custom">USERNAME / EMAIL</label>
-                            <div class="input-group-security">
-                                <input type="email" id="inputEmail" class="form-control input-security-clean" 
-                                    value="@userEmail" readonly>
-                            </div>
-                        </div>
+                                    <!-- KONFIRMASI PASSWORD -->
+                                    <div class="col-md-6 mb-4">
+                                        <label class="label-custom">KONFIRMASI PASSWORD</label>
+                                        <div class="input-group-security">
+                                            <input type="password" id="confirmPass" class="form-control input-security-clean" 
+                                                placeholder="••••••••" readonly required>
+                                            <div class="append-security" style="display: none;">
+                                                <span onclick="togglePassword('confirmPass')" style="cursor: pointer;">
+                                                    <i class="fa-solid fa-eye" id="icon-confirmPass"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <!-- NOMOR HANDPHONE -->
-                        <div class="col-md-6 mb-4">
-                            <label class="label-custom">NOMOR HANDPHONE</label>
-                            <div class="input-group-security">
-                                <input type="text" id="inputNoHP" class="form-control input-security-clean" 
-                                    value="@Model?.NoHP" placeholder="Contoh: 08123456789" readonly>
-                            </div>
-                        </div>
+                                <div class="text-right mt-4">
+                                    <button type="button" id="btnBatalPassword" class="btn btn-batal-custom mr-2" style="display: none;">
+                                        <i class="fa-solid fa-xmark"></i> Batal
+                                    </button>
+                                    <button type="submit" id="btnSimpanPassword" class="btn btn-simpan-pertamina px-4" style="display: none;">
+                                        <i class="fa-solid fa-check-circle me-2"></i> Perbarui Kata Sandi
+                                    </button>
 
-                        <!-- INSTANSI / PERGURUAN TINGGI -->
-                        <div class="col-md-6 mb-4">
-                            <label class="label-custom">INSTANSI / PERGURUAN TINGGI</label>
-                            <div class="input-group-security">
-                                <input type="text" id="inputUniv" class="form-control input-security-clean" 
-                                    value="@Model?.NamaPerguruanTinggi" placeholder="Nama Perguruan Tinggi" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-4">
-                        <div class="col-12 text-right">
-                            <button type="button" id="btnBatal" class="btn btn-batal-custom mr-2" style="display: none;">
-                                <i class="fa-solid fa-xmark"></i> Batal
-                            </button>
-
-                            <button type="button" id="btnSimpan" class="btn btn-simpan-pertamina" onclick="saveProfile()" style="display: none;">
-                                <i class="fa-solid fa-floppy-disk me-2"></i> Simpan Perubahan
-                            </button>
-
-                            <button type="button" id="btnEditTrigger" class="btn-edit-link">
-                                <i class="fa-solid fa-pencil mr-1"></i> Edit Informasi
-                            </button>
+                                    <button type="button" id="btnEditPassword" class="btn-edit-link">
+                                        <i class="fa-solid fa-key mr-1"></i> Ubah Kata Sandi
+                                    </button>
+                                </div>
+                            </form>
+                            
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="tab-security" role="tabpanel">
-                <div class="p-4">
-                    <div class="mb-4">
-                        <h5 class="font-weight-bold">Keamanan Akun</h5>
-                        <p class="text-muted small">Disarankan untuk mengganti kata sandi secara berkala untuk menjaga keamanan akun Anda.</p>
-                    </div>
-                    <form id="securityForm" onsubmit="updatePassword(event)" style="max-width: 100%;">
-                        <!-- KATA SANDI SAAT INI -->
-                        <div class="mb-4">
-                            <label class="label-custom">KATA SANDI SAAT INI</label>
-                            <div class="input-group-security">
-                                <input type="password" id="oldPass" class="form-control input-security-clean" 
-                                    placeholder="••••••••" readonly required>
-                                <div class="append-security" style="display: none;">
-                                    <span onclick="togglePassword('oldPass')" style="cursor: pointer;">
-                                        <i class="fa-solid fa-eye" id="icon-oldPass"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <!-- KATA SANDI BARU -->
-                            <div class="col-md-6 mb-4">
-                                <label class="label-custom">KATA SANDI BARU</label>
-                                <div class="input-group-security">
-                                    <input type="password" id="newPass" class="form-control input-security-clean" 
-                                        placeholder="••••••••" readonly required>
-                                    <div class="append-security" style="display: none;">
-                                        <span onclick="togglePassword('newPass')" style="cursor: pointer;">
-                                            <i class="fa-solid fa-eye" id="icon-newPass"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+        </div>
 
-                            <!-- KONFIRMASI PASSWORD -->
-                            <div class="col-md-6 mb-4">
-                                <label class="label-custom">KONFIRMASI PASSWORD</label>
-                                <div class="input-group-security">
-                                    <input type="password" id="confirmPass" class="form-control input-security-clean" 
-                                        placeholder="••••••••" readonly required>
-                                    <div class="append-security" style="display: none;">
-                                        <span onclick="togglePassword('confirmPass')" style="cursor: pointer;">
-                                            <i class="fa-solid fa-eye" id="icon-confirmPass"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    </div><!-- /container-fluid -->
+</main>
 
-                        <div class="text-right mt-4">
-                            <button type="button" id="btnBatalPassword" class="btn btn-batal-custom mr-2" style="display: none;">
-                                <i class="fa-solid fa-xmark"></i> Batal
-                            </button>
-                            <button type="submit" id="btnSimpanPassword" class="btn btn-simpan-pertamina px-4" style="display: none;">
-                                <i class="fa-solid fa-check-circle me-2"></i> Perbarui Kata Sandi
-                            </button>
-
-                            <button type="button" id="btnEditPassword" class="btn-edit-link">
-                                <i class="fa-solid fa-key mr-1"></i> Ubah Kata Sandi
-                            </button>
-                        </div>
-                    </form>
-                    
+<!-- MODAL DETAIL LOKASI INFORMASI TERSEDIA -->
+<div class="modal fade" id="modalDetailLokasi" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center pt-0">
+                <div class="icon-box mb-3">
+                    <i class="fa-solid fa-building" style="font-size: 50px; color: #00549B;"></i>
                 </div>
+                <h5 class="font-weight-bold mb-1" id="modalTitle">Nama Unit/Lokasi</h5>
+                <p class="text-muted small mb-4" id="modalSubtitle">Regional - Perusahaan</p>
+                
+                <!-- BAGIAN DESKRIPSI -->
+                <div id="modalDescriptionContainer" class="text-left mb-3 p-3" style="background: #f8f9fa; border-left: 4px solid #00549B; border-radius: 8px;">
+                    <h6 class="font-weight-bold small text-uppercase mb-2" style="color: #00549B;">Tentang Posisi/Unit</h6>
+                    <p id="modalDescriptionText" class="text-muted small mb-0" style="line-height: 1.5;"></p>
+                </div>
+
+                <!-- BAGIAN DATA PENDAFTARAN -->
+                <div class="text-left bg-light p-3" style="border-radius: 15px; border: 1px solid #eee;">
+                    <h6 class="font-weight-bold small text-uppercase text-secondary mb-2">Informasi Pendaftaran</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="mb-2">
+                            <i class="fa-solid fa-check text-success mr-2"></i> Status: <strong id="modalStatus">Membuka Pendaftaran</strong>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fa-solid fa-calendar mr-2" style="color: #00549B;"></i> Periode: <strong id="modalPeriode">Batch 2026</strong>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-user-graduate mr-2" style="color: #00549B;"></i> Persyaratan: <strong id="modalKuota">Disesuaikan dengan form pendaftaran</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary btn-block font-weight-bold" data-dismiss="modal" style="border-radius: 12px; background-color: #00549B; border: none;">Tutup</button>
             </div>
         </div>
     </div>
 </div>
-
-    </div><!-- /container-fluid -->
-</main>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -2551,8 +2236,10 @@
         regionSelect.onchange = function() { renderGroupedInformasi(informasiData); };
     }
 
-    loadInformasiTersedia();
-    bindInformasiFilterEvents();
+    // Panggil loadInformasiTersedia setelah halaman siap
+    $(document).ready(function() {
+        loadInformasiTersedia();
+    });
 
     function showDetailLokasi(el) {
         var lokasiRaw = el.getAttribute('data-lokasi');
@@ -2566,17 +2253,28 @@
 
         var deskripsiFinal = "Deskripsi tidak tersedia.";
 
+        // Data deskripsi posisi
+        var deskripsiPosisi = {
+            "Finance": "Bertanggung jawab dalam pengelolaan keuangan perusahaan, analisis anggaran, dan pelaporan finansial.",
+            "Marketing": "Mengembangkan strategi pemasaran, analisis pasar, dan promosi produk perusahaan.",
+            "HR": "Mengelola sumber daya manusia, rekrutmen, pengembangan karyawan, dan administrasi personalia.",
+            "IT": "Mengelola sistem informasi, pengembangan aplikasi, dan infrastruktur teknologi perusahaan.",
+            "Operations": "Mengawasi operasional harian perusahaan, logistik, dan efisiensi proses bisnis.",
+            "Legal": "Menangani aspek hukum perusahaan, kontrak, dan kepatuhan regulasi.",
+            "Engineering": "Bidang teknik dan rekayasa, pengembangan proyek, dan pemeliharaan infrastruktur."
+        };
+
         if (company === 'KPI') {
             if (deskripsiPosisi[lokasi]) {
                 deskripsiFinal = deskripsiPosisi[lokasi];
             } else {
                 var keyMatch = Object.keys(deskripsiPosisi).find(function(k) {
-                    return k.toLowerCase().replace(/\s/g, '') === lokasi.toLowerCase().replace(/\s/g, '');
+                    return lokasi.toLowerCase().includes(k.toLowerCase());
                 });
-                deskripsiFinal = keyMatch ? deskripsiPosisi[keyMatch] : "Deskripsi posisi belum tersedia untuk bidang ini.";
+                deskripsiFinal = keyMatch ? deskripsiPosisi[keyMatch] : "Posisi magang di bidang " + lokasi + " dengan tanggung jawab sesuai unit penempatan.";
             }
         } else if (company === 'PPN') {
-            deskripsiFinal = "Unit operasional distribusi energi regional.";
+            deskripsiFinal = "Unit operasional distribusi energi regional yang bertanggung jawab dalam penyaluran BBM dan LPG ke masyarakat.";
         }
 
         var descElement = document.getElementById('modalDescriptionText');
@@ -2586,19 +2284,10 @@
     }
 
     function showReviewDetail(id) {
-        // Reset panel revisi setiap buka modal
-        document.getElementById('revisiPanelMhs').style.display = 'none';
-        document.getElementById('revisiFileCV').value = '';
-        document.getElementById('revisiFileSurat').value = '';
-        document.getElementById('revisiFileProposal').value = '';
-
         $.ajax({
             url: '/PendaftaranMagang/GetDetailMagang/' + id,
             type: 'GET',
             success: function(m) {
-                // Simpan id untuk submit nanti
-                document.getElementById('d-magang-id').value = id;
-
                 document.getElementById('d-nama').innerText = m.nama || '-';
                 document.getElementById('d-email').innerText = m.email || '-';
 
@@ -2634,195 +2323,14 @@
                 // Status badge
                 var sClass = m.status === 'Diterima' ? 'bg-light-green' :
                             m.status === 'Ditolak'  ? 'bg-light-red'   :
-                            m.status === 'Revisi'   ? 'bg-light-revisi' :
                             'bg-light-orange';
                 document.getElementById('d-status-badge-container').innerHTML =
                     '<span class="status-pill-modal ' + sClass + '">' + m.status + '</span>';
-
-                // Bangun panel revisi jika status Revisi
-                if (m.status === 'Revisi') {
-                    buildRevisiPanel(m);
-                }
 
                 var myModal = new bootstrap.Modal(document.getElementById('modalDetail'));
                 myModal.show();
             },
             error: function() { alert('Data tidak ditemukan'); }
-        });
-    }
-
-    // Bangun panel revisi berdasarkan data dari server
-    function buildRevisiPanel(m) {
-        var fields = (m.revisiFields || '').split(',').map(function(x) { return x.trim().toLowerCase(); });
-        var catatan = m.catatanRevisi || '';
-
-        // Chips
-        var chipsHtml = fields.filter(Boolean).map(function(f) {
-            return '<span class="revisi-chip-item">' + f + '</span>';
-        }).join('');
-        document.getElementById('revisiChipsMhs').innerHTML = chipsHtml || '<span class="text-muted small">-</span>';
-
-        // Catatan
-        document.getElementById('revisiCatatanText').innerText = catatan || 'Tidak ada catatan tambahan.';
-        document.getElementById('revisiCatatanBox').style.display = catatan ? 'block' : 'none';
-
-        // Pre-fill nilai saat ini ke input
-        document.getElementById('revisiNIM').value = m.nim || '';
-        document.getElementById('revisiHP').value  = m.wa  || '';
-
-        // Nama file saat ini
-        document.getElementById('namaFileCV').innerText = 
-            m.pathCV ? m.pathCV.split('/').pop() : 'Belum ada file';
-        document.getElementById('namaFileSurat').innerText = 
-            m.pathSurat ? m.pathSurat.split('/').pop() : 'Belum ada file';
-        document.getElementById('namaFileProposal').innerText = 
-            m.pathProposal ? m.pathProposal.split('/').pop() : 'Belum ada file';
-
-        // Aktifkan/kunci field sesuai permintaan admin
-        setFieldRevisi('rowRevisiNIM',    'badgeNIM',     'revisiNIM',     
-                    fields.some(function(f){ return f.includes('akademik'); }));
-
-        setFieldRevisi('rowRevisiHP',     'badgeHP',      'revisiHP',      
-                    fields.some(function(f){ return f.includes('kontak'); }));
-
-        setFieldRevisi('rowRevisiDurasi', 'badgeDurasi',  null,            
-                    fields.some(function(f){ return f.includes('durasi'); }), true);
-
-        setFieldRevisiFile('rowRevisiCV',       'badgeCV',       'triggerCV',      
-                        fields.some(function(f){ return f.includes('cv'); }));
-
-        setFieldRevisiFile('rowRevisiSurat',    'badgeSurat',    'triggerSurat',   
-                        fields.some(function(f){ return f.includes('surat'); }));
-
-        setFieldRevisiFile('rowRevisiProposal', 'badgeProposal', 'triggerProposal',
-                        fields.some(function(f){ return f.includes('proposal'); }));
-
-        document.getElementById('revisiPanelMhs').style.display = 'block';
-    }
-
-    // Helper: aktifkan/kunci input teks
-    function setFieldRevisi(rowId, badgeId, inputId, aktif, isDurasi) {
-        var row   = document.getElementById(rowId);
-        var badge = document.getElementById(badgeId);
-        if (!row || !badge) return;
-
-        if (aktif) {
-            row.classList.add('field-aktif');
-            badge.className = 'badge-edit-aktif';
-            badge.innerText = 'EDIT';
-            if (isDurasi) {
-                document.getElementById('revisiMulai').disabled   = false;
-                document.getElementById('revisiSelesai').disabled = false;
-            } else if (inputId) {
-                document.getElementById(inputId).disabled = false;
-            }
-        } else {
-            row.classList.remove('field-aktif');
-            badge.className = 'badge-terkunci';
-            badge.innerText = 'TERKUNCI';
-            if (isDurasi) {
-                document.getElementById('revisiMulai').disabled   = true;
-                document.getElementById('revisiSelesai').disabled = true;
-            } else if (inputId) {
-                document.getElementById(inputId).disabled = true;
-            }
-        }
-    }
-
-    // Helper: aktifkan/kunci field upload file
-    function setFieldRevisiFile(rowId, badgeId, triggerId, aktif) {
-        var row     = document.getElementById(rowId);
-        var badge   = document.getElementById(badgeId);
-        var trigger = document.getElementById(triggerId);
-        if (!row || !badge || !trigger) return;
-
-        if (aktif) {
-            row.classList.add('field-aktif');
-            badge.className = 'badge-edit-aktif';
-            badge.innerText = 'UPLOAD BARU';
-            trigger.style.display = 'flex';
-        } else {
-            row.classList.remove('field-aktif');
-            badge.className = 'badge-terkunci';
-            badge.innerText = 'TERKUNCI';
-            trigger.style.display = 'none';
-        }
-    }
-
-    // Preview nama file setelah dipilih
-    function previewNamaFile(input, targetId) {
-        var el = document.getElementById(targetId);
-        if (input.files && input.files[0]) {
-            el.innerText = input.files[0].name;
-            el.style.color = '#00549B';
-            el.style.fontWeight = '700';
-        }
-    }
-
-    // Submit revisi mahasiswa
-    function submitRevisiMahasiswa() {
-        var id = document.getElementById('d-magang-id').value;
-        var formData = new FormData();
-        formData.append('id', id);
-
-        // Field teks — hanya kirim kalau tidak disabled
-        var nim = document.getElementById('revisiNIM');
-        if (!nim.disabled) formData.append('nim', nim.value);
-
-        var hp = document.getElementById('revisiHP');
-        if (!hp.disabled) formData.append('noHp', hp.value);
-
-        var mulai = document.getElementById('revisiMulai');
-        if (!mulai.disabled && mulai.value) formData.append('mulaiMagang', mulai.value);
-
-        var selesai = document.getElementById('revisiSelesai');
-        if (!selesai.disabled && selesai.value) formData.append('selesaiMagang', selesai.value);
-
-        // File — hanya kirim kalau ada file dipilih
-        var cv = document.getElementById('revisiFileCV');
-        if (cv.files && cv.files[0]) formData.append('fileCv', cv.files[0]);
-
-        var surat = document.getElementById('revisiFileSurat');
-        if (surat.files && surat.files[0]) formData.append('fileSurat', surat.files[0]);
-
-        var proposal = document.getElementById('revisiFileProposal');
-        if (proposal.files && proposal.files[0]) formData.append('fileProposal', proposal.files[0]);
-
-        Swal.fire({
-            title: 'Kirim revisi?',
-            text: 'Pastikan semua field yang diminta sudah kamu perbaiki.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#00549B',
-            confirmButtonText: 'Ya, Kirim',
-            cancelButtonText: 'Cek Lagi'
-        }).then(function(result) {
-            if (!result.isConfirmed) return;
-
-            Swal.fire({ title: 'Mengirim...', allowOutsideClick: false, didOpen: function(){ Swal.showLoading(); } });
-
-            $.ajax({
-                url: '/DashboardPeserta/SubmitRevisi',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(res) {
-                    if (res.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Revisi Terkirim!',
-                            text: 'Status pengajuan kamu kembali ke Menunggu Review.',
-                            confirmButtonColor: '#00549B'
-                        }).then(function() { location.reload(); });
-                    } else {
-                        Swal.fire('Gagal', res.message || 'Terjadi kesalahan.', 'error');
-                    }
-                },
-                error: function() {
-                    Swal.fire('Error', 'Gagal menghubungi server.', 'error');
-                }
-            });
         });
     }
 
@@ -2870,8 +2378,6 @@
         });
     }
 
-    loadUnreadCount();
-
     // ===== DOCUMENT READY =====
     $(document).ready(function() {
         loadNotifications();
@@ -2898,23 +2404,6 @@
             loadUnreadCount();
             loadNotifications();
         }, 5000);
-
-        $('#markAllReadBtn').on('click', function(e) {
-            e.preventDefault();
-            $.ajax({
-                url: '/DashboardPeserta/MarkAllRead',
-                type: 'POST',
-                success: function() {
-                    $('#notifBadge').hide().text('');
-                    loadNotifications();
-                },
-                error: function(xhr) {
-                    console.log('Status:', xhr.status);
-                    console.log('Response:', xhr.responseText);
-                    Swal.fire('Error ' + xhr.status, xhr.responseText, 'error');
-                }
-            });
-        });
 
         // Navigasi awal
         var params = new URLSearchParams(window.location.search);
@@ -3003,52 +2492,6 @@
     });
 
 </script>
-
-<!-- Modal dipindah ke sini — langsung di dalam <body>, di luar semua container -->
-<!-- Modal Detail Lokasi -->
-<div class="modal fade" id="modalDetailLokasi" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-            <div class="modal-header border-0 pb-0">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body text-center pt-0">
-                <div class="icon-box mb-3">
-                    <i class="fa-solid fa-circle-info" style="font-size: 50px; color: #00549B;"></i>
-                </div>
-                <h5 class="font-weight-bold mb-1" id="modalTitle">Nama Unit/Lokasi</h5>
-                <p class="text-muted small mb-4" id="modalSubtitle">Regional - Perusahaan</p>
-                
-                <!-- BAGIAN DESKRIPSI -->
-                <div id="modalDescriptionContainer" class="text-left mb-3 p-3" style="background: #f8f9fa; border-left: 4px solid #00549B; border-radius: 8px;">
-                    <h6 class="font-weight-bold small text-uppercase mb-2" style="color: #00549B;">Tentang Posisi/Unit</h6>
-                    <p id="modalDescriptionText" class="text-muted small mb-0" style="line-height: 1.5;"></p>
-                </div>
-
-                <!-- BAGIAN DATA PENDAFTARAN -->
-                <div class="text-left bg-light p-3" style="border-radius: 15px; border: 1px solid #eee;">
-                    <h6 class="font-weight-bold small text-uppercase text-secondary mb-2">Informasi Pendaftaran</h6>
-                    <ul class="list-unstyled mb-0 small">
-                        <li class="mb-2">
-                            <i class="fa-solid fa-check text-success mr-2"></i> Status: <strong id="modalStatus">Membuka Pendaftaran</strong>
-                        </li>
-                        <li class="mb-2">
-                            <i class="fa-solid fa-calendar mr-2" style="color: #00549B;"></i> Periode: <strong id="modalPeriode">Batch 2026</strong>
-                        </li>
-                        <li>
-                            <i class="fa-solid fa-user-gear mr-2" style="color: #00549B;"></i> Kuota: <strong id="modalKuota">Tersedia</strong>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-primary btn-block font-weight-bold" data-dismiss="modal" style="border-radius: 12px; background-color: #00549B; border: none;">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 </body>
 </html>

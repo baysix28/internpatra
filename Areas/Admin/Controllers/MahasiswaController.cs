@@ -27,6 +27,18 @@ namespace sinta_asp.Areas.Admin.Controllers
             _emailService = emailService;
         }
 
+        // Helper untuk mengecek akses SuperAdmin atau Region Jawa Bagian Tengah
+        private bool IsUserAuthorized()
+        {
+            var adminRole = HttpContext.Session.GetString("AdminRole")?.Trim();
+            var adminRegion = HttpContext.Session.GetString("AdminRegion")?.Trim();
+
+            bool isSuperAdmin = string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase);
+            bool isJawaTengah = string.Equals(adminRegion, "Regional Jawa Bagian Tengah", StringComparison.OrdinalIgnoreCase);
+
+            return isSuperAdmin || isJawaTengah;
+        }
+
         [HttpGet]
         public async Task<IActionResult> CheckCompletion()
         {
@@ -82,69 +94,119 @@ namespace sinta_asp.Areas.Admin.Controllers
 
             return View(mahasiswa);
         }
-
         public async Task<IActionResult> Index(string selectedRegion = "all")
         {
-            var adminNama = HttpContext.Session.GetString("AdminNama");
-            var adminRole = HttpContext.Session.GetString("AdminRole"); 
+            var adminNama          = HttpContext.Session.GetString("AdminNama");
+            var adminRole          = HttpContext.Session.GetString("AdminRole");
             var adminRegionManaged = HttpContext.Session.GetString("AdminRegion");
 
             if (string.IsNullOrEmpty(adminNama))
                 return RedirectToAction("Index", "Login", new { area = "Admin" });
 
-            // MENGAMBIL REGION DINAMIS DARI DATABASE ADMIN
             var allRegionsInDb = await _context.Admins
                 .Where(a => !string.IsNullOrEmpty(a.Region) && a.Region.ToLower() != "all")
-                .Select(a => a.Region.Trim()) 
+                .Select(a => a.Region.Trim())
                 .Distinct()
                 .OrderBy(r => r)
                 .ToListAsync();
 
             ViewBag.AllRegions = allRegionsInDb;
-            var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
 
-            // Logika Filter Berdasarkan Role
-            if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            // ── Query Magang ──────────────────────────────────────────────────────
+            var magangQuery = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
+
+            if (!IsUserAuthorized())
             {
+                // Admin biasa: locked ke regionnya sendiri
                 if (!string.IsNullOrEmpty(adminRegionManaged))
                 {
-                    query = query.Where(x => x.Region == adminRegionManaged);
+                    magangQuery = magangQuery.Where(x => x.Region == adminRegionManaged);
                     ViewBag.SelectedRegion = adminRegionManaged;
                 }
             }
             else
             {
+                // SuperAdmin & Jawa Tengah: bisa filter by region
                 if (selectedRegion != "all" && !string.IsNullOrEmpty(selectedRegion))
                 {
-                    query = query.Where(x => x.Region == selectedRegion);
+                    magangQuery = magangQuery.Where(x => x.Region == selectedRegion);
                     ViewBag.SelectedRegion = selectedRegion;
                 }
                 else
                 {
-                    ViewBag.SelectedRegion = "Semua Region";
+                    // Jawa Tengah: default ke regionnya sendiri jika tidak ada param
+                    bool isJawaTengah = string.Equals(adminRegionManaged, "Regional Jawa Bagian Tengah", 
+                                                    StringComparison.OrdinalIgnoreCase);
+                    if (isJawaTengah && adminRole != "SuperAdmin")
+                    {
+                        magangQuery = magangQuery.Where(x => x.Region == adminRegionManaged);
+                        ViewBag.SelectedRegion = adminRegionManaged;
+                    }
+                    else
+                    {
+                        ViewBag.SelectedRegion = "Semua Region";
+                    }
                 }
             }
 
-            var magang = await query.OrderByDescending(m => m.CreatedAt).ToListAsync();
+            var magang = await magangQuery.OrderByDescending(m => m.CreatedAt).ToListAsync();
+
+            // ── Query Penelitian ──────────────────────────────────────────────────
+            var penelitianQuery = _context.Pendaftarans.AsNoTracking().AsQueryable();
+
+            if (!IsUserAuthorized())
+            {
+                if (!string.IsNullOrEmpty(adminRegionManaged))
+                    penelitianQuery = penelitianQuery.Where(x => x.Region == adminRegionManaged);
+            }
+            else
+            {
+                if (selectedRegion != "all" && !string.IsNullOrEmpty(selectedRegion))
+                {
+                    penelitianQuery = penelitianQuery.Where(x => x.Region == selectedRegion);
+                }
+                else
+                {
+                    bool isJawaTengah = string.Equals(adminRegionManaged, "Regional Jawa Bagian Tengah",
+                                                    StringComparison.OrdinalIgnoreCase);
+                    if (isJawaTengah && adminRole != "SuperAdmin")
+                        penelitianQuery = penelitianQuery.Where(x => x.Region == adminRegionManaged);
+                }
+            }
+
+            var penelitianRaw = await penelitianQuery.OrderByDescending(p => p.CreatedAt).ToListAsync();
+
+            // Normalisasi status: "Dalam Proses" → tampil sebagai "Menunggu"
+            foreach (var p in penelitianRaw)
+            {
+                if (p.Status == "Dalam Proses")
+                    p.Status = "Menunggu";
+            }
 
             var viewModel = new DashboardModel
             {
-                AdminName = adminNama,
-                LoginTime = DateTime.Now,
-                DaftarMagang = magang,
-                StatusDiproses = magang.Count(x => x.Status == "Menunggu" || x.Status == "Proses Review"),
-                StatusDiterima = magang.Count(x => x.Status == "Diterima"),
-                StatusDitolak = magang.Count(x => x.Status == "Ditolak"),
+                AdminName    = adminNama,
+                LoginTime    = DateTime.Now,
+
+                // Magang
+                DaftarMagang     = magang,
+                StatusDiproses   = magang.Count(x => x.Status == "Menunggu" || x.Status == "Proses Review"),
+                StatusDiterima   = magang.Count(x => x.Status == "Diterima"),
+                StatusDitolak    = magang.Count(x => x.Status == "Ditolak"),
                 TotalInternAktif = magang.Count(x => x.Status == "Diterima"),
-                StatusRevisi = magang.Count(x => x.Status == "Revisi"),
+
+                // Penelitian
+                DaftarPenelitian  = penelitianRaw,
+                PenStatusDiproses = penelitianRaw.Count(x => x.Status == "Menunggu"),
+                PenStatusDiterima = penelitianRaw.Count(x => x.Status == "Diterima"),
+                PenStatusDitolak  = penelitianRaw.Count(x => x.Status == "Ditolak"),
             };
 
-            ViewBag.AdminRole = adminRole;
-            ViewBag.RawSelectedRegion = selectedRegion; 
+            ViewBag.AdminRole         = adminRole;
+            ViewBag.RawSelectedRegion = selectedRegion;
 
             return View(viewModel);
         }
-
         private Task SimpanNotifikasiPeserta(Magang mhs, string status)
         {
             string title = "";
@@ -162,12 +224,6 @@ namespace sinta_asp.Areas.Admin.Controllers
                 title = "Pengajuan Ditolak";
                 message = $"Mohon maaf {mhs.NamaLengkap}, pengajuan magang di {mhs.Company} ({mhs.Region}) tidak dapat kami terima saat ini.";
                 type = "error";
-            }
-            else if (status == "Revisi")
-            {
-                title = "Instruksi Revisi Data";
-                message = $"Halo {mhs.NamaLengkap}, terdapat beberapa data pendaftaran yang perlu diperbaiki. Silakan cek email Anda untuk detail instruksi.";
-                type = "warning";
             }
             else
             {
@@ -196,9 +252,9 @@ namespace sinta_asp.Areas.Admin.Controllers
 
         private Task SimpanNotifikasiAdmin(Magang mhs, string status)
         {
-            string title = status == "Diterima" ? "Peserta Diterima" : 
-                          status == "Ditolak" ? "Peserta Ditolak" : 
-                          status == "Revisi" ? "Permintaan Revisi" : "Update Status";
+            string title = status == "Diterima" ? "Peserta Magang Diterima" : 
+                           status == "Ditolak" ? "Peserta Magang Ditolak" : 
+                           status == "Revisi" ? "Permintaan Revisi" : "Update Status";
             
             string message = $"{mhs.NamaLengkap} statusnya diperbarui menjadi {status} di {mhs.Region}.";
 
@@ -220,12 +276,9 @@ namespace sinta_asp.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, string status, string catatan = "")
         {
-            var rawRole = HttpContext.Session.GetString("AdminRole") ?? "";
-            var adminRole = rawRole.Trim();
-            
-            if (string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            if (!IsUserAuthorized())
             {
-                return Json(new { success = false, message = "Akses Ditolak: Akun SuperAdmin hanya memiliki hak akses Lihat Data (Read-Only)." });
+                return Json(new { success = false, message = "Akses Ditolak: Anda tidak memiliki hak akses untuk mengedit data." });
             }
 
             try
@@ -236,27 +289,12 @@ namespace sinta_asp.Areas.Admin.Controllers
 
                 data.Status = status;
 
-                if (status == "Revisi" && !string.IsNullOrEmpty(catatan))
-                {
-                    var parts = catatan.Split(" | Pesan: ", 2, StringSplitOptions.None);
-                    data.RevisiFields  = parts[0].Trim();
-                    data.CatatanRevisi = parts.Length > 1 ? parts[1].Trim() : null;
-                }
-                else if (status == "Menunggu")
-                {
-                    data.RevisiFields  = null;
-                    data.CatatanRevisi = null;
-                }
-
                 _context.PendaftaranMagang.Update(data);
 
                 await SimpanNotifikasiPeserta(data, status);
                 await SimpanNotifikasiAdmin(data, status);
                 await _context.SaveChangesAsync();
 
-                // ✅ PERBAIKAN: tangkap error email secara terpisah
-                // agar status tetap tersimpan meski email gagal,
-                // dan pesan error email bisa diketahui
                 string emailInfo = "";
                 try
                 {
@@ -266,7 +304,6 @@ namespace sinta_asp.Areas.Admin.Controllers
                 catch (Exception exEmail)
                 {
                     emailInfo = $"namun email gagal dikirim: {exEmail.Message}";
-                    Console.WriteLine($"[EMAIL ERROR] UpdateStatus id={id}: {exEmail}");
                 }
 
                 return Json(new { success = true, message = $"Status diperbarui {emailInfo}" });
@@ -277,37 +314,82 @@ namespace sinta_asp.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatusPenelitian(int id, string status, string catatan = "")
+        {
+            if (!IsUserAuthorized())
+                return Json(new { success = false, message = "Akses Ditolak." });
+
+            try
+            {
+                var data = await _context.Pendaftarans.FindAsync(id);
+                if (data == null)
+                    return Json(new { success = false, message = "Data tidak ditemukan." });
+
+                // Simpan ke DB dengan status asli yang benar
+                data.Status = status;
+                _context.Pendaftarans.Update(data);
+
+                // Notifikasi peserta
+                var notif = new Notification
+                {
+                    Nama      = data.Nama,
+                    Lokasi    = data.Region,
+                    Type      = status == "Diterima" ? "success" : status == "Ditolak" ? "error" : "info",
+                    UserEmail = data.Email,
+                    Title     = status == "Diterima" ? "Selamat! Penelitian Diterima" : "Informasi Status Penelitian",
+                    Message   = status == "Diterima"
+                        ? $"Selamat {data.Nama}! Pengajuan penelitian kamu di {data.Region} telah DITERIMA."
+                        : $"Mohon maaf {data.Nama}, pengajuan penelitian di {data.Region} tidak dapat kami terima saat ini.",
+                    Url       = "/DashboardPeserta#riwayat",
+                    CreatedAt = DateTime.Now,
+                    IsRead    = false,
+                    ExternalId = data.Id.ToString()
+                };
+                _context.Notifications.Add(notif);
+
+                // Notifikasi admin
+                var notifAdmin = new AdminNotification
+                {
+                    Title        = status == "Diterima" ? "Peserta Penelitian Diterima" : "Peserta Penelitian Ditolak",
+                    Message      = $"{data.Nama} statusnya diperbarui menjadi {status} di {data.Region}.",
+                    Type         = status,
+                    TargetRegion = data.Region,
+                    CreatedAt    = DateTime.Now,
+                    IsRead       = false,
+                    MagangId     = data.Id
+                };
+                _context.AdminNotifications.Add(notifAdmin);
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Status penelitian berhasil diperbarui." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Terjadi kesalahan: " + ex.Message });
+            }
+        }
+
         private async Task KirimEmailNotifikasi(Magang mhs, string status, string catatanRevisi = "")
         {
-            // ✅ PERBAIKAN: hanya proses status yang punya template email
             var validStatuses = new[] { "Diterima", "Ditolak", "Revisi" };
-            if (!validStatuses.Contains(status))
-            {
-                Console.WriteLine($"[EMAIL SKIP] Status '{status}' tidak memiliki template email.");
-                return;
-            }
+            if (!validStatuses.Contains(status)) return;
 
             var admin = await _context.Admins.FirstOrDefaultAsync(a => 
                 a.Region != null && mhs.Region != null &&
                 a.Region.ToLower().Trim() == mhs.Region.ToLower().Trim());
 
             string root = _env.WebRootPath;
-            
             string templateFileName = status == "Diterima" ? "EmailDiterima.html" : 
-                                     status == "Ditolak" ? "EmailDitolak.html" : "EmailRevisi.html";
-            
+                                      status == "Ditolak" ? "EmailDitolak.html" : "EmailRevisi.html";
             string rawFileName = status == "Diterima" ? "Diterima.txt" : 
                                 status == "Ditolak" ? "Ditolak.txt" : "Revisi.txt";
 
             string pathHtml = Path.Combine(root, "templates", templateFileName);
             string pathTxt = Path.Combine(root, "templates", "raw", rawFileName);
 
-            // ✅ PERBAIKAN: lempar exception agar bisa ditangkap di UpdateStatus
-            if (!System.IO.File.Exists(pathHtml))
-                throw new FileNotFoundException($"Template HTML tidak ditemukan: {pathHtml}");
-
-            if (!System.IO.File.Exists(pathTxt))
-                throw new FileNotFoundException($"Template TXT tidak ditemukan: {pathTxt}");
+            if (!System.IO.File.Exists(pathHtml) || !System.IO.File.Exists(pathTxt)) return;
 
             var culture = new CultureInfo("id-ID");
             string isiPesan = await System.IO.File.ReadAllTextAsync(pathTxt);
@@ -318,35 +400,25 @@ namespace sinta_asp.Areas.Admin.Controllers
                                .Replace("{TanggalMulai}", mhs.MulaiMagang.ToString("dd MMMM yyyy", culture))
                                .Replace("{TanggalSelesai}", mhs.SelesaiMagang.ToString("dd MMMM yyyy", culture));
 
-            if (status == "Revisi")
-            {
-                isiPesan = isiPesan.Replace("{KomentarRevisi}", catatanRevisi);
-            }
+            if (status == "Revisi") isiPesan = isiPesan.Replace("{KomentarRevisi}", catatanRevisi);
 
             string htmlBody = await System.IO.File.ReadAllTextAsync(pathHtml);
             htmlBody = htmlBody.Replace("{IsiPesan}", isiPesan)
                                .Replace("{Tahun}", DateTime.Now.Year.ToString());
 
             string subject = status == "Diterima" ? "Selamat! Seleksi Magang Diterima" : 
-                            status == "Revisi" ? "Instruksi Revisi Data Pendaftaran" : "Informasi Seleksi Magang";
+                             status == "Revisi" ? "Instruksi Revisi Data Pendaftaran" : "Informasi Seleksi Magang";
 
-            await _emailService.SendWithCourierAsync(
-                mhs.EmailPribadi, 
-                subject,
-                htmlBody,
-                "HC Pertamina - " + (admin?.Region ?? mhs.Region)
-            );
+            await _emailService.SendWithCourierAsync(mhs.EmailPribadi, subject, htmlBody, "HC Pertamina - " + (admin?.Region ?? mhs.Region));
         }
 
         [HttpGet]
         public async Task<IActionResult> ExportMahasiswa(string selectedRegion = "all")
         {
-            var adminRole = HttpContext.Session.GetString("AdminRole");
             var adminRegionManaged = HttpContext.Session.GetString("AdminRegion");
-
             var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
 
-            if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
+            if (!IsUserAuthorized())
             {
                 if (!string.IsNullOrEmpty(adminRegionManaged))
                 {
@@ -367,14 +439,7 @@ namespace sinta_asp.Areas.Admin.Controllers
             using (var workbook = new XLWorkbook())
             {
                 var worksheet = workbook.Worksheets.Add("Data Mahasiswa");
-                
-                string[] headers = { 
-                    "ID", "Tgl Daftar", "NIM", "Nama Lengkap", "Email", "No HP", 
-                    "Instagram", "Tempat Lahir", "Tgl Lahir", "Universitas", 
-                    "Fakultas", "Jurusan", "Company", "Region", "Lokasi Unit", 
-                    "Rekomendasi", "Mulai", "Selesai", "Status", 
-                    "Link CV", "Link Surat", "Link Proposal", "Link Foto"
-                };
+                string[] headers = { "ID", "Tgl Daftar", "NIM", "Nama Lengkap", "Email", "No HP", "Instagram", "Tempat Lahir", "Tgl Lahir", "Universitas", "Fakultas", "Jurusan", "Company", "Region", "Lokasi Unit", "Rekomendasi", "Mulai", "Selesai", "Status", "Link CV", "Link Surat", "Link Proposal", "Link Foto" };
 
                 for (int i = 0; i < headers.Length; i++)
                 {
@@ -412,42 +477,26 @@ namespace sinta_asp.Areas.Admin.Controllers
                     AddHyperlink(worksheet.Cell(row, 21), item.FileSuratPengantar, "surat", baseUrl);
                     AddHyperlink(worksheet.Cell(row, 22), item.FileProposal, "proposal", baseUrl);
                     AddHyperlink(worksheet.Cell(row, 23), item.FotoProfil, "foto", baseUrl);
-
                     row++;
                 }
-
                 worksheet.Columns().AdjustToContents();
-                
                 var stream = new MemoryStream();
                 workbook.SaveAs(stream);
                 stream.Position = 0;
-
-                var regionLabel = (selectedRegion == "all" || string.IsNullOrEmpty(selectedRegion)) 
-                                  ? "Semua_Region" : selectedRegion;
-
-                if (!string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase))
-                {
-                    regionLabel = adminRegionManaged ?? "Region";
-                }
-
+                var regionLabel = (selectedRegion == "all" || string.IsNullOrEmpty(selectedRegion)) ? "Semua_Region" : selectedRegion;
+                if (!IsUserAuthorized()) regionLabel = adminRegionManaged ?? "Region";
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Rekap_Magang_{regionLabel}_{DateTime.Now:yyyyMMdd}.xlsx");
             }
         }
 
         private void AddHyperlink(IXLCell cell, string? fileName, string folder, string baseUrl)
         {
-            if (string.IsNullOrEmpty(fileName))
-            {
-                cell.Value = "-";
-            }
+            if (string.IsNullOrEmpty(fileName)) cell.Value = "-";
             else
             {
-                var cleanFileName = Path.GetFileName(fileName);
-                var fullPath = $"{baseUrl}/uploads/{folder}/{cleanFileName}";
-                
+                var fullPath = $"{baseUrl}/uploads/{folder}/{Path.GetFileName(fileName)}";
                 cell.Value = "Lihat Dokumen";
                 cell.GetHyperlink().ExternalAddress = new Uri(fullPath);
-                
                 cell.Style.Font.FontColor = XLColor.Blue;
                 cell.Style.Font.Underline = XLFontUnderlineValues.Single;
             }

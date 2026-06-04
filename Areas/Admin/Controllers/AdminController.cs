@@ -31,14 +31,21 @@ namespace sinta_asp.Areas.Admin.Controllers
             _passwordHasher = new PasswordHasher<AdminModel>();
         }
 
-        private bool IsSuperAdmin()
+        // ✅ DIUBAH: Jawa Tengah juga punya akses seperti SuperAdmin
+        private bool IsUserAuthorized()
         {
-            return HttpContext.Session.GetString("AdminRole") == "SuperAdmin";
+            var adminRole   = HttpContext.Session.GetString("AdminRole")?.Trim();
+            var adminRegion = HttpContext.Session.GetString("AdminRegion")?.Trim();
+
+            bool isSuperAdmin = string.Equals(adminRole, "SuperAdmin", StringComparison.OrdinalIgnoreCase);
+            bool isJawaTengah = string.Equals(adminRegion, "Regional Jawa Bagian Tengah", StringComparison.OrdinalIgnoreCase);
+
+            return isSuperAdmin || isJawaTengah;
         }
 
         public async Task<IActionResult> Index()
         {
-            if (!IsSuperAdmin()) return RedirectToAction("Index", "Dashboard");
+            if (!IsUserAuthorized()) return RedirectToAction("Index", "Dashboard");
             var listAdmin = await _context.Admins.OrderBy(a => a.Role).ToListAsync();
             return View(listAdmin);
         }
@@ -51,7 +58,7 @@ namespace sinta_asp.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(AdminModel model, string NewPassword, string Region)
         {
-            if (!IsSuperAdmin()) return Json(new { success = false, message = "Akses ditolak" });
+            if (!IsUserAuthorized()) return Json(new { success = false, message = "Akses ditolak" });
 
             if (string.IsNullOrEmpty(NewPassword))
                 return Json(new { success = false, message = "Password wajib diisi" });
@@ -75,7 +82,6 @@ namespace sinta_asp.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Email sudah terdaftar dan sudah aktif." });
             }
 
-            // FIX: Gunakan CreateExecutionStrategy agar kompatibel dengan EnableRetryOnFailure
             var strategy = _context.Database.CreateExecutionStrategy();
 
             return await strategy.ExecuteAsync(async () =>
@@ -109,7 +115,7 @@ namespace sinta_asp.Areas.Admin.Controllers
                     await transaction.CommitAsync();
 
                     string successMsg = model.IsActive
-                        ? "Akun SuperAdmin berhasil dibuat dan langsung aktif tanpa aktivasi email."
+                        ? "Akun berhasil dibuat dan langsung aktif."
                         : "Akun berhasil dibuat. Instruksi aktivasi telah dikirim ke " + model.Email;
 
                     return Json(new { success = true, message = successMsg });
@@ -170,7 +176,7 @@ namespace sinta_asp.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(AdminModel model, string NewPassword, string Region)
         {
-            if (!IsSuperAdmin()) return Json(new { success = false });
+            if (!IsUserAuthorized()) return Json(new { success = false });
 
             var admin = await _context.Admins.FindAsync(model.Id);
             if (admin == null) return Json(new { success = false, message = "Data tidak ditemukan" });
@@ -199,7 +205,7 @@ namespace sinta_asp.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            if (!IsSuperAdmin()) return Json(new { success = false });
+            if (!IsUserAuthorized()) return Json(new { success = false });
 
             var admin = await _context.Admins.FindAsync(id);
             if (admin == null) return Json(new { success = false, message = "Data tidak ditemukan" });

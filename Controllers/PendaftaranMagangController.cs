@@ -159,7 +159,7 @@ namespace sinta_asp.Controllers
                 await _context.SaveChangesAsync(); 
 
                 // Nomor pendaftaran resmi
-                model.NoPendaftaran = $"PEN/{DateTime.Now:yyyy}/{DateTime.Now:MM}/{model.Id:D4}";
+                model.NoPendaftaran = $"MAG/{DateTime.Now:yyyy}/{DateTime.Now:MM}/{model.Id:D4}";
 
                 // Simpan Notifikasi
                 _context.Notifications.Add(new Notification
@@ -211,7 +211,7 @@ namespace sinta_asp.Controllers
                     string pesanUser = $@"
                         <div style='font-family: sans-serif; line-height: 1.6; color: #333;'>
                             <p>Yth. Sdr/i <b>{model.NamaLengkap}</b>,</p>
-                            <p>Pendaftaran penelitian Anda telah masuk dalam sistem dengan nomor pendaftaran:</p>
+                            <p>Pendaftaran Magang Anda telah masuk dalam sistem dengan nomor pendaftaran:</p>
                             <p style='font-size: 18px; color: #003399;'><b>{model.NoPendaftaran}</b></p>
                             <p>Silakan tunggu email tanggapan dari kami.</p>
                             <p>Salam hormat,<br/><b>Human Capital</b></p>

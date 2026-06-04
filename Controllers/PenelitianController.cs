@@ -381,7 +381,7 @@ namespace sinta_asp.Controllers
                 MailMessage mail = new MailMessage();
                 mail.From = new MailAddress(emailPengirim, "Sistem Internship Pertamina");
                 mail.To.Add(emailTujuan);
-                mail.Subject = "Pendaftaran Magang Berhasil - ";
+                mail.Subject = "Pendaftaran Penelitian Berhasil - ";
                 
                 string bodyEmail = $@"
                     <p>Yth. Sdr/i <b>{nama}</b>,</p>

@@ -5,7 +5,11 @@
     var adminNama = HttpContextAccessor.HttpContext?.Session.GetString("AdminNama") ?? "Admin";
     var adminEmail = HttpContextAccessor.HttpContext?.Session.GetString("AdminEmail");
     var adminRole = HttpContextAccessor.HttpContext?.Session.GetString("AdminRole");
+    var adminRegion = HttpContextAccessor.HttpContext?.Session.GetString("AdminRegion");
     var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminNama)}&background=00549B&color=fff";
+    
+    // ✅ Cek akses untuk menu Manajemen Admin (SuperAdmin ATAU Jawa Tengah)
+    bool canAccessAdminMenu = (adminRole == "SuperAdmin") || (adminRegion == "Regional Jawa Bagian Tengah");
 }
 
 <!DOCTYPE html>
@@ -211,7 +215,8 @@
             </a>
         </li>
         
-        @if (adminRole == "SuperAdmin")
+        <!-- ✅ DIUBAH: Menu Manajemen Admin bisa diakses SuperAdmin ATAU Admin Jawa Tengah -->
+        @if (canAccessAdminMenu)
         {
             <li><a class="nav-link-custom @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admins" ? "active" : "")" asp-area="Admin" asp-controller="Admins" asp-action="Index"><i class="fa-solid fa-user-gear mr-2"></i> Manajemen Admin</a></li>
         }

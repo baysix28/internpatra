@@ -1,45 +1,48 @@
-﻿@using System.Text.Json
-@using Microsoft.AspNetCore.Http
-@using sinta_asp.Models
+﻿@using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
+@using System.Text.Json
 @{
     Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Manajemen Mahasiswa Magang";
+    ViewData["Title"] = "Manajemen Mahasiswa & Penelitian";
 
-    // Cek Role & Region dari Session
-    var adminRole = HttpContextAccessor.HttpContext.Session.GetString("AdminRole");
-    var adminRegionManaged = HttpContextAccessor.HttpContext.Session.GetString("AdminRegion");
-    
-    // Memisahkan nilai mentah untuk logic dan label untuk tampilan
-    var rawSelectedRegion = ViewBag.RawSelectedRegion as string ?? "all"; 
-    var displayRegion = ViewBag.SelectedRegion as string ?? "Semua Region";
-    
-    // Casting Model ke tipe Magang yang sesuai
-    var daftarMagang = Model.DaftarMagang as IEnumerable<Magang> ?? new List<Magang>();
-    var totalPendaftar = daftarMagang.Count();
+    var adminRole           = HttpContextAccessor.HttpContext.Session.GetString("AdminRole");
+    var adminRegionManaged  = HttpContextAccessor.HttpContext.Session.GetString("AdminRegion");
+    bool canChangeRegionMhs = adminRole == "SuperAdmin" || 
+                            string.Equals(adminRegionManaged, "Regional Jawa Bagian Tengah", StringComparison.OrdinalIgnoreCase);
 
-    // Daftar Region Tetap
-    var staticRegions = new List<string> 
-    { 
-        "Refinery Unit VI Balongan", 
-        "Regional Jatimalinus", 
-        "Regional Jawa Bagian Barat", 
-        "Regional Jawa Bagian Tengah", 
-        "Regional Kalimantan", 
-        "Regional Maluku Papua", 
-        "Regional Sumbagut" 
+    var rawSelectedRegion = ViewBag.RawSelectedRegion as string ?? "all";
+    var displayRegion     = ViewBag.SelectedRegion    as string ?? "Semua Region";
+
+    var daftarMagang     = Model.DaftarMagang     as IEnumerable<Magang>     ?? new List<Magang>();
+    var daftarPenelitian = Model.DaftarPenelitian as IEnumerable<Pendaftaran> ?? new List<Pendaftaran>();
+
+    var totalMagang     = daftarMagang.Count();
+    var totalPenelitian = daftarPenelitian.Count();
+
+    var staticRegions = new List<string>
+    {
+        "Refinery Unit VI Balongan",
+        "Regional Jatimalinus",
+        "Regional Jawa Bagian Barat",
+        "Regional Jawa Bagian Tengah",
+        "Regional Kalimantan",
+        "Regional Maluku Papua",
+        "Regional Sumbagut"
     };
 }
-
-<!-- External Resources -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
 <style>
-    :root { 
-        --p-blue: #00549B; --p-red: #EC1C24; --p-green: #10b981; --p-orange: #f59e0b; --p-bg: #F8FAFC;
+    :root {
+        --p-blue:   #00549B;
+        --p-red:    #EC1C24;
+        --p-green:  #10b981;
+        --p-orange: #f59e0b;
+        --p-purple: #7C3AED;
+        --p-bg:     #F8FAFC;
         --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -47,63 +50,84 @@
     .dashboard-wrapper { padding: 1.2rem 1.8rem; margin-top: -20px; }
     .title-bold { font-weight: 800; color: var(--p-blue); letter-spacing: -0.8px; font-size: 1.5rem; }
 
-    /* --- Stat Cards --- */
+    /* ── Tab Switcher ── */
+    .tab-switcher {
+        display: inline-flex; background: #f1f5f9; border-radius: 16px;
+        padding: 5px; gap: 4px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0;
+    }
+    .tab-switcher .tab-btn {
+        border: none; background: none; padding: 9px 22px; font-size: 0.78rem; font-weight: 700;
+        color: #64748b; border-radius: 12px; cursor: pointer; transition: var(--transition);
+        display: flex; align-items: center; gap: 7px; white-space: nowrap;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .tab-switcher .tab-btn.active        { background: white; color: var(--p-blue);   box-shadow: 0 2px 8px rgba(0,84,155,0.12); }
+    .tab-switcher .tab-btn.pen.active    { background: white; color: var(--p-purple); box-shadow: 0 2px 8px rgba(124,58,237,0.12); }
+    .tab-switcher .tab-btn:not(.active):hover { background: #e8edf5; color: #334155; }
+    .tab-count { background: #e2e8f0; color: #475569; border-radius: 20px; padding: 2px 9px; font-size: 0.65rem; font-weight: 800; transition: var(--transition); }
+    .tab-btn.active     .tab-count { background: var(--p-blue);   color: white; }
+    .tab-btn.pen.active .tab-count { background: var(--p-purple); color: white; }
+
+    /* ── Tab Pane ── */
+    .tab-pane        { display: none; }
+    .tab-pane.active { display: block; animation: tabFadeIn 0.32s cubic-bezier(0.4,0,0.2,1) both; }
+    @@keyframes tabFadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    /* ── Stat Cards ── */
     .stat-card {
         background: #fff; border-radius: 12px; padding: 0.85rem 1rem; border: 1px solid #e2e8f0;
         transition: var(--transition); cursor: pointer; display: flex; align-items: center; height: 100%;
     }
     .stat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    .stat-card.active[data-status="all"] { border: 2px solid var(--p-blue); background: #f0f7ff; }
+    .stat-card.active[data-status="all"]      { border: 2px solid var(--p-blue);   background: #f0f7ff; }
     .stat-card.active[data-status="Menunggu"] { border: 2px solid var(--p-orange); background: #fffbeb; }
-    .stat-card.active[data-status="Diterima"] { border: 2px solid var(--p-green); background: #ecfdf5; }
-    .stat-card.active[data-status="Ditolak"] { border: 2px solid var(--p-red); background: #fef2f2; }
-    .stat-card.active[data-status="Revisi"] { border: 2px solid #6366f1; background: #f5f3ff; }
+    .stat-card.active[data-status="Diterima"] { border: 2px solid var(--p-green);  background: #ecfdf5; }
+    .stat-card.active[data-status="Ditolak"]  { border: 2px solid var(--p-red);    background: #fef2f2; }
 
-    .icon-box {
-        width: 40px; height: 40px; border-radius: 10px;
-        display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1.1rem;
-    }
-    .bg-light-blue { background: rgba(0, 84, 155, 0.1); color: var(--p-blue); }
-    .bg-light-orange { background: rgba(245, 158, 11, 0.1); color: var(--p-orange); }
-    .bg-light-green { background: rgba(16, 185, 129, 0.1); color: var(--p-green); }
-    .bg-light-red { background: rgba(236, 28, 36, 0.1); color: var(--p-red); }
+    .icon-box { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 1.1rem; }
+    .bg-light-blue   { background: rgba(0,84,155,0.1);   color: var(--p-blue);   }
+    .bg-light-orange { background: rgba(245,158,11,0.1); color: var(--p-orange); }
+    .bg-light-green  { background: rgba(16,185,129,0.1); color: var(--p-green);  }
+    .bg-light-red    { background: rgba(236,28,36,0.1);  color: var(--p-red);    }
+    .bg-light-purple { background: rgba(124,58,237,0.1); color: var(--p-purple); }
 
     .stat-label { color: #64748b; font-size: 0.7rem; font-weight: 700; }
     .stat-value { font-weight: 800; font-size: 1.15rem; color: #1e293b; }
 
-    /* --- Table --- */
+    /* ── Table Card ── */
     .main-table-card { background: #fff; border-radius: 12px; border: 1px solid #E2E8F0; position: static !important; }
-    .filter-toolbar { display: flex; align-items: center; justify-content: space-between; width: 100%; position: static !important; }
+    .filter-toolbar  { display: flex; align-items: center; justify-content: space-between; width: 100%; }
 
     .table thead th { background: #f8fafc; font-weight: 700; color: #64748b; font-size: 0.7rem; padding: 12px 15px; text-transform: uppercase; border: none; }
     .badge-status { padding: 5px 12px; border-radius: 50px; font-weight: 700; font-size: 0.65rem; text-transform: uppercase; }
     .status-Diterima { background: #dcfce7; color: #065f46; }
-    .status-Ditolak { background: #fee2e2; color: #991b1b; }
+    .status-Ditolak  { background: #fee2e2; color: #991b1b; }
     .status-Menunggu { background: #fef3c7; color: #92400e; }
-    .status-Revisi { background: #e0e7ff; color: #3730a3; }
 
     .btn-review {
-        background: var(--p-blue); color: #fff; border: none;
-        padding: 6px 20px; border-radius: 8px; font-weight: 700; font-size: 0.75rem;
-        transition: var(--transition); display: inline-flex; align-items: center; justify-content: center;
+        border: none; padding: 6px 20px; border-radius: 8px; font-weight: 700; font-size: 0.75rem;
+        transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; color: #fff;
     }
-    .btn-review:hover { background: #003d70; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0, 84, 155, 0.2); color: #fff; }
+    .btn-review.mag { background: var(--p-blue); }
+    .btn-review.mag:hover { background: #003d70; transform: translateY(-1px); color: #fff; }
+    .btn-review.pen { background: var(--p-purple); }
+    .btn-review.pen:hover { background: #5B21B6; transform: translateY(-1px); color: #fff; }
 
-    #tableSearch {
+    #tableSearch, #penTableSearch {
         border-radius: 10px; border: 1.5px solid #e2e8f0; padding: 9px 15px;
         transition: var(--transition); background-color: #fff; font-weight: 600; font-size: 0.85rem; color: #475569; outline: none;
+        width: 380px;
     }
 
-    /* --- Dropdown Region --- */
     .btn-region-select {
         min-width: 220px; text-align: left; padding: 8px 12px; font-weight: 700; font-size: 0.8rem;
         color: var(--p-blue); border: 1.5px solid #e2e8f0; border-radius: 10px; background-color: white;
         display: flex; justify-content: space-between; align-items: center; transition: var(--transition);
     }
-    .dropdown-menu-premium { 
-        border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 10px; padding: 5px; 
-        min-width: 220px; max-height: 350px; overflow-y: auto; 
-    }
+    .dropdown-menu-premium { border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 10px; padding: 5px; min-width: 220px; max-height: 350px; overflow-y: auto; }
     .dropdown-item-premium { font-weight: 600; padding: 8px 12px; color: #475569; border-radius: 6px; transition: 0.2s; font-size: 0.8rem; }
     .dropdown-item-premium:hover { background: #f1f5f9; color: var(--p-blue); }
     .dropdown-item-premium.active { background: var(--p-blue); color: white; }
@@ -111,65 +135,48 @@
     .btn-pertamina { background: var(--p-blue); color: white; border: none; font-weight: 700; border-radius: 6px; padding: 8px 16px; font-size: 0.8rem; transition: var(--transition); }
     .user-avatar-list { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
 
-    /* --- Modal --- */
-    .modal-content { border-radius: 28px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; }
-    .modal-header-premium { background: linear-gradient(135deg, #00549B 0%, #003d70 100%); padding: 1.5rem 2rem; color: white; position: relative; }
+    #pen-card-all.active {
+        border: 2px solid var(--p-purple) !important;
+        background: rgba(124,58,237,0.08) !important;
+    }
+    /* ── Modal Magang ── */
+    .modal-content { border-radius: 28px; border: none; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); position: relative; }
+    .modal-header-magang    { background: linear-gradient(135deg, #00549B 0%, #003d70 100%);  padding: 1.5rem 2rem; color: white; }
+    .modal-header-penelitian { background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%); padding: 1.5rem 2rem; color: white; }
+
     .header-flex-container { display: flex; align-items: center; gap: 20px; }
     .profile-circle-frame { width: 90px; height: 90px; border-radius: 50% !important; object-fit: cover; border: 4px solid rgba(255,255,255,0.2); background: white; flex-shrink: 0; }
     .header-text-info h2 { font-weight: 800; font-size: 1.5rem; margin: 0; letter-spacing: -0.5px; line-height: 1.2; }
     .status-pill-modal { display: inline-block; width: fit-content; padding: 2px 12px; border-radius: 50px; font-size: 0.6rem; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; }
 
-    .btn-action-standard {
-        padding: 8px 24px; min-width: 130px; font-size: 0.8rem; font-weight: 700; border-radius: 10px; border: none; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn-accept-modern { background: var(--p-blue); color: white; box-shadow: 0 4px 10px rgba(0, 84, 155, 0.15); }
+    .btn-action-standard { padding: 8px 24px; min-width: 130px; font-size: 0.8rem; font-weight: 700; border-radius: 10px; border: none; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-accept-modern { background: var(--p-blue);   color: white; box-shadow: 0 4px 10px rgba(0,84,155,0.15); }
     .btn-accept-modern:hover { background: #003d70; transform: translateY(-1px); color: white; }
-    .btn-reject-modern { background: var(--p-red); color: white; box-shadow: 0 4px 10px rgba(236, 28, 36, 0.15); }
+    .btn-accept-pen    { background: var(--p-purple); color: white; box-shadow: 0 4px 10px rgba(124,58,237,0.15); }
+    .btn-accept-pen:hover { background: #5B21B6; transform: translateY(-1px); color: white; }
+    .btn-reject-modern { background: var(--p-red); color: white; box-shadow: 0 4px 10px rgba(236,28,36,0.15); }
     .btn-reject-modern:hover { background: #c1121a; transform: translateY(-1px); color: white; }
-    .btn-revision-modern { background: var(--p-orange); color: white; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.15); }
-    .btn-revision-modern:hover { background: #d97706; transform: translateY(-1px); color: white; }
 
     .detail-body { padding: 30px 40px 110px 40px; background: #fff; position: relative; }
     .info-card-premium { background: #f8fafc; border-radius: 16px; padding: 18px; height: 100%; border: 1px solid #eef2f6; }
-    
     .info-label { color: #94a3b8; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; }
-    .info-value { color: #000000 !important; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4; }
-    
-    .highlight-noreg { color: var(--p-orange) !important; font-weight: 800; font-size: 1.1rem; }
-    .highlight-email { color: var(--p-blue) !important; text-decoration: underline; }
-    .highlight-wa { color: var(--p-green) !important; }
-    .highlight-lokasi { color: var(--p-red) !important; font-size: 1rem; }
+    .info-value { color: #000 !important; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4; }
+    .highlight-noreg  { color: var(--p-orange)  !important; font-weight: 800; font-size: 1.1rem; }
+    .highlight-email  { color: var(--p-blue)    !important; text-decoration: underline; }
+    .highlight-wa     { color: var(--p-green)   !important; }
+    .highlight-lokasi { color: var(--p-red)     !important; font-size: 1rem; }
+    .highlight-judul  { color: var(--p-purple)  !important; font-size: 0.9rem; font-weight: 700; line-height: 1.4; }
 
-    .doc-link { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; border-radius: 10px; text-decoration: none !important; color: #000000; font-weight: 700; border: 1px solid #e2e8f0; margin-bottom: 8px; font-size: 0.85rem; transition: 0.2s; }
+    .doc-link { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fff; border-radius: 10px; text-decoration: none !important; color: #000; font-weight: 700; border: 1px solid #e2e8f0; margin-bottom: 8px; font-size: 0.85rem; transition: 0.2s; }
     .doc-link:hover { border-color: var(--p-blue); background: #f0f7ff; }
 
     .rekomendasi-box { background: transparent; border: none; padding: 0; }
-    .text-rekomendasi { color: #000000 !important; font-weight: 700; font-size: 0.9rem; line-height: 1.5; }
-
-    /* --- Revision Panel --- */
-    .revision-panel {
-        display: none; background: #fff9f0; border: 2px dashed #f59e0b;
-        border-radius: 16px; padding: 20px; margin-top: 25px; animation: slideInUp 0.4s ease;
-    }
-    .revision-item {
-        display: flex; align-items: center; gap: 10px; padding: 8px 12px;
-        background: white; border: 1px solid #fee2e2; border-radius: 8px;
-        margin-bottom: 8px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; font-weight: 600;
-    }
-    .revision-item:hover { border-color: var(--p-orange); background: #fffaf5; }
-    .revision-item input { width: 18px; height: 18px; }
-
-    /* --- Action Buttons --- */
+    .text-rekomendasi { color: #000 !important; font-weight: 700; font-size: 0.9rem; line-height: 1.5; }
     .action-wrapper-minimal { position: absolute; bottom: 30px; right: 40px; display: flex; gap: 10px; z-index: 10; }
 
-    .magang-row.unread {
+    .magang-row.unread, .penelitian-row.unread {
         background-color: rgba(0, 84, 155, 0.04) !important;
         border-left: 4px solid var(--p-blue);
-    }
-
-    @@keyframes slideInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
     }
 </style>
 
@@ -177,159 +184,229 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="title-bold mb-0">Manajemen Mahasiswa</h3>
-            <p class="text-muted small mb-0">Portal Kendali <span class="fw-bold text-danger">Internship Pertamina</span> 
-            @if(adminRole != "SuperAdmin") 
-            { 
-                <span class="ms-1 fw-bold" style="color: var(--p-red);">@adminRegionManaged</span> 
+            <p class="text-muted small mb-0">Portal Kendali <span class="fw-bold text-danger">Internship & Penelitian Pertamina</span>
+            @if (adminRole != "SuperAdmin")
+            {
+                <span class="ms-1 fw-bold" style="color:var(--p-red);">@adminRegionManaged</span>
             }</p>
         </div>
-        <button class="btn btn-pertamina shadow-sm" style="background: var(--p-green);" onclick="exportExcel()">
+        <button class="btn btn-pertamina shadow-sm" style="background:var(--p-blue);" onclick="exportExcel()">
             <i class="fas fa-file-excel me-1"></i> Export Excel
         </button>
     </div>
 
-    <!-- Stat Cards -->
-    <div class="row g-3 mb-4">
-        <!-- Total Pendaftar -->
-        <div class="col-md">
-            <div class="stat-card active" data-status="all" id="card-all" onclick="filterByStatus('all', 'card-all')">
-                <div class="icon-box bg-light-blue"><i class="fas fa-user-group"></i></div>
-                <div>
-                    <div class="stat-label">Total</div>
-                    <div class="stat-value" id="val-all">@totalPendaftar</div>
+    <div class="tab-switcher">
+        <button class="tab-btn active" id="tabBtnMagang" onclick="switchTab('magang', this)">
+            <i class="fas fa-user-graduate"></i>
+            Program Magang
+            <span class="tab-count">@totalMagang</span>
+        </button>
+        <button class="tab-btn pen" id="tabBtnPenelitian" onclick="switchTab('penelitian', this)">
+            <i class="fas fa-flask"></i>
+            Program Penelitian
+            <span class="tab-count">@totalPenelitian</span>
+        </button>
+    </div>
+
+    <div id="tab-magang" class="tab-pane active">
+        <div class="row g-3 mb-4">
+            <div class="col-md">
+                <div class="stat-card active" data-status="all" id="mag-card-all" onclick="filterByStatus('magang','all','mag-card-all')">
+                    <div class="icon-box bg-light-blue"><i class="fas fa-user-group"></i></div>
+                    <div><div class="stat-label">Total</div><div class="stat-value" id="mag-val-all">@totalMagang</div></div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="stat-card" data-status="Menunggu" id="mag-card-proses" onclick="filterByStatus('magang','Menunggu','mag-card-proses')">
+                    <div class="icon-box bg-light-orange"><i class="fas fa-hourglass-half"></i></div>
+                    <div><div class="stat-label">Menunggu</div><div class="stat-value" id="mag-val-proses">@Model.StatusDiproses</div></div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="stat-card" data-status="Diterima" id="mag-card-terima" onclick="filterByStatus('magang','Diterima','mag-card-terima')">
+                    <div class="icon-box bg-light-green"><i class="fas fa-check-double"></i></div>
+                    <div><div class="stat-label">Diterima</div><div class="stat-value" id="mag-val-terima">@Model.StatusDiterima</div></div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="stat-card" data-status="Ditolak" id="mag-card-tolak" onclick="filterByStatus('magang','Ditolak','mag-card-tolak')">
+                    <div class="icon-box bg-light-red"><i class="fas fa-user-xmark"></i></div>
+                    <div><div class="stat-label">Ditolak</div><div class="stat-value" id="mag-val-tolak">@Model.StatusDitolak</div></div>
                 </div>
             </div>
         </div>
-        <!-- Menunggu -->
-        <div class="col-md">
-            <div class="stat-card" data-status="Menunggu" id="card-proses" onclick="filterByStatus('Menunggu', 'card-proses')">
-                <div class="icon-box bg-light-orange"><i class="fas fa-hourglass-half"></i></div>
-                <div>
-                    <div class="stat-label">Menunggu</div>
-                    <div class="stat-value" id="val-proses">@Model.StatusDiproses</div>
+
+        <div class="main-table-card">
+            <div class="p-3 border-bottom bg-white">
+                <div class="filter-toolbar">
+                    <input type="text" id="tableSearch" class="form-control" placeholder="Cari nama, NIM, atau kampus...">
+                    @if (canChangeRegionMhs)
+                    {
+                        <div class="dropdown">
+                            <button class="btn-region-select dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                                <span><i class="fas fa-map-marker-alt me-2"></i> @displayRegion</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-premium shadow-lg">
+                                <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion=="all"?"active":"")" href="javascript:void(0)" onclick="changeRegion('all')">Semua Region</a></li>
+                                @foreach (var region in staticRegions)
+                                {
+                                    <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion==region?"active":"")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
+                                }
+                                @if (ViewBag.AllRegions != null)
+                                {
+                                    foreach (var region in (IEnumerable<string>)ViewBag.AllRegions)
+                                    {
+                                        if (!staticRegions.Contains(region))
+                                        {
+                                            <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion==region?"active":"")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
+                                        }
+                                    }
+                                }
+                            </ul>
+                        </div>
+                    }
                 </div>
             </div>
-        </div>
-        <!-- Diterima -->
-        <div class="col-md">
-            <div class="stat-card" data-status="Diterima" id="card-terima" onclick="filterByStatus('Diterima', 'card-terima')">
-                <div class="icon-box bg-light-green"><i class="fas fa-check-double"></i></div>
-                <div>
-                    <div class="stat-label">Diterima</div>
-                    <div class="stat-value" id="val-terima">@Model.StatusDiterima</div>
-                </div>
-            </div>
-        </div>
-        <!-- Ditolak -->
-        <div class="col-md">
-            <div class="stat-card" data-status="Ditolak" id="card-tolak" onclick="filterByStatus('Ditolak', 'card-tolak')">
-                <div class="icon-box bg-light-red"><i class="fas fa-user-xmark"></i></div>
-                <div>
-                    <div class="stat-label">Ditolak</div>
-                    <div class="stat-value" id="val-tolak">@Model.StatusDitolak</div>
-                </div>
-            </div>
-        </div>
-        <!-- Revisi (Tambahan Baru) -->
-        <div class="col-md">
-            <div class="stat-card" data-status="Revisi" id="card-revisi" onclick="filterByStatus('Revisi', 'card-revisi')">
-                <div class="icon-box" style="background-color: #fff3cd; color: #856404;"><i class="fas fa-edit"></i></div>
-                <div>
-                    <div class="stat-label">Revisi</div>
-                    <div class="stat-value" id="val-revisi">@Model.StatusRevisi</div>
-                </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-hover" id="magangTable">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Mahasiswa</th>
+                            <th>Institusi</th>
+                            <th>Penempatan & Lokasi</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in daftarMagang)
+                        {
+                            <tr class="magang-row @(m.Status=="Menunggu"?"unread":"")" data-status="@m.Status" data-region="@m.Region" id="mag-row-@m.Id">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        @{ var cleanFoto = m.FotoProfil?.Split('/').Last(); var fotoPath = string.IsNullOrEmpty(cleanFoto) ? "/img/default-user.png" : "/uploads/foto/" + cleanFoto; }
+                                        <img src="@fotoPath" class="user-avatar-list me-3 shadow-sm">
+                                        <div>
+                                            <div class="fw-700 text-dark">@m.NamaLengkap</div>
+                                            <div class="text-muted small">@m.NIM</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><div class="fw-600">@m.NamaPerguruanTinggi</div><div class="text-muted small">@m.Jurusan</div></td>
+                                <td>
+                                    <div class="text-primary fw-700">@m.Company</div>
+                                    <div class="text-muted small">@m.Region | <span class="fw-bold text-danger">@m.Lokasi</span></div>
+                                </td>
+                                <td class="text-center"><span class="badge-status status-@m.Status">@m.Status</span></td>
+                                <td class="text-center">
+                                    <button class="btn-review mag" onclick='showDetailMagang(@Html.Raw(JsonSerializer.Serialize(m)))'>Review</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="main-table-card">
-        <div class="p-3 border-bottom bg-white">
-            <div class="filter-toolbar">
-                <div style="width: 380px;">
-                    <input type="text" id="tableSearch" class="form-control" placeholder="Cari nama, NIM, atau kampus...">
+    <div id="tab-penelitian" class="tab-pane">
+        <div class="row g-3 mb-4">
+            <div class="col-md">
+                <div class="stat-card active" data-status="all" id="pen-card-all" onclick="filterByStatus('penelitian','all','pen-card-all')">
+                    <div class="icon-box bg-light-purple"><i class="fas fa-flask"></i></div>
+                    <div><div class="stat-label">Total</div><div class="stat-value" id="pen-val-all">@totalPenelitian</div></div>
                 </div>
-                
-                @if (adminRole == "SuperAdmin")
-                {
-                    <div class="dropdown">
-                        <button class="btn-region-select dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
-                            <span><i class="fas fa-map-marker-alt me-2"></i> @displayRegion</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-premium shadow-lg">
-                            <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == "all" ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('all')">Semua Region</a></li>
-                            @foreach (var region in staticRegions)
-                            {
-                                <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == region ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
-                            }
-                            @if (ViewBag.AllRegions != null)
-                            {
-                                foreach (var region in (IEnumerable<string>)ViewBag.AllRegions)
-                                {
-                                    if (!staticRegions.Contains(region))
-                                    {
-                                        <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion == region ? "active" : "")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
-                                    }
-                                }
-                            }
-                        </ul>
-                    </div>
-                }
+            </div>
+            <div class="col-md">
+                <div class="stat-card" data-status="Menunggu" id="pen-card-proses" onclick="filterByStatus('penelitian','Menunggu','pen-card-proses')">
+                    <div class="icon-box bg-light-orange"><i class="fas fa-hourglass-half"></i></div>
+                    <div><div class="stat-label">Menunggu</div><div class="stat-value" id="pen-val-proses">@Model.PenStatusDiproses</div></div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="stat-card" data-status="Diterima" id="pen-card-terima" onclick="filterByStatus('penelitian','Diterima','pen-card-terima')">
+                    <div class="icon-box bg-light-green"><i class="fas fa-check-double"></i></div>
+                    <div><div class="stat-label">Diterima</div><div class="stat-value" id="pen-val-terima">@Model.PenStatusDiterima</div></div>
+                </div>
+            </div>
+            <div class="col-md">
+                <div class="stat-card" data-status="Ditolak" id="pen-card-tolak" onclick="filterByStatus('penelitian','Ditolak','pen-card-tolak')">
+                    <div class="icon-box bg-light-red"><i class="fas fa-user-xmark"></i></div>
+                    <div><div class="stat-label">Ditolak</div><div class="stat-value" id="pen-val-tolak">@Model.PenStatusDitolak</div></div>
+                </div>
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table class="table align-middle mb-0 table-hover" id="magangTable">
-                <thead>
-                    <tr>
-                        <th class="ps-4">Mahasiswa</th>
-                        <th>Institusi</th>
-                        <th>Penempatan & Lokasi</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var m in daftarMagang) {
-                        <tr class="magang-row @(m.Status == "Menunggu" ? "unread" : "")" data-status="@m.Status" data-region="@m.Region" id="row-@m.Id">
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    @{
-                                        var cleanFoto = m.FotoProfil?.Split('/').Last();
-                                        var fotoPath = string.IsNullOrEmpty(cleanFoto) ? "/img/default-user.png" : "/uploads/foto/" + cleanFoto;
-                                    }
-                                    <img src="@fotoPath" class="user-avatar-list me-3 shadow-sm">
-                                    <div>
-                                        <div class="fw-700 text-dark">@m.NamaLengkap</div>
-                                        <div class="text-muted small">@m.NIM</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td><div class="fw-600">@m.NamaPerguruanTinggi</div><div class="text-muted small">@m.Jurusan</div></td>
-                            <td>
-                                <div class="text-primary fw-700">@m.Company</div>
-                                <div class="text-muted small">@m.Region | <span class="fw-bold text-danger">@m.Lokasi</span></div>
-                            </td>
-                            <td class="text-center"><span class="badge-status status-@m.Status">@m.Status</span></td>
-                            <td class="text-center">
-                                <button class="btn-review" onclick='showDetail(@Html.Raw(JsonSerializer.Serialize(m)))'>Review</button>
-                            </td>
-                        </tr>
+        <div class="main-table-card">
+            <div class="p-3 border-bottom bg-white">
+                <div class="filter-toolbar">
+                    <input type="text" id="penTableSearch" class="form-control" placeholder="Cari nama, NIM, atau kampus...">
+                    @if (adminRole == "SuperAdmin")
+                    {
+                        <div class="dropdown">
+                            <button class="btn-region-select dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                                <span><i class="fas fa-map-marker-alt me-2"></i> @displayRegion</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-premium shadow-lg">
+                                <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion=="all"?"active":"")" href="javascript:void(0)" onclick="changeRegion('all')">Semua Region</a></li>
+                                @foreach (var region in staticRegions)
+                                {
+                                    <li><a class="dropdown-item dropdown-item-premium @(rawSelectedRegion==region?"active":"")" href="javascript:void(0)" onclick="changeRegion('@region')">@region</a></li>
+                                }
+                            </ul>
+                        </div>
                     }
-                </tbody>
-            </table>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 table-hover" id="penelitianTable">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Peneliti</th>
+                            <th>Institusi</th>
+                            <th>Judul & Lokasi</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in daftarPenelitian)
+                        {
+                            <tr class="penelitian-row @(p.Status=="Menunggu"?"unread":"")" data-status="@p.Status" data-region="@p.Region" id="pen-row-@p.Id">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        @{ var pFoto = p.PathFoto3x4?.Split('/').Last(); var pFotoPath = string.IsNullOrEmpty(pFoto) ? "/img/default-user.png" : "/uploads/foto/" + pFoto; }
+                                        <img src="@pFotoPath" class="user-avatar-list me-3 shadow-sm">
+                                        <div>
+                                            <div class="fw-700 text-dark">@p.Nama</div>
+                                            <div class="text-muted small">@p.Nim</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><div class="fw-600">@p.Universitas</div><div class="text-muted small">@p.Jurusan</div></td>
+                                <td>
+                                    <div class="fw-700" style="color:var(--p-purple); font-size:0.82rem; line-height:1.3;">@p.JudulPenelitian</div>
+                                    <div class="text-muted small">@p.Region | <span class="fw-bold text-danger">@p.LokasiPenelitian</span></div>
+                                </td>
+                                <td class="text-center"><span class="badge-status status-@p.Status">@p.Status</span></td>
+                                <td class="text-center">
+                                    <button class="btn-review pen" onclick='showDetailPenelitian(@Html.Raw(JsonSerializer.Serialize(p)))'>Review</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Detail -->
-<div class="modal fade" id="modalDetail" tabindex="-1">
+<div class="modal fade" id="modalDetailMagang" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header-premium">
+            <div class="modal-header-magang">
                 <div class="header-flex-container">
-                    <a id="d-foto-link" target="_blank">
-                        <img id="d-foto" src="/img/default-user.png" class="profile-circle-frame" title="Lihat Foto">
-                    </a>
+                    <a id="d-foto-link" target="_blank"><img id="d-foto" src="/img/default-user.png" class="profile-circle-frame" title="Lihat Foto"></a>
                     <div class="header-text-info">
                         <div id="d-status-badge-container"></div>
                         <h2 id="d-nama"></h2>
@@ -337,124 +414,118 @@
                     </div>
                 </div>
             </div>
-
             <div class="detail-body">
                 <div class="row g-4">
-                    <!-- Kolom 1: Kontak & Pribadi -->
                     <div class="col-md-4">
                         <div class="info-label"><i class="fas fa-id-card me-2"></i>Kontak & Pribadi</div>
                         <div class="info-card-premium">
-                            <div class="info-label">No. Pendaftaran</div>
-                            <div id="d-noreg" class="info-value highlight-noreg"></div>
-                            <div class="info-label">Email Aktif</div>
-                            <div id="d-email" class="info-value highlight-email"></div>
+                            <div class="info-label">No. Pendaftaran</div><div id="d-noreg" class="info-value highlight-noreg"></div>
+                            <div class="info-label">Email Aktif</div><div id="d-email" class="info-value highlight-email"></div>
                             <div class="info-label">WhatsApp</div>
-                            <div class="info-value">
-                                <a id="d-hp-link" target="_blank" class="highlight-wa text-decoration-none">
-                                    <i class="fab fa-whatsapp me-1"></i><span id="d-hp"></span>
-                                </a>
-                            </div>
-                            <div class="info-label">Tempat, Tgl Lahir</div>
-                            <div id="d-ttl" class="info-value"></div>
-                            <div class="info-label">Instagram</div>
-                            <div class="info-value">@@<span id="d-ig-text"></span></div>
+                            <div class="info-value"><a id="d-hp-link" target="_blank" class="highlight-wa text-decoration-none"><i class="fab fa-whatsapp me-1"></i><span id="d-hp"></span></a></div>
+                            <div class="info-label">Tempat, Tgl Lahir</div><div id="d-ttl" class="info-value"></div>
+                            <div class="info-label">Instagram</div><div class="info-value">@@<span id="d-ig-text"></span></div>
                         </div>
                     </div>
-
-                    <!-- Kolom 2: Akademik & Unit -->
                     <div class="col-md-4">
                         <div class="info-label"><i class="fas fa-university me-2"></i>Akademik & Unit</div>
                         <div class="info-card-premium">
-                            <div class="info-label">Kampus (NIM)</div>
-                            <div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
-                            <div class="info-label">Fakultas / Jurusan</div>
-                            <div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
-                            <div class="info-label">Penempatan (Company - Region)</div>
-                            <div id="d-company-region" class="info-value"></div>
-                            <div class="info-label">Lokasi Penugasan</div>
-                            <div id="d-lokasi" class="info-value highlight-lokasi"></div>
-                            <div class="info-label">Periode Magang</div>
-                            <div id="d-periode" class="info-value"></div>
+                            <div class="info-label">Kampus (NIM)</div><div class="info-value"><span id="d-univ"></span> (<span id="d-nim"></span>)</div>
+                            <div class="info-label">Fakultas / Jurusan</div><div class="info-value"><span id="d-fakultas"></span> / <span id="d-jurusan"></span></div>
+                            <div class="info-label">Penempatan (Company - Region)</div><div id="d-company-region" class="info-value"></div>
+                            <div class="info-label">Lokasi Penugasan</div><div id="d-lokasi" class="info-value highlight-lokasi"></div>
+                            <div class="info-label">Periode Magang</div><div id="d-periode" class="info-value"></div>
                         </div>
                     </div>
-
-                    <!-- Kolom 3: Berkas Digital -->
                     <div class="col-md-4">
                         <div class="info-label"><i class="fas fa-file-alt me-2"></i>Berkas Digital</div>
-                        <a id="link-cv" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
-                        <a id="link-surat" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a id="link-cv"       href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Mahasiswa</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a id="link-surat"    href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
                         <a id="link-proposal" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-signature text-success me-2"></i> Proposal Magang</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
                         <div class="info-label mt-4"><i class="fas fa-user-tie me-2"></i>Rekomendasi Pegawai</div>
-                        <div class="rekomendasi-box">
-                            <div id="d-rekomendasi" class="text-rekomendasi"></div>
-                        </div>
+                        <div class="rekomendasi-box"><div id="d-rekomendasi" class="text-rekomendasi"></div></div>
                     </div>
                 </div>
-
-                <!-- Revision Area yang Diperbarui -->
-                <div id="revisionPanel" class="revision-panel">
-                    <h6 class="fw-800 text-warning mb-3"><i class="fas fa-exclamation-circle me-2"></i> REVISI DATA</h6>
-                    <div class="row g-3">
-                        <!-- Kolom Kiri -->
-                        <div class="col-md-6">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" value="Foto Profil (Kurang Jelas)" id="rev1">
-                                <label class="form-check-label small fw-bold" for="rev1">Foto Profil</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" value="Data Kontak (WA/Email Salah)" id="rev2">
-                                <label class="form-check-label small fw-bold" for="rev2">Data Kontak</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" value="Data Akademik (NIM/Jurusan)" id="rev3">
-                                <label class="form-check-label small fw-bold" for="rev3">Data Akademik </label>
-                            </div>
-                        </div>
-
-                        <!-- Kolom Kanan -->
-                        <div class="col-md-6">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" value="CV (File Rusak/Salah)" id="rev4">
-                                <label class="form-check-label small fw-bold" for="rev4">CV</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" value="Surat Pengantar (Bermasalah)" id="rev5">
-                                <label class="form-check-label small fw-bold" for="rev5">Surat Pengantar</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" value="Proposal Magang (Kurang Lengkap)" id="rev6">
-                                <label class="form-check-label small fw-bold" for="rev6">Proposal Magang</label>
-                            </div>
-                            <!-- TAMBAHAN BARU DI SINI -->
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" value="Durasi Magang (Tanggal tidak sesuai)" id="rev7">
-                                <label class="form-check-label small fw-bold" for="rev7">Durasi Magang</label>
-                            </div>
-                        </div>
-
-                        <div class="col-12 mt-2">
-                            <label class="info-label">Catatan Tambahan (Opsional):</label>
-                            <textarea id="revisionNote" class="form-control" rows="2" style="border-radius:12px;" placeholder="Tulis instruksi spesifik di sini..."></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <button onclick="toggleRevisionPanel()" class="btn btn-light fw-bold px-4" style="border-radius:10px;">Batal</button>
-                        <button onclick="submitRevision()" class="btn btn-warning text-white fw-bold px-4" style="border-radius:10px;">Kirim Revisi</button>
-                    </div>
-                </div>
-
-                <!-- Tombol Aksi -->
-                <div id="action-area-minimal" class="action-wrapper-minimal">
+                <div id="mag-action-area" class="action-wrapper-minimal">
                     @if (adminRole != "SuperAdmin")
                     {
-                        <button onclick="toggleRevisionPanel()" class="btn-action-standard btn-revision-modern"><i class="fas fa-edit"></i> Minta Revisi</button>
-                        <button onclick="updateStatus('Ditolak')" class="btn-action-standard btn-reject-modern"><i class="fas fa-times"></i> Tolak</button>
-                        <button onclick="updateStatus('Diterima')" class="btn-action-standard btn-accept-modern"><i class="fas fa-check"></i> Terima</button>
+                        <button onclick="updateStatus('magang','Ditolak')"  class="btn-action-standard btn-reject-modern"><i class="fas fa-times"></i> Tolak</button>
+                        <button onclick="updateStatus('magang','Diterima')" class="btn-action-standard btn-accept-modern"><i class="fas fa-check"></i> Terima</button>
                     }
                 </div>
             </div>
             <input type="hidden" id="d-id">
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDetailPenelitian" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header-penelitian">
+                <div class="header-flex-container">
+                    <a id="p-foto-link" target="_blank"><img id="p-foto" src="/img/default-user.png" class="profile-circle-frame" title="Lihat Foto"></a>
+                    <div class="header-text-info">
+                        <div id="p-status-badge-container"></div>
+                        <h2 id="p-nama"></h2>
+                        <span class="opacity-75 small"><i class="fas fa-calendar-check me-1"></i> Terdaftar: <span id="p-created-at" class="fw-bold"></span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-body">
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-id-card me-2"></i>Kontak & Pribadi</div>
+                        <div class="info-card-premium">
+                            <div class="info-label">No. Pendaftaran</div>
+                            <div id="p-noreg" class="info-value highlight-noreg"></div>
+                            <div class="info-label">Email Aktif</div>
+                            <div id="p-email" class="info-value highlight-email"></div>
+                            <div class="info-label">WhatsApp</div>
+                            <div class="info-value">
+                                <a id="p-hp-link" target="_blank" class="highlight-wa text-decoration-none">
+                                    <i class="fab fa-whatsapp me-1"></i><span id="p-hp"></span>
+                                </a>
+                            </div>
+                            <div class="info-label">Tempat, Tgl Lahir</div>
+                            <div id="p-ttl" class="info-value"></div>
+                            <div class="info-label">Instagram</div>
+                            <div class="info-value">@@<span id="p-ig-text"></span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-flask me-2" style="color:var(--p-purple);"></i>Akademik & Penelitian</div>
+                        <div class="info-card-premium">
+                            <div class="info-label">Institusi (NIM)</div>
+                            <div class="info-value"><span id="p-univ"></span> (<span id="p-nim"></span>)</div>
+                            <div class="info-label">Fakultas / Jurusan</div>
+                            <div class="info-value"><span id="p-fakultas"></span> / <span id="p-jurusan"></span></div>
+                            <div class="info-label">Judul Penelitian</div>
+                            <div id="p-judul" class="info-value highlight-judul"></div>
+                            <div class="info-label">Penempatan (Company - Region)</div>
+                            <div id="p-company-region" class="info-value"></div>
+                            <div class="info-label">Lokasi Penelitian</div>
+                            <div id="p-lokasi" class="info-value highlight-lokasi"></div>
+                            <div class="info-label">Periode Penelitian</div>
+                            <div id="p-periode" class="info-value"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="info-label"><i class="fas fa-file-alt me-2"></i>Berkas Digital</div>
+                        <a id="p-link-cv"       href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-pdf text-danger me-2"></i> CV Peneliti</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a id="p-link-surat"    href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-contract text-primary me-2"></i> Surat Pengantar</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                        <a id="p-link-proposal" href="#" target="_blank" class="doc-link"><span><i class="fas fa-file-signature text-success me-2"></i> Proposal Penelitian</span> <i class="fas fa-external-link-alt fa-xs"></i></a>
+                    </div>
+                </div>
+                <div id="pen-action-area" class="action-wrapper-minimal">
+                    @if (adminRole != "SuperAdmin")
+                    {
+                        <button onclick="updateStatus('penelitian','Ditolak')"  class="btn-action-standard btn-reject-modern"><i class="fas fa-times"></i> Tolak</button>
+                        <button onclick="updateStatus('penelitian','Diterima')" class="btn-action-standard btn-accept-pen"><i class="fas fa-check"></i> Terima</button>
+                    }
+                </div>
+            </div>
+            <input type="hidden" id="p-id">
         </div>
     </div>
 </div>
@@ -464,311 +535,310 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    let currentStatusFilter = 'all';
+    // ── State filter masing-masing tab terpisah ───────────────────────────────
+    let magStatusFilter = 'all';
+    let penStatusFilter = 'all';
 
-    function changeRegion(region) {
-        Swal.fire({
-            title: 'Memproses...', text: 'Mengambil data region ' + (region === 'all' ? 'Semua' : region),
-            allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }
+    // ── Tab Switch ────────────────────────────────────────────────────────────
+    function switchTab(tab, btn) {
+        if (btn.classList.contains('active')) return;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+    }
+
+    // ── Filter Status (magang & penelitian terpisah) ──────────────────────────
+    function filterByStatus(scope, status, cardId) {
+        // Hanya reset card dalam scope yang sama
+        const prefix = scope === 'magang' ? 'mag-card' : 'pen-card';
+        document.querySelectorAll(`[id^="${prefix}"]`).forEach(c => c.classList.remove('active'));
+        document.getElementById(cardId).classList.add('active');
+
+        if (scope === 'magang') {
+            magStatusFilter = status;
+            applyMagangFilter();
+        } else {
+            penStatusFilter = status;
+            applyPenelitianFilter();
+        }
+    }
+
+    function applyMagangFilter() {
+        const search = $("#tableSearch").val().toLowerCase();
+        $(".magang-row").each(function () {
+            const matchStatus = magStatusFilter === 'all' || $(this).attr('data-status') === magStatusFilter;
+            const matchSearch = $(this).text().toLowerCase().indexOf(search) > -1;
+            $(this).toggle(matchStatus && matchSearch);
         });
+    }
+
+    function applyPenelitianFilter() {
+        const search = $("#penTableSearch").val().toLowerCase();
+        $(".penelitian-row").each(function () {
+            const matchStatus = penStatusFilter === 'all' || $(this).attr('data-status') === penStatusFilter;
+            const matchSearch = $(this).text().toLowerCase().indexOf(search) > -1;
+            $(this).toggle(matchStatus && matchSearch);
+        });
+    }
+
+    $("#tableSearch").on("keyup",    function() { applyMagangFilter(); });
+    $("#penTableSearch").on("keyup", function() { applyPenelitianFilter(); });
+
+    // ── Region ────────────────────────────────────────────────────────────────
+    function changeRegion(region) {
+        Swal.fire({ title: 'Memproses...', text: 'Mengambil data region ' + (region === 'all' ? 'Semua' : region), allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         window.location.href = `/Admin/Mahasiswa/Index?selectedRegion=${encodeURIComponent(region)}`;
     }
 
-    $("#tableSearch").on("keyup", function() { applyAllFilters(); });
-
-    function filterByStatus(status, cardId) {
-        currentStatusFilter = status;
-        $(".stat-card").removeClass("active");
-        $("#" + cardId).addClass("active");
-        applyAllFilters();
-    }
-
-    function applyAllFilters() {
-        const searchText = $("#tableSearch").val().toLowerCase();
-        $(".magang-row").each(function() {
-            const rowStatus = $(this).attr("data-status");
-            const rowText = $(this).text().toLowerCase();
-            const matchSearch = rowText.indexOf(searchText) > -1;
-            const matchStatus = currentStatusFilter === 'all' || rowStatus === currentStatusFilter;
-            $(this).toggle(matchSearch && matchStatus);
-        });
-    }
-
-    // Fungsi untuk menghitung durasi antara dua tanggal
-    function calculateDuration(start, end) {
-        if (!start || !end) return "-";
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        const diffTime = Math.abs(endDate - startDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        const months = Math.floor(diffDays / 30);
-        const days = diffDays % 30;
-        
-        return months > 0 ? `${months} Bulan ${days} Hari` : `${days} Hari`;
-    }
-
-    function exportExcel() {
-        // Mengambil data dari Model C# yang sudah di-serialize ke JSON di sisi client
-        const rawData = @Html.Raw(JsonSerializer.Serialize(daftarMagang));
-        
-        if (!rawData || rawData.length === 0) {
-            Swal.fire('Info', 'Tidak ada data untuk dieksport.', 'info');
-            return;
-        }
-
-        // Transformasi data agar sesuai dengan kolom yang kamu minta
-        const excelData = rawData.map((item, index) => {
-            return {
-                "No": index + 1,
-                "ID Pendaftaran": item.Id || item.id,
-                "Tanggal Daftar": item.CreatedAt ? new Date(item.CreatedAt).toLocaleDateString('id-ID') : "-",
-                "NIM": item.NIM || item.nim,
-                "Nama Lengkap": item.NamaLengkap || item.namaLengkap,
-                "Email": item.EmailPribadi || item.emailPribadi,
-                "No. HP": item.NoHp || item.noHp,
-                "Instagram": item.Instagram || "-",
-                "Tempat Lahir": item.TempatLahir || item.tempatLahir,
-                "Tanggal Lahir": item.TanggalLahir ? new Date(item.TanggalLahir).toLocaleDateString('id-ID') : "-",
-                "Perguruan Tinggi": item.NamaPerguruanTinggi || item.namaPerguruanTinggi,
-                "Fakultas": item.Fakultas || item.fakultas,
-                "Jurusan": item.Jurusan || item.jurusan,
-                "Company": item.Company || item.company,
-                "Region": item.Region || item.region,
-                "Lokasi": item.Lokasi || item.lokasi,
-                "Rekomendasi": item.RekomendasiPegawai || "-",
-                "Mulai Magang": item.MulaiMagang ? new Date(item.MulaiMagang).toLocaleDateString('id-ID') : "-",
-                "Selesai Magang": item.SelesaiMagang ? new Date(item.SelesaiMagang).toLocaleDateString('id-ID') : "-",
-                "Durasi Magang": calculateDuration(item.MulaiMagang, item.SelesaiMagang),
-                "Status": item.Status || item.status
-            };
-        });
-
-        // Proses pembuatan file Excel
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Mahasiswa Magang");
-
-        // Nama file otomatis berdasarkan region
-        const fileName = "Data_Magang_SINTA_" + "@displayRegion".replace(/\s/g, '_') + ".xlsx";
-        XLSX.writeFile(workbook, fileName);
-    }
-
-    function submitRevision() {
-        const id = $("#d-id").val();
-        const items = [];
-        // Mengambil nilai dari checkbox yang dicentang
-        $("#revisionPanel input:checked").each(function() {
-            items.push($(this).val());
-        });
-        
-        const note = $("#revisionNote").val();
-
-        if (items.length === 0 && !note) {
-            Swal.fire('Perhatian', 'Pilih minimal satu item revisi atau tulis catatan.', 'warning');
-            return;
-        }
-
-        Swal.fire({
-            title: 'Kirim Permintaan Revisi?',
-            text: "Mahasiswa akan menerima email instruksi revisi.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#f59e0b',
-            confirmButtonText: 'Ya, Kirim'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Gabungkan checkbox dan catatan tambahan
-                const fullMessage = (items.length > 0 ? "Item Revisi: " + items.join(", ") : "") + 
-                                    (note ? "\nCatatan Tambahan: " + note : "");
-
-                $.post("/Admin/Mahasiswa/UpdateStatus", { 
-                    id: id, 
-                    status: 'Revisi', 
-                    catatan: fullMessage 
-                }, function(res) {
-                    if(res.success) {
-                        Swal.fire('Berhasil', 'Status diubah ke Revisi dan email terkirim.', 'success')
-                            .then(() => location.reload());
-                    } else {
-                        Swal.fire('Error', 'Gagal memperbarui status.', 'error');
-                    }
-                });
-            }
-        });
-    }
-
-    function showDetail(data) {
-        // Reset panel revisi setiap buka modal
-        $("#revisionPanel").hide();
-        $("#revisionPanel input:checkbox").prop("checked", false);
-        $("#revisionNote").val("");
-
+    // ── Show Detail Magang ────────────────────────────────────────────────────
+    function showDetailMagang(data) {
         $("#d-id").val(data.Id || data.id);
         $("#d-nama").text(data.NamaLengkap || data.namaLengkap);
         $("#d-noreg").text(data.NoPendaftaran || data.noPendaftaran || "BELUM TERSEDIA");
-        
-        // Format tanggal daftar
+
         const createdAt = data.CreatedAt || data.createdAt;
         if (createdAt) {
-            const date = new Date(createdAt);
-            const formatted = date.toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' }) + 
-                              ' | ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
-            $("#d-created-at").text(formatted);
+            const dt = new Date(createdAt);
+            $("#d-created-at").text(dt.toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'}) + ' | ' + dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}) + ' WIB');
         }
-        
-        const st = data.Status || data.status;
-        updateModalStatusUI(st);
 
-        // Foto profil
+        const st = data.Status || data.status;
+        $("#d-status-badge-container").html(`<span class="status-pill-modal status-${st}">${st}</span>`);
+        if (st === "Menunggu" && "@adminRole" !== "SuperAdmin") { $("#mag-action-area").show(); } else { $("#mag-action-area").hide(); }
+
         const pf = data.FotoProfil || data.fotoProfil;
         const finalFoto = pf ? "/uploads/foto/" + pf.split('/').pop() : "/img/default-user.png";
         $("#d-foto").attr("src", finalFoto);
         $("#d-foto-link").attr("href", finalFoto);
 
-        // Kontak & Pribadi
-        $("#d-email").text(data.EmailPribadi || data.emailPribadi);
+        $("#d-email").text(data.EmailPribadi || data.emailPribadi || "-");
         const rawHp = data.NoHp || data.noHp || "";
-        let cleanHp = rawHp.replace(/\D/g, '');
+        let cleanHp = rawHp.replace(/\D/g,'');
         if (cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.slice(1);
         $("#d-hp").text(rawHp || "-");
         $("#d-hp-link").attr("href", cleanHp ? `https://wa.me/${cleanHp}` : "#");
-        $("#d-ttl").text(`${data.TempatLahir || data.tempatLahir || "-"}, ${formatDate(data.TanggalLahir || data.tanggalLahir)}`);
-        let rawIg = (data.Instagram || data.instagram || "").replace(/@@/g, '').trim();
-        $("#d-ig-text").text(rawIg || "-");
+        $("#d-ttl").text(`${data.TempatLahir||data.tempatLahir||"-"}, ${formatDate(data.TanggalLahir||data.tanggalLahir)}`);
+        $("#d-ig-text").text((data.Instagram||data.instagram||"").replace(/@@/g,'').trim() || "-");
 
-        // Akademik & Unit
-        $("#d-univ").text(data.NamaPerguruanTinggi || data.namaPerguruanTinggi || "-");
-        $("#d-nim").text(data.NIM || data.nim || "-");
-        $("#d-fakultas").text(data.Fakultas || data.fakultas || "-");
-        $("#d-jurusan").text(data.Jurusan || data.jurusan || "-");
-        const comp = data.Company || data.company || "-";
-        const reg = data.Region || data.region || "-";
-        $("#d-company-region").text(`${comp} - ${reg}`);
-        $("#d-lokasi").text(data.Lokasi || data.lokasi || "-");
-        $("#d-periode").text(formatDate(data.MulaiMagang || data.mulaiMagang) + " - " + formatDate(data.SelesaiMagang || data.selesaiMagang));
+        $("#d-univ").text(data.NamaPerguruanTinggi||data.namaPerguruanTinggi||"-");
+        $("#d-nim").text(data.NIM||data.nim||"-");
+        $("#d-fakultas").text(data.Fakultas||data.fakultas||"-");
+        $("#d-jurusan").text(data.Jurusan||data.jurusan||"-");
+        $("#d-company-region").text(`${data.Company||data.company||"-"} - ${data.Region||data.region||"-"}`);
+        $("#d-lokasi").text(data.Lokasi||data.lokasi||"-");
+        $("#d-periode").text(formatDate(data.MulaiMagang||data.mulaiMagang) + " - " + formatDate(data.SelesaiMagang||data.selesaiMagang));
 
-        // Rekomendasi
-        const rekom = data.RekomendasiPegawai || data.rekomendasiPegawai;
+        const rekom = data.RekomendasiPegawai||data.rekomendasiPegawai;
         $("#d-rekomendasi").text(rekom && rekom !== "-" ? rekom : "Tidak ada rekomendasi pegawai.");
 
-        // Berkas
-        $("#link-cv").attr("href", "/uploads/cv/" + (data.FileCv || data.fileCv || "").split('/').pop());
-        $("#link-surat").attr("href", "/uploads/surat/" + (data.FileSuratPengantar || data.fileSuratPengantar || "").split('/').pop());
-        $("#link-proposal").attr("href", "/uploads/proposal/" + (data.FileProposal || data.fileProposal || "").split('/').pop());
+        $("#link-cv").attr("href","/uploads/cv/"+(data.FileCv||data.fileCv||"").split('/').pop());
+        $("#link-surat").attr("href","/uploads/surat/"+(data.FileSuratPengantar||data.fileSuratPengantar||"").split('/').pop());
+        $("#link-proposal").attr("href","/uploads/proposal/"+(data.FileProposal||data.fileProposal||"").split('/').pop());
 
-        $("#modalDetail").modal('show');
+        $("#modalDetailMagang").modal('show');
     }
 
-    function updateModalStatusUI(st) {
-        $("#d-status-badge-container").html(`<span class="status-pill-modal status-${st}">${st}</span>`);
+    // ── Show Detail Penelitian ────────────────────────────────────────────────
+    function showDetailPenelitian(data) {
+        $("#p-id").val(data.Id);
+        $("#p-nama").text(data.Nama || "-");
+        $("#p-noreg").text(data.NomorPendaftaran || "BELUM TERSEDIA");
+
+        const createdAt = data.CreatedAt;
+        if (createdAt) {
+            const dt = new Date(createdAt);
+            $("#p-created-at").text(
+                dt.toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'}) +
+                ' | ' +
+                dt.toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'}) +
+                ' WIB'
+            );
+        }
+
+        const st = data.Status;
+        $("#p-status-badge-container").html(`<span class="status-pill-modal status-${st}">${st}</span>`);
         if (st === "Menunggu" && "@adminRole" !== "SuperAdmin") {
-            $("#action-area-minimal").show();
+            $("#pen-action-area").show();
         } else {
-            $("#action-area-minimal").hide();
-        }
-    }
-
-    function toggleRevisionPanel() {
-        $("#revisionPanel").slideToggle();
-    }
-
-    function submitRevision() {
-        const id = $("#d-id").val();
-        const items = [];
-        $("#revisionPanel input:checked").each(function() { items.push($(this).val()); });
-
-        if (items.length === 0) {
-            Swal.fire('Opps!', 'Pilih minimal satu item yang perlu direvisi!', 'warning');
-            return;
+            $("#pen-action-area").hide();
         }
 
-        const note = $("#revisionNote").val();
+        const pf = data.PathFoto3x4;
+        const finalFoto = pf ? "/uploads/foto/" + pf.split('/').pop() : "/img/default-user.png";
+        $("#p-foto").attr("src", finalFoto);
+        $("#p-foto-link").attr("href", finalFoto);
 
-        Swal.fire({
-            title: 'Kirim Permintaan Revisi?',
-            text: "Mahasiswa akan diberitahu melalui email.",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#f59e0b',
-            confirmButtonText: 'Ya, Kirim',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const row = $(`#row-${id}`);
-                const oldStatus = row.attr("data-status");
+        $("#p-email").text(data.Email || "-");
+        const rawHp = data.NoHp || "";
+        let cleanHp = rawHp.replace(/\D/g, '');
+        if (cleanHp.startsWith('0')) cleanHp = '62' + cleanHp.slice(1);
+        $("#p-hp").text(rawHp || "-");
+        $("#p-hp-link").attr("href", cleanHp ? `https://wa.me/${cleanHp}` : "#");
+        $("#p-ttl").text(`${data.TempatLahir || "-"}, ${formatDate(data.TglLahir)}`);
+        $("#p-ig-text").text((data.Instagram || "").replace(/@@/g, '').trim() || "-");
 
-                $.post("/Admin/Mahasiswa/UpdateStatus", { 
-                    id: id, 
-                    status: 'Revisi', 
-                    catatan: items.join(', ') + (note ? " | Pesan: " + note : "")
-                }, function(res) {
-                    if (res.success) {
-                        // Update UI tanpa reload
-                        row.attr("data-status", "Revisi");
-                        row.find(".badge-status").attr("class", "badge-status status-Revisi").text("Revisi");
-                        row.removeClass("unread");
-                        if (oldStatus !== "Revisi") { updateStatCount(oldStatus, -1); }
-                        updateModalStatusUI("Revisi");
-                        $("#revisionPanel").hide();
-                        $("#modalDetail").modal('hide');
-                        Swal.fire('Berhasil!', 'Permintaan revisi telah dikirim ke email mahasiswa.', 'success');
-                    } else {
-                        Swal.fire('Error', res.message || 'Gagal mengirim revisi.', 'error');
-                    }
-                });
-            }
-        });
+        $("#p-univ").text(data.Universitas || "-");
+        $("#p-nim").text(data.Nim || "-");
+        $("#p-fakultas").text(data.Fakultas || "-");
+        $("#p-jurusan").text(data.Jurusan || "-");
+        $("#p-judul").text(data.JudulPenelitian || "-");
+        $("#p-company-region").text(`${data.Company || "-"} - ${data.Region || "-"}`);
+        $("#p-lokasi").text(data.LokasiPenelitian || "-");
+        $("#p-periode").text(formatDate(data.TglMulai) + " - " + formatDate(data.TglSelesai));
+
+        $("#p-link-cv").attr("href", "/uploads/cv/" + (data.PathCV || "").split('/').pop());
+        $("#p-link-surat").attr("href", "/uploads/surat/" + (data.PathSurat || "").split('/').pop());
+        $("#p-link-proposal").attr("href", "/uploads/proposal/" + (data.PathProposal || "").split('/').pop());
+
+        $("#modalDetailPenelitian").modal('show');
     }
 
-    function updateStatus(s) {
-        const id = $("#d-id").val();
-        const oldStatus = $(`#row-${id}`).attr("data-status");
+    // ── Update Status ─────────────────────────────────────────────────────────
+    function updateStatus(scope, s) {
+        const isMag  = scope === 'magang';
+        const id     = isMag ? $("#d-id").val() : $("#p-id").val();
+        const rowSel = isMag ? `#mag-row-${id}` : `#pen-row-${id}`;
+        const oldSt  = $(rowSel).attr("data-status");
 
         Swal.fire({
             title: 'Konfirmasi', text: `Ubah status menjadi ${s}?`, icon: 'question',
-            showCancelButton: true, 
-            confirmButtonColor: s === 'Diterima' ? '#00549B' : '#EC1C24',
-            confirmButtonText: 'Ya, Simpan',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const row = $(`#row-${id}`);
-                row.attr("data-status", s);
-                row.find(".badge-status").attr("class", `badge-status status-${s}`).text(s);
-                row.removeClass("unread");
-                updateModalStatusUI(s);
+            showCancelButton: true,
+            confirmButtonColor: s === 'Diterima' ? (isMag ? '#00549B' : '#7C3AED') : '#EC1C24',
+            confirmButtonText: 'Ya, Simpan', cancelButtonText: 'Batal'
+        }).then(result => {
+            if (!result.isConfirmed) return;
 
-                if (oldStatus !== s) { updateStatCount(oldStatus, -1); updateStatCount(s, 1); }
+            $(rowSel).attr("data-status", s).removeClass("unread");
+            $(rowSel).find(".badge-status").attr("class", `badge-status status-${s}`).text(s);
 
-                $("#modalDetail").modal('hide');
-                $.post("/Admin/Mahasiswa/UpdateStatus", { id: id, status: s }, function(res) {
-                    if (!res.success) { 
-                        Swal.fire('Error', res.message || 'Gagal update.', 'error').then(() => location.reload()); 
-                    } else { 
-                        Swal.fire('Berhasil!', res.message, 'success'); 
-                    }
+            if (isMag) {
+                $("#d-status-badge-container").html(`<span class="status-pill-modal status-${s}">${s}</span>`);
+                $("#mag-action-area").hide();
+                if (oldSt !== s) { updateCount('mag', oldSt, -1); updateCount('mag', s, 1); }
+                $("#modalDetailMagang").modal('hide');
+                $.post("/Admin/Mahasiswa/UpdateStatus", { id, status: s }, res => {
+                    if (!res.success) Swal.fire('Error', res.message||'Gagal update.', 'error').then(() => location.reload());
+                    else Swal.fire('Berhasil!', res.message, 'success');
+                });
+            } else {
+                $("#p-status-badge-container").html(`<span class="status-pill-modal status-${s}">${s}</span>`);
+                $("#pen-action-area").hide();
+                if (oldSt !== s) { updateCount('pen', oldSt, -1); updateCount('pen', s, 1); }
+                $("#modalDetailPenelitian").modal('hide');
+                $.post("/Admin/Mahasiswa/UpdateStatusPenelitian", { id, status: s }, res => {
+
+                    if (!res.success) Swal.fire('Error', res.message||'Gagal update.', 'error').then(() => location.reload());
+                    else Swal.fire('Berhasil!', res.message, 'success');
                 });
             }
         });
     }
 
-    function updateStatCount(status, change) {
-        let el = "";
-        if (status === "Menunggu") el = "#val-proses";
-        else if (status === "Diterima") el = "#val-terima";
-        else if (status === "Ditolak") el = "#val-tolak";
-        if (el) {
-            const currentVal = parseInt($(el).text()) || 0;
-            $(el).text(Math.max(0, currentVal + change));
+    function updateCount(prefix, status, change) {
+        const map = { Menunggu: `#${prefix}-val-proses`, Diterima: `#${prefix}-val-terima`, Ditolak: `#${prefix}-val-tolak` };
+        if (map[status]) { const el = $(map[status]); el.text(Math.max(0, (parseInt(el.text())||0) + change)); }
+    }
+
+    // ── Export Excel ──────────────────────────────────────────────────────────
+    function exportExcel() {
+        const isMag = document.getElementById('tab-magang').classList.contains('active');
+
+        if (isMag) {
+            const rawData = @Html.Raw(JsonSerializer.Serialize(daftarMagang));
+            if (!rawData || rawData.length === 0) {
+                Swal.fire('Info', 'Tidak ada data magang.', 'info');
+                return;
+            }
+
+            const excelData = rawData.map((item, i) => ({
+                "No": i + 1,
+                "Tanggal Daftar": item.CreatedAt ? new Date(item.CreatedAt).toLocaleDateString('id-ID') : "-",
+                "NIM": item.NIM || item.nim || "-",
+                "Nama Lengkap": item.NamaLengkap || item.namaLengkap || "-",
+                "Email": item.EmailPribadi || item.emailPribadi || "-",
+                "No. HP": item.NoHp || item.noHp || "-",
+                "Perguruan Tinggi": item.NamaPerguruanTinggi || item.namaPerguruanTinggi || "-",
+                "Fakultas": item.Fakultas || item.fakultas || "-",
+                "Jurusan": item.Jurusan || item.jurusan || "-",
+                "Company": item.Company || item.company || "-",
+                "Region": item.Region || item.region || "-",
+                "Lokasi": item.Lokasi || item.lokasi || "-",
+                "Mulai Magang": item.MulaiMagang ? new Date(item.MulaiMagang).toLocaleDateString('id-ID') : "-",
+                "Selesai Magang": item.SelesaiMagang ? new Date(item.SelesaiMagang).toLocaleDateString('id-ID') : "-",
+                "Status": item.Status || item.status || "-"
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // === Styling header biru ===
+            const headerKeys = Object.keys(excelData[0]);
+            headerKeys.forEach((_, colIdx) => {
+                const cellAddr = XLSX.utils.encode_cell({ r: 0, c: colIdx });
+                if (!ws[cellAddr]) return;
+                ws[cellAddr].s = {
+                    font: { bold: true, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "00549B" } },
+                    alignment: { horizontal: "center", vertical: "center" }
+                };
+            });
+
+            // Set lebar kolom otomatis
+            ws['!cols'] = headerKeys.map(key => ({ wch: Math.max(key.length + 2, 14) }));
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data Magang");
+            XLSX.writeFile(wb, `Data_Magang_SINTA_@(displayRegion.Replace(" ","_")).xlsx`);
+
+        } else {
+            const rawData = @Html.Raw(JsonSerializer.Serialize(daftarPenelitian));
+            if (!rawData || rawData.length === 0) {
+                Swal.fire('Info', 'Tidak ada data penelitian.', 'info');
+                return;
+            }
+
+            const excelData = rawData.map((item, i) => ({
+                "No": i + 1,
+                "Tanggal Daftar": item.CreatedAt ? new Date(item.CreatedAt).toLocaleDateString('id-ID') : "-",
+                "NIM": item.Nim || item.nim || item.NIM || "-",
+                "Nama": item.Nama || item.nama || "-",
+                "Email": item.Email || item.email || "-",
+                "No. HP": item.NoHp || item.noHp || "-",
+                "Universitas": item.Universitas || item.universitas || "-",
+                "Fakultas": item.Fakultas || item.fakultas || "-",
+                "Jurusan": item.Jurusan || item.jurusan || "-",
+                "Judul Penelitian": item.JudulPenelitian || item.judulPenelitian || "-",
+                "Lokasi Penelitian": item.LokasiPenelitian || item.lokasiPenelitian || "-",
+                "Region": item.Region || item.region || "-",
+                "Mulai": item.TglMulai ? new Date(item.TglMulai).toLocaleDateString('id-ID') : "-",
+                "Selesai": item.TglSelesai ? new Date(item.TglSelesai).toLocaleDateString('id-ID') : "-",
+                "Status": item.Status || item.status || "-"
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // === Styling header biru ===
+            const headerKeys = Object.keys(excelData[0]);
+            headerKeys.forEach((_, colIdx) => {
+                const cellAddr = XLSX.utils.encode_cell({ r: 0, c: colIdx });
+                if (!ws[cellAddr]) return;
+                ws[cellAddr].s = {
+                    font: { bold: true, color: { rgb: "FFFFFF" } },
+                    fill: { fgColor: { rgb: "00549B" } },
+                    alignment: { horizontal: "center", vertical: "center" }
+                };
+            });
+
+            ws['!cols'] = headerKeys.map(key => ({ wch: Math.max(key.length + 2, 16) }));
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data Penelitian");
+            XLSX.writeFile(wb, `Data_Penelitian_SINTA_@(displayRegion.Replace(" ","_")).xlsx`);
         }
-        // Update total
-        const total = parseInt($("#val-all").text()) || 0;
-        if (change < 0) $("#val-all").text(Math.max(0, total + change));
     }
 
     function formatDate(d) {
         if (!d) return "-";
-        return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        return new Date(d).toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'});
     }
 </script>

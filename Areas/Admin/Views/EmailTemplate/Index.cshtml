@@ -98,26 +98,6 @@
         </div>
     </div>
 
-    <!-- Email Revisi (Tambahan Baru) -->
-    <div class="editor-card">
-        <div class="card-header-premium">
-            <div class="d-flex align-items-center gap-2">
-                <span class="fw-800 text-uppercase small letter-spacing-1" style="color: #6366f1;">Email Permintaan Revisi</span>
-            </div>
-            <div class="d-flex gap-2">
-                <button id="btnEditRevisi" class="btn-action btn-edit" onclick="enableEdit('Revisi')">
-                    <i class="fas fa-edit"></i> Edit Format
-                </button>
-                <button id="btnSaveRevisi" class="btn-action btn-save-blue" style="background: #6366f1;" onclick="saveTemplate('Revisi')">
-                    <i class="fas fa-save"></i> Simpan Perubahan
-                </button>
-            </div>
-        </div>
-        <div class="p-4">
-            <textarea id="textRevisi" class="textarea-editor" disabled>@ViewBag.RevisiRaw</textarea>
-            <textarea id="htmlRevisi" style="display:none;">@ViewBag.RevisiHtml</textarea>
-        </div>
-    </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
