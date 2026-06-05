@@ -85,6 +85,19 @@ namespace sinta_asp.Controllers
                 catatanRevisi = m.CatatanRevisi ?? ""   // pesan dari admin
             });
         }
+
+        // TARUH DI SINI
+        private string GetRomanMonth(int month)
+        {
+            string[] romanMonths =
+            {
+                "I", "II", "III", "IV", "V", "VI",
+                "VII", "VIII", "IX", "X", "XI", "XII"
+            };
+
+            return romanMonths[month - 1];
+        }
+
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Store(
@@ -159,7 +172,9 @@ namespace sinta_asp.Controllers
                 await _context.SaveChangesAsync(); 
 
                 // Nomor pendaftaran resmi
-                model.NoPendaftaran = $"MAG/{DateTime.Now:yyyy}/{DateTime.Now:MM}/{model.Id:D4}";
+                string bulanRomawi = GetRomanMonth(DateTime.Now.Month);
+
+                model.NoPendaftaran = $"MAG/{DateTime.Now:yyyy}/{bulanRomawi}/{model.Id:D4}";
 
                 // Simpan Notifikasi
                 _context.Notifications.Add(new Notification
