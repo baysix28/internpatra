@@ -514,42 +514,62 @@ namespace sinta_asp.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(unit) || string.IsNullOrEmpty(status))
                 return Json(new List<object>());
 
-            var adminRole = HttpContext.Session.GetString("AdminRole") ?? "AdminRegion";
+            var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
             var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
+            bool isJawaTengah = string.Equals(sessionRegion, "Regional Jawa Bagian Tengah", StringComparison.OrdinalIgnoreCase);
 
-            string activeRegion = adminRole != "SuperAdmin"
-                ? sessionRegion
-                : (!string.IsNullOrEmpty(region) ? region : "All");
+            string activeRegion = (adminRole == "SuperAdmin" || isJawaTengah)
+                ? (!string.IsNullOrEmpty(region) ? region : "All")
+                : sessionRegion;
 
             var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
 
-            if (adminRole != "SuperAdmin")
+            if (adminRole != "SuperAdmin" && !isJawaTengah)
                 query = query.Where(x => x.Region == sessionRegion);
             else if (activeRegion != "All" && activeRegion != "Semua Region")
                 query = query.Where(x => x.Region == activeRegion);
 
-            string unitTrimmed = unit.Trim().ToLower();
+            string unitTrimmed   = unit.Trim().ToLower();
             string statusTrimmed = status.Trim().ToLower();
 
-            if (statusTrimmed == "menunggu")
-            {
-                query = query.Where(x => x.Status.ToLower() == "menunggu" || x.Status.ToLower() == "proses review");
-            }
-            else
-            {
-                query = query.Where(x => x.Status.ToLower() == statusTrimmed);
-            }
+            query = statusTrimmed == "menunggu"
+                ? query.Where(x => x.Status.ToLower() == "menunggu" || x.Status.ToLower() == "proses review")
+                : query.Where(x => x.Status.ToLower() == statusTrimmed);
 
-            if (activeRegion == "All" || activeRegion == "Semua Region")
-            {
-                query = query.Where(x => x.Region != null && x.Region.ToLower() == unitTrimmed);
-            }
-            else
-            {
-                query = query.Where(x => x.Lokasi != null && x.Lokasi.ToLower() == unitTrimmed);
-            }
+            query = (activeRegion == "All" || activeRegion == "Semua Region")
+                ? query.Where(x => x.Region  != null && x.Region.ToLower()  == unitTrimmed)
+                : query.Where(x => x.Lokasi  != null && x.Lokasi.ToLower()  == unitTrimmed);
 
             var rawData = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
+            return Json(MapToResult(rawData));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMahasiswaByKampus(string kampus, string? region)
+        {
+            if (string.IsNullOrEmpty(kampus)) return Json(new List<object>());
+
+            var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
+            var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
+            bool isJawaTengah = string.Equals(sessionRegion, "Regional Jawa Bagian Tengah", StringComparison.OrdinalIgnoreCase);
+
+            string activeRegion = (adminRole == "SuperAdmin" || isJawaTengah)
+                ? (!string.IsNullOrEmpty(region) ? region : "All")
+                : sessionRegion;
+
+            var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
+
+            if (adminRole != "SuperAdmin" && !isJawaTengah)
+                query = query.Where(x => x.Region == sessionRegion);
+            else if (activeRegion != "All" && activeRegion != "Semua Region")
+                query = query.Where(x => x.Region == activeRegion);
+
+            string k = kampus.Trim().ToLower();
+            var rawData = await query
+                .Where(x => x.NamaPerguruanTinggi != null && x.NamaPerguruanTinggi.Trim().ToLower() == k)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
+
             return Json(MapToResult(rawData));
         }
 
@@ -589,33 +609,6 @@ namespace sinta_asp.Areas.Admin.Controllers
             return Json(MapPenelitianToResult(rawData));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetMahasiswaByKampus(string kampus, string? region)
-        {
-            if (string.IsNullOrEmpty(kampus)) return Json(new List<object>());
-
-            var adminRole     = HttpContext.Session.GetString("AdminRole")   ?? "AdminRegion";
-            var sessionRegion = HttpContext.Session.GetString("AdminRegion") ?? "";
-            bool isJawaTengah = string.Equals(sessionRegion, "Regional Jawa Bagian Tengah", StringComparison.OrdinalIgnoreCase);
-
-            string activeRegion = (adminRole == "SuperAdmin" || isJawaTengah)
-                ? (!string.IsNullOrEmpty(region) ? region : "All")
-                : sessionRegion;
-
-            var query = _context.PendaftaranMagang.AsNoTracking().AsQueryable();
-
-            if (adminRole != "SuperAdmin" && !isJawaTengah)
-                query = query.Where(x => x.Region == sessionRegion);
-            else if (activeRegion != "All" && activeRegion != "Semua Region")
-                query = query.Where(x => x.Region == activeRegion);
-            string k = kampus.Trim().ToLower();
-            var rawData = await query
-                .Where(x => x.NamaPerguruanTinggi != null && x.NamaPerguruanTinggi.Trim().ToLower() == k)
-                .OrderByDescending(x => x.CreatedAt)
-                .ToListAsync();
-
-            return Json(MapToResult(rawData));
-        }
 
         [HttpGet]
         public async Task<IActionResult> GetPenelitianByKampus(string kampus, string? region)

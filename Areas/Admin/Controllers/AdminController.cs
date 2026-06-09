@@ -31,7 +31,7 @@ namespace sinta_asp.Areas.Admin.Controllers
             _passwordHasher = new PasswordHasher<AdminModel>();
         }
 
-        // ✅ DIUBAH: Jawa Tengah juga punya akses seperti SuperAdmin
+        // ✅ DIUBAH: SuperAdmin ATAU Admin Jawa Tengah juga dapat akses
         private bool IsUserAuthorized()
         {
             var adminRole   = HttpContext.Session.GetString("AdminRole")?.Trim();

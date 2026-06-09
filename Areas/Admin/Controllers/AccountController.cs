@@ -48,7 +48,7 @@ namespace sinta_asp.Areas.Admin.Controllers
         }
 
         // ==========================================
-        // PROSES LOGIN
+        // PROSES LOGIN (DIUPDATE: Jawa Tengah jadi SuperAdmin session)
         // ==========================================
         [HttpPost]
         public async Task<IActionResult> Login(string Email, string Password)
@@ -86,13 +86,27 @@ namespace sinta_asp.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Password yang Anda masukkan salah." });
             }
 
-            // 4. SET SESSION AUTENTIKASI
+            // ======================================================
+            // 4. SET SESSION AUTENTIKASI (DIUPDATE)
+            // ======================================================
+            // Tentukan role yang akan disimpan di session
+            string sessionRole = admin.Role ?? "AdminRegion";
+            string adminRegion = admin.Region ?? "";
+
+            // ✅ Jika region-nya adalah "Regional Jawa Bagian Tengah", 
+            // maka kita beri role "SuperAdmin" di session.
+            // Ini tidak mengubah database, hanya mengubah persepsi aplikasi terhadap user ini.
+            if (string.Equals(adminRegion, "Regional Jawa Bagian Tengah", StringComparison.OrdinalIgnoreCase))
+            {
+                sessionRole = "SuperAdmin";
+            }
+
             HttpContext.Session.SetString("AdminLogin", "true");
             HttpContext.Session.SetString("AdminId", admin.Id.ToString());
             HttpContext.Session.SetString("AdminNama", admin.Nama);
             HttpContext.Session.SetString("AdminEmail", admin.Email);
-            HttpContext.Session.SetString("AdminRole", (admin.Role ?? "Admin").Trim());
-            HttpContext.Session.SetString("AdminRegion", admin.Region ?? "Nasional");
+            HttpContext.Session.SetString("AdminRole", sessionRole); // Gunakan sessionRole yang sudah dimodifikasi
+            HttpContext.Session.SetString("AdminRegion", adminRegion);
 
             return Json(new { success = true, message = "Login Berhasil! Mengalihkan..." });
         }
