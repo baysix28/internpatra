@@ -452,11 +452,6 @@
                                             <input type="text" class="form-control" asp-for="JudulPenelitian" required>
                                             <div class="invalid-feedback">Wajib diisi.</div>
                                         </div>
-                                        <div class="col-12 mt-2 mb-1">
-                                            <div class="alert alert-info mb-0" style="padding: 8px 12px;">
-                                                <small><i class="bi bi-info-circle"></i> <b>Info:</b> Jangka waktu maksimal adalah 1 bulan. </small>
-                                            </div>
-                                        </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Mulai</label>
                                             <input type="date" class="form-control" asp-for="TglMulai" required onchange="cekTanggalMagang()">
@@ -615,14 +610,35 @@
     let isPaneValid = true;
     
     inputs.forEach(input => {
-        input.setCustomValidity(""); input.classList.remove('is-invalid'); 
+        // Reset error bawaan setiap kali tombol diklik
+        input.setCustomValidity(""); 
+        input.classList.remove('is-invalid'); 
         
+        // 1. Validasi No HP
         if (input.name === "NoHp") {
             const indoRegex = /^08[0-9]{8,13}$/;
-            if (input.value && !indoRegex.test(input.value)) { input.classList.add('is-invalid'); isPaneValid = false; }
+            if (input.value && !indoRegex.test(input.value)) { 
+                input.classList.add('is-invalid'); 
+                isPaneValid = false; 
+            }
+        }
+
+        // 2. [TAMBAHAN BARU] Validasi Tanggal Selesai Tidak Boleh Mundur
+        if (input.name === "TglSelesai") {
+            const inputMulai = pane.querySelector('input[name="TglMulai"]');
+            const feedbackSelesai = input.nextElementSibling;
+            
+            if (inputMulai && inputMulai.value && input.value) {
+                if (new Date(input.value) < new Date(inputMulai.value)) {
+                    input.setCustomValidity("Tanggal mundur"); // Paksa jadi error
+                    if (feedbackSelesai) feedbackSelesai.textContent = "Tanggal selesai tidak boleh mundur.";
+                } else {
+                    if (feedbackSelesai) feedbackSelesai.textContent = "Wajib diisi.";
+                }
+            }
         }
         
-        // Cek validasi default (kosong atau tidak)
+        // 3. Cek validasi default (kosong atau tidak)
         if (!input.value.trim() || !input.checkValidity()) { 
             input.classList.add('is-invalid');
             isPaneValid = false; 
@@ -782,55 +798,37 @@
             }
         }
 
-        // --- 4. FUNGSI CEK TANGGAL MAGANG (Super Akurat & Kalender Terkunci) ---
+        // --- 4. FUNGSI CEK TANGGAL MAGANG (Tanpa Batas 1 Bulan) ---
         function cekTanggalMagang() {
             const inputMulai = document.querySelector('input[name="TglMulai"]');
             const inputSelesai = document.querySelector('input[name="TglSelesai"]');
             const feedbackSelesai = inputSelesai.nextElementSibling;
 
-            // KUNCI 1: Mengunci Kalender HTML secara otomatis
+            // KUNCI 1: Mengunci kalender agar tidak bisa pilih tanggal sebelum tanggal mulai
             if (inputMulai && inputMulai.value) {
-                // Jangan izinkan pilih sebelum tanggal mulai
                 inputSelesai.setAttribute('min', inputMulai.value);
                 
-                // Hitung +1 bulan untuk batas maksimal
-                const tgl = new Date(inputMulai.value);
-                tgl.setMonth(tgl.getMonth() + 1);
-                
-                // Format tanggal YYYY-MM-DD
-                const maxYear = tgl.getFullYear();
-                const maxMonth = String(tgl.getMonth() + 1).padStart(2, '0');
-                const maxDay = String(tgl.getDate()).padStart(2, '0');
-                
-                // Kunci kalender! Tanggal lebih dari ini akan abu-abu
-                inputSelesai.setAttribute('max', `${maxYear}-${maxMonth}-${maxDay}`);
+                // Pastikan pembatas 'max' dihapus jika sebelumnya pernah tersimpan di browser
+                inputSelesai.removeAttribute('max'); 
             }
 
             // KUNCI 2: Teks Peringatan Dinamis
-            // Jika kolom di-backspace sampai kosong, tampilkan "Wajib diisi."
             if (!inputSelesai.value) {
                 if (feedbackSelesai) feedbackSelesai.textContent = "Wajib diisi.";
                 return; 
             }
 
-            // Jika ada isinya, cek jaraknya
+            // Jika ada isinya, cek apakah tanggalnya mundur
             if (inputMulai.value && inputSelesai.value) {
                 const dateMulai = new Date(inputMulai.value);
                 const dateSelesai = new Date(inputSelesai.value);
-                
-                const batasMaksimal = new Date(dateMulai);
-                batasMaksimal.setMonth(batasMaksimal.getMonth() + 1);
 
                 if (dateSelesai < dateMulai) {
                     if (feedbackSelesai) feedbackSelesai.textContent = "Tanggal selesai tidak boleh mundur.";
                     inputSelesai.classList.add('is-invalid');
                     
-                } else if (dateSelesai > batasMaksimal) {
-                    if (feedbackSelesai) feedbackSelesai.textContent = "Jangan lebih dari 1 bulan.";
-                    inputSelesai.classList.add('is-invalid');
-                    
                 } else {
-                    // Kalau rentang tanggalnya aman
+                    // Kalau aman
                     if (feedbackSelesai) feedbackSelesai.textContent = "Wajib diisi.";
                     inputSelesai.classList.remove('is-invalid');
                 }
