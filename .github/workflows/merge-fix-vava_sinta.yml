@@ -39,14 +39,15 @@ jobs:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write 
+      contents: read 
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ./myapp    # <--- TAMBAHKAN BARIS INI
         
       - name: Login to Azure
         uses: azure/login@v2
@@ -61,4 +62,4 @@ jobs:
         with:
           app-name: 'SINTA'
           slot-name: 'Production'
-          package: .
+          package: ./myapp    # <--- UBAH BARIS INI (dari titik menjadi ./myapp)
