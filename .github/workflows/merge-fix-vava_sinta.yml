@@ -24,10 +24,10 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Build with dotnet
-        run: dotnet build sinta-asp.csproj --configuration Release
+        run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish sinta-asp.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -39,25 +39,21 @@ jobs:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write 
-      contents: read 
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-          path: ./myapp    
-          
-      - name: Debug - List contents
-        run: dir ./myapp
-        
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_46DA49CE5DE94E6BBB0883165A884D29 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_52B0EADE1D3D4E9D8D7F7F15D12E4769 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_228ACB7A412C4E1186CEA2AB1DBAE997 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A8AFEAECB9A24F1BAF55FC2C467A5F52 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9DD6F021AAAF41E18AD9E0965B23A126 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_28BCF34B3CD34D13ACD83C3D153F56A3 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -65,4 +61,5 @@ jobs:
         with:
           app-name: 'SINTA'
           slot-name: 'Production'
-          package: ./myapp
+          package: .
+          
