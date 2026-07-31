@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -25,5 +26,8 @@ namespace sinta_asp.Models
         public string Role { get; set; } = "Peserta"; 
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public bool IsEmailConfirmed { get; set; } = false;
+        public string? VerificationToken { get; set; }
     }
 }

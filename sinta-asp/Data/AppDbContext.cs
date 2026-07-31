@@ -26,5 +26,8 @@ namespace sinta_asp.Data
         // ===== LOWONGAN (TAMBAHKAN INI) =====
         public DbSet<Lowongan> Lowongan { get; set; }
 
+        // ===== UserProfile ========
+        public DbSet<UserProfile> UserProfile { get; set; }
+
     }
 }
