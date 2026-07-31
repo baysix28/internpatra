@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using sinta_asp.Data;
 
@@ -11,19 +12,16 @@ using sinta_asp.Data;
 namespace sinta_asp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731030400_TambahTabelUserProfile")]
+    partial class TambahTabelUserProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
-<<<<<<< HEAD
-
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-=======
->>>>>>> FEBRI-FIXX
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
@@ -269,13 +267,7 @@ namespace sinta_asp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-<<<<<<< HEAD
-
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-=======
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
->>>>>>> FEBRI-FIXX
 
                     b.Property<string>("Company")
                         .IsRequired()
@@ -321,17 +313,6 @@ namespace sinta_asp.Migrations
 
                     b.Property<string>("PathCV")
                         .HasColumnType("nvarchar(max)");
-<<<<<<< HEAD
-
-                    b.Property<string>("PathFoto3x4")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PathFoto3x4")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-=======
->>>>>>> FEBRI-FIXX
 
                     b.Property<string>("PathProposal")
                         .HasColumnType("nvarchar(max)");

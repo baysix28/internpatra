@@ -2,32 +2,88 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="container mt-5">
-    <div class="row text-center">
+<div class="container-fluid py-3" style="min-height: 72vh;">
+    <div class="container">
+        <div class="card border-0 shadow-lg p-4" style="border-radius: 20px; background-color: #ffffff;">
+            
+            <div class="row align-items-center mb-4">
+                <div class="col-md-7 col-lg-8">
+                    <h2 class="fw-bold mb-0 text-dark">Selamat Datang, di SINTA!</h2>
+                    @* <p class="text-muted small mb-0">Kelola pendaftaran magang dan penelitian Anda di sini secara efisien.</p> *@
+                </div>
 
-        <div class="col-md-4">
-            <h4>Magang Kerja</h4>
-            <p>Mau merasakan magang di PT. Pertamina (Persero)?</p>
-            <a href="@Url.Action("Index", "PendaftaranMagang")" class="btn btn-primary w-100">
-                Informasi Magang Kerja
-            </a>
-        </div>
+                <div class="col-md-5 col-lg-4 d-flex justify-content-end align-items-center gap-3">
+                    <div class="text-end d-none d-md-block">
+                        <p class="mb-0 fw-bold text-dark small">Sudah daftar?</p>
+                        <p class="mb-0 text-muted" style="font-size: 0.7rem;">Masuk ke Dashboard Peserta</p>
+                    </div>
+                    
+                    <div class="dropdown">
+                        <a href="#" class="login-circle d-flex align-items-center justify-content-center shadow transition-all" 
+                           id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user fa-lg"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item py-2" href="@Url.Action("Login", "Auth")"><i class="fas fa-sign-in-alt me-2 text-primary"></i> Login</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item py-2" href="@Url.Action("Register", "Auth")"><i class="fas fa-user-plus me-2 text-success"></i> Buat Akun</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 
-        <div class="col-md-4">
-            <h4>Penelitian</h4>
-            <p>Penelitianmu berkaitan dengan Pertamina?</p>
-            <a href="@Url.Action("Index", "Penelitian")" class="btn btn-info text-white w-100">
-                Daftar Penelitian
-            </a>
-        </div>
+            <hr class="text-muted opacity-25 mb-4">
 
-        <div class="col-md-4">
-            <h4>Hasil Pendaftaran</h4>
-            <p>Penasaran apakah pendaftaranmu diterima?</p>
-            <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-success w-100">
-                Periksa Hasil Pendaftaran
-            </a>
-        </div>
+            <div class="row text-center g-3">
+                <div class="col-md-4">
+                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
+                        <h5 class="fw-bold mb-2">Magang Kerja</h5>
+                        <p class="text-muted small mb-3">Rasakan pengalaman kerja nyata di PT. Pertamina (Persero).</p>
+                        <div class="mt-auto">
+                            <a href="@Url.Action("Index", "PendaftaranMagang")" class="btn btn-primary w-100 py-2 shadow-sm">Informasi Magang</a>
+                        </div>
+                    </div>
+                </div>
 
-    </div>
+                <div class="col-md-4">
+                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
+                        <h5 class="fw-bold mb-2">Penelitian</h5>
+                        <p class="text-muted small mb-3">Dukungan data untuk penelitian akademik Anda.</p>
+                        <div class="mt-auto">
+                            <a href="@Url.Action("Index", "Penelitian")" class="btn btn-info text-white w-100 py-2 shadow-sm">Informasi Penelitian</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border shadow-sm h-100 p-3 bg-light border-0" style="border-radius: 15px;">
+                        <h5 class="fw-bold mb-2">Hasil</h5>
+                        <p class="text-muted small mb-3">Pantau status pengajuan pendaftaran Anda secara berkala.</p>
+                        <div class="mt-auto">
+                            <a href="@Url.Action("Index", "HasilPendaftaran")" class="btn btn-success w-100 py-2 shadow-sm">Periksa Hasil</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> </div>
 </div>
+
+<style>
+    .login-circle {
+        width: 45px;
+        height: 45px;
+        background-color: #102C54;
+        color: white;
+        border-radius: 50%;
+        text-decoration: none;
+    }
+    .login-circle:hover { transform: scale(1.05); background-color: #1a417a; }
+    .transition-all { transition: all 0.2s ease-in-out; }
+    
+    /* Hover effect untuk kotak menu di dalam */
+    .bg-light:hover {
+        background-color: #f0f4f8 !important;
+        transform: translateY(-3px);
+        transition: 0.3s;
+    }
+</style>

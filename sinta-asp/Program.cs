@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using sinta_asp.Data;
+<<<<<<< HEAD
 using sinta_asp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,17 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
+=======
+using Microsoft.AspNetCore.Authentication.Cookies;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// 1. KONEKSI KE DATABASE (SQL Server)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+>>>>>>> FEBRI-FIXX
 
 // --- KONFIGURASI SESSION (Penting buat Login) ---
 builder.Services.AddDistributedMemoryCache(); // Tambahan biar session makin lancar
@@ -24,6 +36,13 @@ builder.Services.AddSession(options =>
 
 // Service buat Controller & View
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login"; // Alamat jika user maksa masuk tapi belum login
+        options.AccessDeniedPath = "/Home/AccessDenied";
+    });
 
 var app = builder.Build();
 

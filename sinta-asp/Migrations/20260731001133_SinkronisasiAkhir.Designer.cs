@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using sinta_asp.Data;
 
@@ -11,19 +12,16 @@ using sinta_asp.Data;
 namespace sinta_asp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260731001133_SinkronisasiAkhir")]
+    partial class SinkronisasiAkhir
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
-<<<<<<< HEAD
-
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-=======
->>>>>>> FEBRI-FIXX
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
@@ -269,13 +267,7 @@ namespace sinta_asp.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-<<<<<<< HEAD
-
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-=======
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
->>>>>>> FEBRI-FIXX
 
                     b.Property<string>("Company")
                         .IsRequired()
@@ -321,17 +313,6 @@ namespace sinta_asp.Migrations
 
                     b.Property<string>("PathCV")
                         .HasColumnType("nvarchar(max)");
-<<<<<<< HEAD
-
-                    b.Property<string>("PathFoto3x4")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PathFoto3x4")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-=======
->>>>>>> FEBRI-FIXX
 
                     b.Property<string>("PathProposal")
                         .HasColumnType("nvarchar(max)");
@@ -390,9 +371,6 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsEmailConfirmed")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Nama")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -405,48 +383,9 @@ namespace sinta_asp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("VerificationToken")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("sinta_asp.Models.UserProfile", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FotoProfil")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NamaLengkap")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NamaPerguruanTinggi")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NoHP")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserProfile");
                 });
 #pragma warning restore 612, 618
         }

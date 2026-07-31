@@ -14,10 +14,20 @@ namespace sinta_asp.Data
         public DbSet<Mahasiswa> Mahasiswa { get; set; }
         public DbSet<Admin> Admins { get; set; }
 
-        // ===== PENDAFTARAN =====
+        // ===== USER =====
+        public DbSet<User> Users { get; set; }
+
+        // ===== PENDAFTARAN PENELITIAN =====
         public DbSet<Pendaftaran> Pendaftarans { get; set; }
 
         // ===== MAGANG =====
         public DbSet<Magang> PendaftaranMagang { get; set; }
+
+        // ===== LOWONGAN (TAMBAHKAN INI) =====
+        public DbSet<Lowongan> Lowongan { get; set; }
+
+        // ===== UserProfile ========
+        public DbSet<UserProfile> UserProfile { get; set; }
+
     }
 }
