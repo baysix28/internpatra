@@ -42,5 +42,11 @@ namespace sinta_asp.Models
         // Kolom tambahan otomatis (Optional, bagus buat tracking)
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public string Status { get; set; } = "Menunggu"; // Default: Menunggu Review
+
+        // Kolom baru
+        public string? NoPendaftaran { get; set; }
+        public string? CatatanRevisi { get; set; }
+        public string? RevisiFields { get; set; }
+        public string? UserId { get; set; }
     }
 }

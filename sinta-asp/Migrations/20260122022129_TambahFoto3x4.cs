@@ -13,9 +13,9 @@ namespace sinta_asp.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "PathFoto3x4",
                 table: "Pendaftarans",
-                type: "longtext",
-                nullable: false)
-                .Annotation("MySql:CharSet", "utf8mb4");
+                type: "nvarchar(max)",
+                nullable: false,
+                defaultValue: "");
         }
 
         /// <inheritdoc />

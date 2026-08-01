@@ -1,17 +1,16 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace sinta_asp.Migrations
 {
     /// <inheritdoc />
-    public partial class InisialSQLServer : Migration
+    public partial class UpdateKolomDashboard : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // KOSONG - Kita melewati pembuatan tabel karena tabel Pendaftarans sudah ada di Azure
+            // KOSONG - Kita lewati karena PathFoto3x4 sudah ada di Azure
         }
 
         /// <inheritdoc />
